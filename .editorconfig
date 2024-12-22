@@ -1,0 +1,54 @@
+root=true
+
+# Ignore linting for plugins
+[Assets/Plugins/**.cs]
+generated_code = true
+
+[*.cs]
+# Unsupported C# features
+dotnet_diagnostic.IDE0090.severity = none
+dotnet_diagnostic.IDE0063.severity = none
+dotnet_diagnostic.IDE0066.severity = none
+dotnet_diagnostic.IDE0054.severity = none
+dotnet_diagnostic.IDE0083.severity = none
+dotnet_diagnostic.IDE0019.severity = none
+dotnet_diagnostic.IDE0251.severity = none
+
+# Unnecessary value assignment
+dotnet_diagnostic.IDE0059.severity = none
+
+# Using directive should appear within a namespace declaration
+dotnet_diagnostic.SA1200.severity = None
+
+# The file header is missing or not located at the top of the file
+dotnet_diagnostic.SA1633.severity = None
+    
+# Use string.Empty for empty strings
+dotnet_diagnostic.SA1122.severity = None
+    
+# Each attribute should be placed on its own line of code
+dotnet_diagnostic.SA1134.severity = None
+
+# Type parameter names should begin with T
+dotnet_diagnostic.SA1314.severity = None
+    
+# Elements should be documented
+dotnet_diagnostic.SA1600.severity = None
+    
+# Prefix local calls with this
+dotnet_diagnostic.SA1101.severity = None
+    
+# Comments should contain text
+dotnet_diagnostic.SA1120.severity = None
+    
+# Constant fields should appear before non-constant fields
+dotnet_diagnostic.SA1203.severity = None
+
+# The parameter spans multiple lines
+dotnet_diagnostic.SA1118.severity = None
+
+# Enumeration items should be documented
+dotnet_diagnostic.SA1602.severity = None
+
+# Readonly fields should appear before non-readonly fields
+dotnet_diagnostic.SA1214.severity = None

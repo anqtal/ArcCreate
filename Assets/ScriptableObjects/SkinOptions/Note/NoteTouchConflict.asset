@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7e5414a228195c4299f177a46a7a701, type: 3}
+  m_Name: NoteTouchConflict
+  m_EditorClassIdentifier: 
+  Name: conflict
+  arcTapSfxSkin: {fileID: 2800000, guid: fada9ff30303f6b49a6d1bcd253d0404, type: 3}
+  ConnectionLineColor: {r: 0.6666667, g: 0.32941177, b: 0.627451, a: 1}
+  tapSkin: {fileID: 2800000, guid: 26654a6c9459e8140a8b72f84d2661dd, type: 3}
+  holdSkin: {fileID: 2800000, guid: 3560a7ab8c736334ca4b4edc20882c4e, type: 3}
+  holdHighlightSkin: {fileID: 2800000, guid: 2efc07c53d449484ea317b68104d6cde, type: 3}
+  arcTapSkin: {fileID: 2800000, guid: 22ea1e60d6911bd44a359ef1a47e7fb3, type: 3}
+  arcCapSprite: {fileID: 2800000, guid: 6f7323c1674871d41a1cc25fbcf709a5, type: 3}

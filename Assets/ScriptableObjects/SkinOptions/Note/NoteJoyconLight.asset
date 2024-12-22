@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3caab43da0dabb47a61f52ba3bf53c8, type: 3}
+  m_Name: NoteJoyconLight
+  m_EditorClassIdentifier: 
+  Name: light
+  arcTapSfxSkin: {fileID: 2800000, guid: 042d8e9fedad3bc47a1c7d6490434dad, type: 3}
+  ConnectionLineColor: {r: 0.47058824, g: 0.78431374, b: 0.8627451, a: 1}
+  tapSkinLeft: {fileID: 2800000, guid: 219258b69234d4941bc6364b7209bb23, type: 3}
+  tapSkinRight: {fileID: 2800000, guid: f8e30d4330eb6354abe9c3ddd16c40ce, type: 3}
+  holdSkinLeft: {fileID: 2800000, guid: 6cb99a04d46a86e469c25cedef78a94a, type: 3}
+  holdSkinRight: {fileID: 2800000, guid: cbd28f030a11ce1469085706768b5b48, type: 3}
+  holdHighlightSkinLeft: {fileID: 2800000, guid: 536381d1d7d3c014189b2ea4440dee10,
+    type: 3}
+  holdHighlightSkinRight: {fileID: 2800000, guid: 8afa3c4493055fe44a8fe2e279e86773,
+    type: 3}
+  arcCapSprites:
+  - {fileID: 2800000, guid: 14ac3e60f5090924abe570ef877870c9, type: 3}
+  - {fileID: 2800000, guid: 561503315d819694983417f63d4bec61, type: 3}
+  - {fileID: 2800000, guid: 02d5a25fdf1bfb04b996073d7b64c4b7, type: 3}
+  - {fileID: 2800000, guid: b468296730b482849bc2339a905f431b, type: 3}
+  arcTapSkinLeft: {fileID: 2800000, guid: 0054a521abf9e88429e16a8a76516a6a, type: 3}
+  arcTapSkinMiddle: {fileID: 2800000, guid: 9baf58acd840e5e4497f337b6ebce749, type: 3}
+  arcTapSkinRight: {fileID: 2800000, guid: fb2855f70126c4741941541ee56a0bc0, type: 3}

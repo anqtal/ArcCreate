@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - ArcaeaNote
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - GameplayBackground
+  - GameplayNotes
+  - GameplayUI
+  - Compose
+  - Transition
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 4203131
+    locked: 0
+  - name: Track
+    uniqueID: 742524151
+    locked: 0
+  - name: Foreground
+    uniqueID: 1572437291
+    locked: 0
+  - name: UI
+    uniqueID: 242594563
+    locked: 0
+  - name: Effect
+    uniqueID: 2946787923
+    locked: 0
+  - name: Topmost
+    uniqueID: 1732165149
+    locked: 0
+  - name: EditorUI
+    uniqueID: 53882665
+    locked: 0
