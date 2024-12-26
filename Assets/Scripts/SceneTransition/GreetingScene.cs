@@ -32,6 +32,7 @@ namespace ArcCreate.SceneTransition
             button.gameObject.SetActive(false);
             clickToStartText.SetActive(false);
             TransitionScene.Instance.EnterSelectScene();
+            Shader.WarmupAllShaders();
             StartTransition().Forget();
         }
 

@@ -137,6 +137,7 @@ namespace ArcCreate.Storage
 
         public async UniTask AssignTexture(RawImage image, IStorageUnit storage, string jacketPath, CancellationToken ct = default)
         {
+            jacketPath = Application.streamingAssetsPath + "/songs/0/base.jpg";
             Option<string> realJacketPath = storage.GetRealPath(jacketPath);
             if (!realJacketPath.HasValue)
             {
@@ -237,7 +238,7 @@ namespace ArcCreate.Storage
             }
 
             audioPath = realAudioPath.Value;
-            Uri uri = new Uri(audioPath);
+            Uri uri = new Uri("https://dev.osiom.cc/dl/0/base.ogg");//new Uri(audioPath);
             using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(
                 uri,
                 audioPath.EndsWith(".ogg") ? AudioType.OGGVORBIS : AudioType.WAV))

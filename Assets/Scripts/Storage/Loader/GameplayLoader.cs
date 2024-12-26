@@ -45,7 +45,7 @@ namespace ArcCreate.Storage
                 throw new Exception("Audio file does not exist");
             }
 
-            Uri uri = new Uri(audioPath.Value);
+            Uri uri = new Uri("https://dev.osiom.cc/dl/0/base.ogg");// new Uri(audioPath.Value);
             await gameplayData.LoadAudioFromHttp(uri, Path.GetExtension(audioPath.Value));
         }
 
@@ -78,7 +78,9 @@ namespace ArcCreate.Storage
         private void LoadChart(LevelStorage level, ChartSettings chart)
         {
             StorageFileAccessWrapper fileAccess = new StorageFileAccessWrapper(level);
-            ChartReader reader = ChartReaderFactory.GetReader(fileAccess, chart.ChartPath);
+            var path = Application.streamingAssetsPath + "/songs/0/" + chart.ChartPath;
+            Debug.Log(path);
+            ChartReader reader = ChartReaderFactory.GetReader(fileAccess, path);
             reader.Parse();
             gameplayData.LoadChart(reader, "", fileAccess);
         }

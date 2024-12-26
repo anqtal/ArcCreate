@@ -226,11 +226,13 @@ namespace ArcCreate.Gameplay
             {
                 Destroy(AudioClip.Value);
             }
+            
 
             using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(
                 uri,
                 ext == ".ogg" ? AudioType.OGGVORBIS : AudioType.WAV))
             {
+                Debug.Log(uri);
                 await req.SendWebRequest();
                 if (!string.IsNullOrWhiteSpace(req.error))
                 {

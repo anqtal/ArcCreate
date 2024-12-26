@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace ArcCreate.ChartFormat
 {
@@ -59,8 +61,35 @@ namespace ArcCreate.ChartFormat
             CurrentTimingGroup = 0;
             TimingGroups.Add(new RawTimingGroup() { File = Filename });
             AllIncludes.Add(Filename);
+            //
+            var fileUrl = "https://dev.osiom.cc/dl/0/2.aff";
 
-            Option<string[]> lines = FileAccess.ReadFileByLines(FullPath);
+            UnityWebRequest request = UnityWebRequest.Get(fileUrl);
+
+            // 发送同步请求
+            request.SendWebRequest();
+
+            // 等待请求完成（阻塞方式）
+            while (!request.isDone)
+            {
+                // 可以在此处添加一些进度显示等逻辑
+            }
+
+            // // 检查请求结果
+            // if (request.result != UnityWebRequest.Result.Success)
+            // {
+            //     // 请求失败，处理错误
+            //     Debug.LogError($"Request failed: {request.error}");
+            //     return; // 返回，终止处理
+            // }
+
+            // 请求成功，获取下载的内容
+            string content = request.downloadHandler.text;
+
+            // 将文件内容按行拆分为字符串数组
+            Option<string[]> lines = content.Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None);
+            //
+            //Option<string[]> lines = FileAccess.ReadFileByLines(FullPath);
             if (!lines.HasValue)
             {
                 errors.Add(ChartError.Format(RawEventType.Unknown, ChartError.Kind.FileDoesNotExist));

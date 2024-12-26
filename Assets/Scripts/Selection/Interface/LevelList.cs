@@ -164,6 +164,7 @@ namespace ArcCreate.Selection.Interface
             }
 
             List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? storageData.GetAllLevels())?.ToList();
+
             if (levels?.Count == 0)
             {
                 packList.BackToPackList();
