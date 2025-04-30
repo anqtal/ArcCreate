@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using ArcCreate.Data;
@@ -13,10 +14,33 @@ using UltraLiteDB;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using YamlDotNet.Serialization;
+
+
 
 namespace ArcCreate.Storage
 {
+
+    public class DifficultyData
+    {
+        public string RatingClass;
+        public int Rating;
+        public bool RatingPlus;
+        public string NoteDesigner;
+    }
+    public class SongData
+    {
+        public string SongId;
+        public string Title;
+        public string Artist;
+        public string BpmBase;
+        public string Background;
+        public List<DifficultyData> Difficulty;
+    }
+    
     [CreateAssetMenu(fileName = "StorageData", menuName = "ScriptableObject/StorageData")]
+
+
     public class StorageData : ScriptableObject
     {
         private static readonly LRUCache<string, Incompletable<Texture>> JacketCache = new LRUCache<string, Incompletable<Texture>>(50, DestroyCache);
@@ -54,10 +78,124 @@ namespace ArcCreate.Storage
         {
             return LevelCollection.FindOne(Query.EQ("Identifier", id));
         }
+        
+        
+        private static List<LevelStorage> LoadYaml()
+        {
+            var yamlFilePath = Path.Combine(Application.streamingAssetsPath, "songs.yaml");
+            var yamlText = File.ReadAllText(yamlFilePath);
+            var levels = ParseYaml(yamlText);
+            return levels;
+        }
+
+        private static List<LevelStorage> ParseYaml(string yamlText)
+        {
+            var deserializer = new DeserializerBuilder()
+                .Build();
+            var songs = deserializer.Deserialize<List<Dictionary<string, object>>>(yamlText);
+            var levels = new List<LevelStorage>();
+            foreach (var song in songs)
+            {
+                var id = song.TryGetValue("id", out var value0) ? value0.ToString() : "Unknown";
+                var title = song.TryGetValue("title", out var value) ? value.ToString() : "Unknown";
+                var artist = song.TryGetValue("artist", out var value1) ? value1.ToString() : "Unknown";
+                var bpm = song.TryGetValue("bpm_base", out var value2) ? value2.ToString() : "Unknown";
+                var bg = song.TryGetValue("bg", out var value3) ? value3.ToString() : "Unknown";
+                var bgInverse = song.TryGetValue("bg_inverse", out var value4) ? value4.ToString() : "Unknown";
+                var side = song.TryGetValue("side", out var value5) ? value5.ToString() : "Unknown";
+                var notedesigner = "Unknown";
+                var difficultyId = "Unknown";
+                var notedesigner2 = "Unknown";
+                var difficultyId2 = "Unknown";
+                var diff = song.TryGetValue("difficulties", out var diffObj) ? diffObj as List<object> : null;
+                var ratingPlusSymbol = "";
+                var ratingPlusSymbol2 = "";
+                if (diff != null)
+                {
+                    var masDiff = diff[2];
+                    var masDiffDict = masDiff as Dictionary<object, object>;
+                    notedesigner = (string)masDiffDict?["chartDesigner"];
+                    difficultyId = (string)masDiffDict?["rating"];
+                    ratingPlusSymbol = masDiffDict.TryGetValue("ratingPlus",out var ratingPlusObj) ? ratingPlusObj.ToString() : "";
+                    if (diff.Count == 4)
+                    {
+                        var masDiff2 = diff[3];
+                        var masDiffDict2 = masDiff2 as Dictionary<object, object>;
+                        notedesigner2 = (string)masDiffDict2?["chartDesigner"];
+                        difficultyId2 = (string)masDiffDict2?["rating"];
+                        ratingPlusSymbol2 = masDiffDict.TryGetValue("ratingPlus",out var ratingPlusObj2) ? ratingPlusObj2.ToString() : "";
+                    }
+                    if (ratingPlusSymbol == "true") ratingPlusSymbol = "+";
+                    if (ratingPlusSymbol2 == "true") ratingPlusSymbol2 = "+";
+                }
+                
+                
+
+                
+
+                var bpmValue = float.TryParse(bpm, out float result) ? result : 0f;
+                var customLevel = new LevelStorage
+                {
+                    Id = levels.Count + 1,
+                    Identifier = id,
+                    Settings = new ProjectSettings
+                    {
+                        EditorSettings = new EditorProjectSettings(),
+                        Charts = new List<ChartSettings>
+                        {
+                            new()
+                            {
+                                Title = title,
+                                ChartPath = $"{id}-2",
+                                AudioPath = $"{id}",
+                                Difficulty = $"MASTER {difficultyId}{ratingPlusSymbol}",
+                                BackgroundPath = side == "1" ? bg : bgInverse,
+                                Charter = notedesigner,
+                                Composer = artist,
+                                SearchTags = title,
+                                BpmText = bpm,
+                                BaseBpm = bpmValue,
+                                DifficultyColor = "#9851d3",
+                                PreviewStart = 1,
+                                PreviewEnd = 100,
+                                Skin = new SkinSettings(){Accent = "conflict", Note = "conflict", Particle = "conflict", Track = "conflict", Side = "conflict"}
+                                
+                            }
+                        }
+                    },
+                    AddedDate = DateTime.Now
+                };
+                if (notedesigner2 != "Unknown" && difficultyId2 != "Unknown")
+                {
+                    customLevel.Settings.Charts.Add(new ChartSettings(){
+                        Title = title,
+                        ChartPath = $"{id}-4",
+                        AudioPath = $"{id}",
+                        BackgroundPath = side == "1" ? bg : bgInverse,
+                        Difficulty = $"Re: MASTER {difficultyId2}{ratingPlusSymbol2}",
+                        Charter = notedesigner2,
+                        Composer = artist,
+                        SearchTags = title,
+                        BpmText = bpm,
+                        BaseBpm = bpmValue,
+                        DifficultyColor = "#dba9fe",
+                        PreviewStart = 1,
+                        PreviewEnd = 100,
+                        Skin = new SkinSettings(){Accent = "conflict", Note = "conflict", Particle = "conflict", Track = "conflict", Side = "conflict"}
+                    });
+                }
+
+                levels.Add(customLevel);
+            }
+
+            return levels;
+        }
 
         public IEnumerable<LevelStorage> GetAllLevels()
         {
-            return LevelCollection.FindAll();
+            var levels = LoadYaml();
+            return levels;
+            //return LevelCollection.FindAll();
         }
 
         public void ClearLevels()
@@ -137,7 +275,7 @@ namespace ArcCreate.Storage
 
         public async UniTask AssignTexture(RawImage image, IStorageUnit storage, string jacketPath, CancellationToken ct = default)
         {
-            jacketPath = Application.streamingAssetsPath + "/songs/0/base.jpg";
+            jacketPath = Application.streamingAssetsPath + "/songs/" + storage.Identifier +"/base.jpg";
             Option<string> realJacketPath = storage.GetRealPath(jacketPath);
             if (!realJacketPath.HasValue)
             {
@@ -231,19 +369,15 @@ namespace ArcCreate.Storage
 
         public async UniTask<AudioClip> GetAudioClipStreaming(IStorageUnit level, string audioPath)
         {
-            Option<string> realAudioPath = level.GetRealPath(audioPath);
-            if (!realAudioPath.HasValue)
-            {
-                return null;
-            }
-
-            audioPath = realAudioPath.Value;
-            Uri uri = new Uri("https://dev.osiom.cc/dl/0/base.ogg");//new Uri(audioPath);
+            var auPath = Path.Combine(Application.streamingAssetsPath,"songs",level.Identifier,"preview.ogg");
+            Uri uri = new Uri(auPath);
             using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(
-                uri,
-                audioPath.EndsWith(".ogg") ? AudioType.OGGVORBIS : AudioType.WAV))
+                       uri,
+                       AudioType.OGGVORBIS))
             {
+                req.disposeDownloadHandlerOnDispose = true; // 确保每次请求都会清除下载处理器
                 ((DownloadHandlerAudioClip)req.downloadHandler).streamAudio = true;
+                req.SetRequestHeader("Cache-Control", "no-cache"); // 禁用缓存
                 await req.SendWebRequest();
 
                 while (req.result == UnityWebRequest.Result.ConnectionError && req.downloadedBytes < 1024)
@@ -335,12 +469,14 @@ namespace ArcCreate.Storage
                     OnSwitchToGameplaySceneException?.Invoke(e);
                 })
                 .ContinueWith(() => gameplay?.Audio.PlayWithDelay(0, Values.DelayBeforeAudioStart));
+            
+                
 
             gameplayData.OnPlayComplete -= OnPlayComplete;
             gameplayData.OnPlayComplete += OnPlayComplete;
         }
 
-        public void SwitchToResultScene(LevelStorage level, ChartSettings chart, PlayResult result, bool isAuto)
+        private void SwitchToResultScene(LevelStorage level, ChartSettings chart, PlayResult result, bool isAuto)
         {
             TransitionSequence transition = new TransitionSequence()
                 .OnShow()

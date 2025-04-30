@@ -147,12 +147,12 @@ namespace ArcCreate.Gameplay
         /// <param name="path">The path to load.</param>
         public void LoadBackground(string path)
         {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            {
-                Background.Value = Services.Skin.DefaultBackground;
-                isUsingDefaultBackground = true;
-                return;
-            }
+            // if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            // {
+            //     Background.Value = Services.Skin.DefaultBackground;
+            //     isUsingDefaultBackground = true;
+            //     return;
+            // }
 
             if (Background.Value != null && !isUsingDefaultBackground)
             {
@@ -160,7 +160,9 @@ namespace ArcCreate.Gameplay
                 Destroy(Background.Value);
             }
 
-            Texture2D t = new Texture2D(1, 1);
+            path = Path.Combine(Application.streamingAssetsPath, "bg", path+".jpg");
+            Debug.Log(path);
+            var t = new Texture2D(1, 1);
             t.wrapMode = TextureWrapMode.Clamp;
             t.LoadImage(File.ReadAllBytes(path), true);
             Sprite sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
@@ -286,27 +288,25 @@ namespace ArcCreate.Gameplay
                 Destroy(Background.Value);
             }
 
-            using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(uri))
+            using var req = UnityWebRequestTexture.GetTexture(uri);
+            await req.SendWebRequest();
+            if (!string.IsNullOrWhiteSpace(req.error))
             {
-                await req.SendWebRequest();
-                if (!string.IsNullOrWhiteSpace(req.error))
+                Background.Value = Services.Skin.DefaultBackground;
+                isUsingDefaultBackground = true;
+
+                Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>()
                 {
-                    Background.Value = Services.Skin.DefaultBackground;
-                    isUsingDefaultBackground = true;
-
-                    Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>()
-                    {
-                        { "Path", uri },
-                        { "Error", req.error },
-                    }));
-                    return;
-                }
-
-                Texture2D t = DownloadHandlerTexture.GetContent(req);
-                Sprite sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
-                Background.Value = sprite;
-                isUsingDefaultBackground = false;
+                    { "Path", uri },
+                    { "Error", req.error },
+                }));
+                return;
             }
+
+            Texture2D t = DownloadHandlerTexture.GetContent(req);
+            Sprite sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+            Background.Value = sprite;
+            isUsingDefaultBackground = false;
         }
 
         public void LoadVideoBackground(string path, bool isUri)

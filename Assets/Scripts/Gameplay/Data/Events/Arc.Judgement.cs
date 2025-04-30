@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Judgement;
 using ArcCreate.Gameplay.Utility;
 using UnityEngine;
@@ -113,7 +114,8 @@ namespace ArcCreate.Gameplay.Data
                 SetGroupHighlight(true, currentTiming + Values.HoldParticlePersistDuration);
                 if (!hasBeenHitOnce)
                 {
-                    Services.Hitsound.PlayArcHitsound(Timing);
+                    BassAudioService.Instance.PlayTapHitSound(Timing);
+                    //Services.Hitsound.PlayArcHitsound(Timing);
                 }
 
                 hasBeenHitOnce = true;
@@ -137,6 +139,7 @@ namespace ArcCreate.Gameplay.Data
             for (int t = numJudgementRequestsSent; t < TotalCombo; t++)
             {
                 int timing = (int)System.Math.Round(FirstJudgeTime + (t * TimeIncrement));
+                var td = (int)FirstJudgeTime;
                 Services.Judgement.Request(new ArcJudgementRequest()
                 {
                     StartAtTiming = timing - Values.GoodJudgeWindow,
@@ -147,6 +150,7 @@ namespace ArcCreate.Gameplay.Data
                     Receiver = this,
                     Properties = props,
                 });
+                Services.Hitsound.PlayAnswerSound(td);
             }
 
             numJudgementRequestsSent = TotalCombo;

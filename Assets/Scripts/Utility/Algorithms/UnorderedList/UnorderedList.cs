@@ -11,9 +11,9 @@ namespace ArcCreate.Utility
     /// (i.e from the last element to the first element).
     /// </remarks>
     /// <typeparam name="T">The type of the list elements.</typeparam>
-    public readonly struct UnorderedList<T>
+    public struct UnorderedList<T>
     {
-        private readonly List<T> list;
+        private List<T> list;
 
         public UnorderedList(int capacity)
         {
@@ -52,6 +52,17 @@ namespace ArcCreate.Utility
         public void Clear()
         {
             list.Clear();
+        }
+        
+        /// <summary>
+        /// Creates a deep copy of this UnorderedList.
+        /// </summary>
+        /// <returns>A new UnorderedList with the same elements.</returns>
+        public UnorderedList<T> Clone()
+        {
+            UnorderedList<T> copy = new UnorderedList<T>(list.Count);
+            copy.list = new List<T>(list); // 深拷贝列表
+            return copy;
         }
     }
 }

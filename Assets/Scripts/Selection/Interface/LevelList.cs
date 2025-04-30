@@ -256,7 +256,7 @@ namespace ArcCreate.Selection.Interface
         private void SelectRandom()
         {
             List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? storageData.GetAllLevels())?.ToList();
-            if (levels.Count <= 0)
+            if (levels?.Count <= 0)
             {
                 return;
             }

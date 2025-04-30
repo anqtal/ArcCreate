@@ -36,6 +36,8 @@ namespace ArcCreate.Storage.Data
 
         public static PlayHistory GetHistoryForChart(string levelId, string chartPath)
         {
+            levelId = "0";
+            chartPath = "0";
             if (cache == null)
             {
                 cache = new Dictionary<(string levelId, string chartPath), PlayHistory>();

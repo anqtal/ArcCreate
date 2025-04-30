@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Judgement;
 using ArcCreate.Utility.Extension;
 using UnityEngine;
@@ -79,6 +80,10 @@ namespace ArcCreate.Gameplay.Data
 
         public void UpdateJudgement(int currentTiming, GroupProperties groupProperties)
         {
+            if (!judgementRequestSent && currentTiming >= Timing)
+            {
+                
+            }
             if (!judgementRequestSent && currentTiming <= Timing)
             {
                 RequestJudgement(groupProperties);
@@ -143,11 +148,11 @@ namespace ArcCreate.Gameplay.Data
             Services.Particle.PlayTextParticle(new Vector3(ArcFormula.LaneToWorldX(Lane), 0) + judgeOffset, result, offset);
             Services.Score.ProcessJudgement(result, offset);
             isHit = true;
-
             if (!result.IsMiss())
             {
-                Services.InputFeedback.LaneFeedback(Lane);
-                Services.Hitsound.PlayTapHitsound(Timing);
+                Services.InputFeedback.LaneFeedback(Lane); 
+                //Services.Hitsound.PlayTapHitsound(Timing);
+                BassAudioService.Instance.PlayTapHitSound(Timing);
             }
         }
 

@@ -30,8 +30,8 @@ namespace ArcCreate.Selection.Interface
         {
             Settings.SelectionGroupStrategy.OnValueChanged.AddListener(OnGroupStrategyChanged);
             Settings.SelectionSortStrategy.OnValueChanged.AddListener(OnSortStrategyChanged);
-            SetGroupStrategy(Settings.SelectionGroupStrategy.Value);
-            SetSortStrategy(Settings.SelectionSortStrategy.Value);
+            SetGroupStrategy("none");//(Settings.SelectionGroupStrategy.Value);
+            SetSortStrategy("title");//(Settings.SelectionSortStrategy.Value);
 
             toggleSearchButton.onClick.AddListener(ToggleSearchMenu);
             searchField.onValueChanged.AddListener(OnSearchField);

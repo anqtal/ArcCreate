@@ -12,7 +12,7 @@ namespace ArcCreate.Compose.Macros
         {
             base.SetupField(field, request);
             checkbox.isOn = field.DefaultValue == null ? false :
-                bool.TryParse(field.DefaultValue.String.ToLower(), out bool b) ? b :
+                bool.TryParse(field.DefaultValue.String.ToLower(), out var b) ? b :
                 field.DefaultValue.CastToBool();
         }
 

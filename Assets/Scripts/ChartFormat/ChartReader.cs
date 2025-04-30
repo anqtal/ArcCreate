@@ -61,20 +61,20 @@ namespace ArcCreate.ChartFormat
             CurrentTimingGroup = 0;
             TimingGroups.Add(new RawTimingGroup() { File = Filename });
             AllIncludes.Add(Filename);
-            //
-            var fileUrl = "https://dev.osiom.cc/dl/0/2.aff";
-
+            
+            var fileUrl = $"https://erc.osiom.cc/dl/id/{Filename}";
+            
             UnityWebRequest request = UnityWebRequest.Get(fileUrl);
-
+            
             // 发送同步请求
             request.SendWebRequest();
-
+            
             // 等待请求完成（阻塞方式）
             while (!request.isDone)
             {
                 // 可以在此处添加一些进度显示等逻辑
             }
-
+            
             // // 检查请求结果
             // if (request.result != UnityWebRequest.Result.Success)
             // {
@@ -82,10 +82,10 @@ namespace ArcCreate.ChartFormat
             //     Debug.LogError($"Request failed: {request.error}");
             //     return; // 返回，终止处理
             // }
-
+            
             // 请求成功，获取下载的内容
             string content = request.downloadHandler.text;
-
+            
             // 将文件内容按行拆分为字符串数组
             Option<string[]> lines = content.Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None);
             //

@@ -10,7 +10,7 @@ namespace ArcCreate.Gameplay.Hitsound
         void LoadTap(AudioClip clip);
 
         void LoadArc(AudioClip clip);
-
+        
         void PlayTap();
 
         void PlayArc();

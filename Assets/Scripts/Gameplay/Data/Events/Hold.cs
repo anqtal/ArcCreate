@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Judgement;
 using ArcCreate.Utility;
 using ArcCreate.Utility.Extension;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace ArcCreate.Gameplay.Data
 {
@@ -225,7 +229,8 @@ namespace ArcCreate.Gameplay.Data
             highlight = true;
             Services.InputFeedback.LaneFeedback(Lane);
             Services.Particle.PlayHoldParticle(this, new Vector3(ArcFormula.LaneToWorldX(Lane), 0, 0) + props.CurrentJudgementOffset);
-            Services.Hitsound.PlayTapHitsound(Timing);
+            //Services.Hitsound.PlayTapHitsound(Timing);
+            BassAudioService.Instance.PlayTapHitSound(Timing);
 
             // Extend the note back
             if (currentTiming < Timing)
@@ -234,7 +239,7 @@ namespace ArcCreate.Gameplay.Data
             }
         }
 
-        public void ProcessLaneHoldJudgement(bool isExpired, bool isJudgement, GroupProperties props)
+        public void ProcessLaneHoldJudgement(bool isExpired, bool isJudgement, GroupProperties props, int startTiming = 0)
         {
             int currentTiming = Services.Audio.ChartTiming;
             if (!isJudgement)

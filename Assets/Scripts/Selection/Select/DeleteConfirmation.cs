@@ -22,36 +22,6 @@ namespace ArcCreate.Selection.Select
 
         private List<IStorageUnit> storageUnits;
 
-        public void PromptUser(IEnumerable<IStorageUnit> units)
-        {
-            StartPrompt(units).Forget();
-        }
-
-        private async UniTask StartPrompt(IEnumerable<IStorageUnit> units)
-        {
-            storageUnits = units.ToList();
-            foreach (var unit in units)
-            {
-                if (unit is PackStorage pack)
-                {
-                    IEnumerable<IStorageUnit> subAssets = await subAssetDeleteConfirmation.Prompt(pack);
-                    storageUnits.AddRange(subAssets);
-                }
-            }
-
-            StringBuilder str = new StringBuilder();
-            foreach (var st in storageUnits)
-            {
-                if (!st.IsDefaultAsset)
-                {
-                    str.AppendLine($"{st.Type}: {st.Identifier}");
-                }
-            }
-
-            listText.text = str.ToString();
-            animator.Show();
-        }
-
         private void Awake()
         {
             deleteButton.onClick.AddListener(Delete);
@@ -64,6 +34,30 @@ namespace ArcCreate.Selection.Select
             cancelButton.onClick.RemoveListener(Cancel);
         }
 
+        public void PromptUser(IEnumerable<IStorageUnit> units)
+        {
+            StartPrompt(units).Forget();
+        }
+
+        private async UniTask StartPrompt(IEnumerable<IStorageUnit> units)
+        {
+            storageUnits = units.ToList();
+            foreach (var unit in units)
+                if (unit is PackStorage pack)
+                {
+                    var subAssets = await subAssetDeleteConfirmation.Prompt(pack);
+                    storageUnits.AddRange(subAssets);
+                }
+
+            var str = new StringBuilder();
+            foreach (var st in storageUnits)
+                if (!st.IsDefaultAsset)
+                    str.AppendLine($"{st.Type}: {st.Identifier}");
+
+            listText.text = str.ToString();
+            animator.Show();
+        }
+
         private void Cancel()
         {
             animator.Hide();
@@ -72,12 +66,8 @@ namespace ArcCreate.Selection.Select
         private void Delete()
         {
             foreach (var st in storageUnits)
-            {
                 if (!st.IsDefaultAsset)
-                {
                     st.Delete();
-                }
-            }
 
             storageUnits.Clear();
             animator.Hide();

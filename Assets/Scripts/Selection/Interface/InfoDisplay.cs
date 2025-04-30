@@ -126,7 +126,7 @@ namespace ArcCreate.Selection.Interface
             transitionDifficulty.Value = chart.Difficulty;
 
             PlayResult playResult = history.BestScorePlayOrDefault;
-            score.text = playResult.FormattedScore;
+            score.text = "101.0000%";//playResult.FormattedScore;
             gradeDisplay.Display(playResult.Grade);
             gradeDisplay.gameObject.SetActive(history.PlayCount > 0);
             ratingDisplay.Value = Mathf.FloorToInt(history.Rating);

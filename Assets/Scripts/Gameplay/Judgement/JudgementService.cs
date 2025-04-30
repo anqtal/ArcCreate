@@ -43,6 +43,17 @@ namespace ArcCreate.Gameplay.Judgement
         public void Request(LaneTapJudgementRequest request)
         {
             var list = request.Properties.Autoplay ? autoLaneTapRequests : laneTapRequests;
+            var a = request.ExpireAtTiming;
+            // play the answer sound of tap
+            Services.Hitsound.PlayAnswerSound(request.AutoAtTiming,120);
+            // if hold
+            if (request.ExpireAtTiming - request.AutoAtTiming > 120)
+            {;
+                var holdStartTiming = request.AutoAtTiming;
+                var holdEndTiming = request.ExpireAtTiming - 90;
+                var holdLastTiming = holdEndTiming - holdStartTiming;
+                Services.Hitsound.PlayAnswerSound(holdEndTiming, holdLastTiming+120);
+            }
             list.Add(request);
         }
 
@@ -58,9 +69,11 @@ namespace ArcCreate.Gameplay.Judgement
             list.Add(request);
         }
 
+
         public void Request(ArcTapJudgementRequest request)
         {
             var list = request.Properties.Autoplay ? autoArcTapRequests : arcTapRequests;
+            Services.Hitsound.PlayAnswerSound(request.AutoAtTiming, 120);
             list.Add(request);
         }
 

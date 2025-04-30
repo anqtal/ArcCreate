@@ -252,6 +252,15 @@ namespace ArcCreate.Gameplay.Audio
 
         public void PlayWithDelay(int timing, int delayMs)
         {
+            BassAudioService.Instance.StopAudioPreview();
+            var bpm = gameplayData.BaseBpm.Value;
+            var timeStep = 60000/bpm;
+            var delay = 1000;
+            for (int i = 0; i < 4; i++)
+            {
+                BassAudioService.Instance.PlayClock(delay);
+                delay += (int)timeStep;
+            }
             stationaryBeforeStart = false;
             returnOnPause = false;
             Play(timing, delayMs);
@@ -428,7 +437,7 @@ namespace ArcCreate.Gameplay.Audio
         {
             if (!audioEndReported && Values.ShouldNotifyOnAudioEnd && !gameplayData.EnablePracticeMode.Value)
             {
-                PlayResult result = Services.Score.GetPlayResult();
+                var result = Services.Score.GetPlayResult();
                 gameplayData.NotifyPlayComplete(result);
                 SetEnableAutorotation(true);
             }

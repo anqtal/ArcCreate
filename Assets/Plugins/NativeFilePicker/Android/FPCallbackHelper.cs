@@ -1,31 +1,32 @@
 ﻿#if UNITY_EDITOR || UNITY_ANDROID
+using System;
 using UnityEngine;
 
 namespace NativeFilePickerNamespace
 {
-	public class FPCallbackHelper : MonoBehaviour
-	{
-		private System.Action mainThreadAction = null;
+    public class FPCallbackHelper : MonoBehaviour
+    {
+        private Action mainThreadAction;
 
-		private void Awake()
-		{
-			DontDestroyOnLoad( gameObject );
-		}
+        private void Awake()
+        {
+            DontDestroyOnLoad(gameObject);
+        }
 
-		private void Update()
-		{
-			if( mainThreadAction != null )
-			{
-				System.Action temp = mainThreadAction;
-				mainThreadAction = null;
-				temp();
-			}
-		}
+        private void Update()
+        {
+            if (mainThreadAction != null)
+            {
+                var temp = mainThreadAction;
+                mainThreadAction = null;
+                temp();
+            }
+        }
 
-		public void CallOnMainThread( System.Action function )
-		{
-			mainThreadAction = function;
-		}
-	}
+        public void CallOnMainThread(Action function)
+        {
+            mainThreadAction = function;
+        }
+    }
 }
 #endif

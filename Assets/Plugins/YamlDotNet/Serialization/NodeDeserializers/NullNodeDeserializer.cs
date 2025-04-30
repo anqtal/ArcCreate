@@ -27,17 +27,15 @@ namespace YamlDotNet.Serialization.NodeDeserializers
 {
     public sealed class NullNodeDeserializer : INodeDeserializer
     {
-        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object> nestedObjectDeserializer, out object value)
+        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType,
+            Func<IParser, Type, object> nestedObjectDeserializer, out object value)
         {
             value = null;
             var evt = parser.Peek<NodeEvent>();
             var isNull = evt != null
-                && NodeIsNull(evt);
+                         && NodeIsNull(evt);
 
-            if (isNull)
-            {
-                parser.SkipThisAndNestedEvents();
-            }
+            if (isNull) parser.SkipThisAndNestedEvents();
             return isNull;
         }
 
@@ -45,13 +43,10 @@ namespace YamlDotNet.Serialization.NodeDeserializers
         {
             // http://yaml.org/type/null.html
 
-            if (nodeEvent.Tag == "tag:yaml.org,2002:null")
-            {
-                return true;
-            }
+            if (nodeEvent.Tag == "tag:yaml.org,2002:null") return true;
 
             var scalar = nodeEvent as Scalar;
-            if (scalar == null || scalar.Style != Core.ScalarStyle.Plain)
+            if (scalar == null || scalar.Style != ScalarStyle.Plain)
                 return false;
 
             var value = scalar.Value;

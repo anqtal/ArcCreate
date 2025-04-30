@@ -131,6 +131,7 @@ namespace ArcCreate.Gameplay.Audio
                 }
 
                 pauseScreen.SetActive(true);
+                Services.Hitsound.MyBassPlayer.ResetScheduledTimes();
                 Services.Audio.Pause();
             }
         }
@@ -159,6 +160,7 @@ namespace ArcCreate.Gameplay.Audio
             await retryTransition.Hide();
             if (!pauseScreen.activeInHierarchy)
             {
+                Services.Hitsound.MyBassPlayer.ResetPlayCount();
                 Services.Audio.PlayWithDelay(0, Values.DelayBeforeAudioStart);
             }
 

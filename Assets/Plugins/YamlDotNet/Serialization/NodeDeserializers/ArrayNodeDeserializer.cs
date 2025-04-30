@@ -27,7 +27,8 @@ namespace YamlDotNet.Serialization.NodeDeserializers
 {
     public sealed class ArrayNodeDeserializer : INodeDeserializer
     {
-        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object> nestedObjectDeserializer, out object value)
+        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType,
+            Func<IParser, Type, object> nestedObjectDeserializer, out object value)
         {
             if (!expectedType.IsArray)
             {
@@ -50,7 +51,6 @@ namespace YamlDotNet.Serialization.NodeDeserializers
         private sealed class ArrayList : IList
         {
             private object[] data;
-            private int count;
 
             public ArrayList()
             {
@@ -59,18 +59,15 @@ namespace YamlDotNet.Serialization.NodeDeserializers
 
             public int Add(object value)
             {
-                if (count == data.Length)
-                {
-                    Array.Resize(ref data, data.Length * 2);
-                }
-                data[count] = value;
-                return count++;
+                if (Count == data.Length) Array.Resize(ref data, data.Length * 2);
+                data[Count] = value;
+                return Count++;
             }
 
             public void Clear()
             {
                 data = new object[10];
-                count = 0;
+                Count = 0;
             }
 
             public bool Contains(object value)
@@ -88,15 +85,9 @@ namespace YamlDotNet.Serialization.NodeDeserializers
                 throw new NotSupportedException();
             }
 
-            public bool IsFixedSize
-            {
-                get { return false; }
-            }
+            public bool IsFixedSize => false;
 
-            public bool IsReadOnly
-            {
-                get { return false; }
-            }
+            public bool IsReadOnly => false;
 
             public void Remove(object value)
             {
@@ -110,44 +101,25 @@ namespace YamlDotNet.Serialization.NodeDeserializers
 
             public object this[int index]
             {
-                get
-                {
-                    return data[index];
-                }
-                set
-                {
-                    data[index] = value;
-                }
+                get => data[index];
+                set => data[index] = value;
             }
 
             public void CopyTo(Array array, int index)
             {
-                Array.Copy(data, 0, array, index, count);
+                Array.Copy(data, 0, array, index, Count);
             }
 
-            public int Count
-            {
-                get { return count; }
-            }
+            public int Count { get; private set; }
 
-            public bool IsSynchronized
-            {
-                get { return false; }
-            }
+            public bool IsSynchronized => false;
 
-            public object SyncRoot
-            {
-                get { return data; }
-            }
+            public object SyncRoot => data;
 
             public IEnumerator GetEnumerator()
             {
-                for (int i = 0; i < count; ++i)
-                {
-                    yield return data[i];
-                }
+                for (var i = 0; i < Count; ++i) yield return data[i];
             }
         }
     }
 }
-

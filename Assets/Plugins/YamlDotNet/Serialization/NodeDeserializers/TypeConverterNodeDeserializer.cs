@@ -32,15 +32,13 @@ namespace YamlDotNet.Serialization.NodeDeserializers
 
         public TypeConverterNodeDeserializer(IEnumerable<IYamlTypeConverter> converters)
         {
-            if (converters == null)
-            {
-                throw new ArgumentNullException(nameof(converters));
-            }
+            if (converters == null) throw new ArgumentNullException(nameof(converters));
 
             this.converters = converters;
         }
 
-        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object> nestedObjectDeserializer, out object value)
+        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType,
+            Func<IParser, Type, object> nestedObjectDeserializer, out object value)
         {
             var converter = converters.FirstOrDefault(c => c.Accepts(expectedType));
             if (converter == null)
@@ -54,4 +52,3 @@ namespace YamlDotNet.Serialization.NodeDeserializers
         }
     }
 }
-

@@ -1,5 +1,7 @@
+using System.IO;
 using System.Threading;
 using ArcCreate.Data;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Storage;
 using ArcCreate.Storage.Data;
 using Cysharp.Threading.Tasks;
@@ -20,71 +22,76 @@ namespace ArcCreate.Selection.Interface
 
         public void StopPreview()
         {
-            cts.Cancel();
-            cts.Dispose();
-            cts = new CancellationTokenSource();
-
-            audioSource.DOFade(0, audioFadeDuration).OnComplete(audioSource.Stop);
+            BassAudioService.Instance.PauseAudioPreview();
+            // cts.Cancel();
+            // cts.Dispose();
+            // cts = new CancellationTokenSource();
+            //
+            // audioSource.DOFade(0, audioFadeDuration).OnComplete(audioSource.Stop);
         }
 
         public void ResumePreview()
         {
-            var (level, chart) = storage.SelectedChart.Value;
-            PlayPreviewAudio(level, chart, cts.Token).Forget();
+            BassAudioService.Instance.ResumeAudioPreview();
+            // var (level, chart) = storage.SelectedChart.Value;
+            // PlayPreviewAudio(level, chart, cts.Token).Forget();
         }
+
 
         public async UniTask PlayPreviewAudio(LevelStorage level, ChartSettings chart, CancellationToken ct)
         {
-            audioSource.Stop();
-            AudioClip clip = await storage.GetAudioClipStreaming(level, chart.AudioPath);
-            if (ct.IsCancellationRequested)
-            {
-                return;
-            }
+            var auPath = Path.Combine(Application.streamingAssetsPath,"songs",level.Identifier,"preview.ogg");
+            await BassAudioService.Instance.PlayAudioPreview(auPath);
+            // audioSource.Stop();
+            // AudioClip clip = await storage.GetAudioClipStreaming(level, chart.AudioPath);
+            // if (ct.IsCancellationRequested)
+            // {
+            //     return;
+            // }
 
-            audioSource.clip = clip;
-
-            float start = Mathf.Clamp(chart.PreviewStart / 1000f, 0, clip.length - minPreviewLength);
-            start = Mathf.Max(start, 0);
-
-            float end = Mathf.Clamp(chart.PreviewEnd / 1000f, start + minPreviewLength, clip.length);
-            end = Mathf.Min(end, Mathf.Max(clip.length, minPreviewLength));
-
-            float fadeDuration = Mathf.Min(audioFadeDuration, (end - start) / 2);
-            if (fadeDuration < 0)
-            {
-                return;
-            }
-
-            while (true)
-            {
-                audioSource.volume = 0;
-                audioSource.time = start;
-                audioSource.Play();
-                audioSource.DOFade(1, fadeDuration);
-
-                while (audioSource.time < end - fadeDuration)
-                {
-                    await UniTask.NextFrame();
-                    if (ct.IsCancellationRequested)
-                    {
-                        return;
-                    }
-                }
-
-                audioSource.DOFade(0, fadeDuration);
-
-                while (audioSource.time < end)
-                {
-                    await UniTask.NextFrame();
-                    if (ct.IsCancellationRequested)
-                    {
-                        return;
-                    }
-                }
-
-                audioSource.Stop();
-            }
+            // audioSource.clip = clip;
+            //
+            //
+            // var start = 0;
+            //
+            // var end = clip.length;
+            // end = Mathf.Min(end, Mathf.Max(clip.length, minPreviewLength));
+            //
+            // float fadeDuration = Mathf.Min(audioFadeDuration, (end - start) / 2);
+            // if (fadeDuration < 0)
+            // {
+            //     return;
+            // }
+            //
+            // while (true)
+            // {
+            //     audioSource.volume = 0;
+            //     audioSource.time = start;
+            //     audioSource.Play();
+            //     audioSource.DOFade(1, fadeDuration);
+            //
+            //     while (audioSource.time < end - fadeDuration)
+            //     {
+            //         await UniTask.NextFrame();
+            //         if (ct.IsCancellationRequested)
+            //         {
+            //             return;
+            //         }
+            //     }
+            //
+            //     audioSource.DOFade(0, fadeDuration);
+            //
+            //     while (audioSource.time < end)
+            //     {
+            //         await UniTask.NextFrame();
+            //         if (ct.IsCancellationRequested)
+            //         {
+            //             return;
+            //         }
+            //     }
+            //
+            //     audioSource.Stop();
+            // }
         }
 
         private void Awake()
@@ -131,6 +138,8 @@ namespace ArcCreate.Selection.Interface
 
             if (!InterfaceUtility.AreTheSame(level, currentlyPlaying.level) || chart.AudioPath != currentlyPlaying.audioPath)
             {
+                //var auPath = Path.Combine(Application.streamingAssetsPath,"songs",level.Identifier,"preview.ogg");
+                //BassAudioService.Instance.PlayAudioPreview(auPath).Forget();
                 PlayPreviewAudio(level, chart, cts.Token).Forget();
             }
 

@@ -13,6 +13,7 @@ namespace ArcCreate.Gameplay.Judgement
         /// <param name="isExpired">Whether the judgement request was expired.</param>
         /// <param name="isJudgement">Relayed from <see cref="LaneHoldJudgementRequest.IsJudgement"/>.</param>
         /// <param name="properties">Relayed from <see cref="LaneHoldJudgementRequest.Properties"/>.</param>
-        void ProcessLaneHoldJudgement(bool isExpired, bool isJudgement, GroupProperties properties);
+        /// /// <param name="timing">Relayed from <see cref="LaneHoldJudgementRequest.Properties"/>.</param>
+        void ProcessLaneHoldJudgement(bool isExpired, bool isJudgement, GroupProperties properties, int timing=0);
     }
 }

@@ -14,6 +14,8 @@ namespace ArcCreate.Gameplay.Hitsound
         /// Gets a value indicating whether or not all hitsounds have been loaded.
         /// </summary>
         bool IsLoaded { get; }
+        
+        ErcBassPlayer MyBassPlayer { get; }
 
         /// <summary>
         /// Gets the hitsound audio clip for tap notes.
@@ -30,11 +32,20 @@ namespace ArcCreate.Gameplay.Hitsound
         /// </summary>
         Dictionary<string, AudioClip> SfxAudioClips { get; }
 
+        void PlayArcAnswerSound(int timing);
+
+        /// <summary>
+        /// Plays the answer sound.
+        /// </summary>
+        void PlayAnswerSound(int timing,int delay = 0);
+        
+        
         /// <summary>
         /// Plays the tap hitsound.
         /// </summary>
         /// <param name="noteTiming">The timing of the note playing this hitsound.</param>
         void PlayTapHitsound(int noteTiming);
+        
 
         /// <summary>
         /// Plays the arc hitsound.

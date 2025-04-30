@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using ArcCreate.ChartFormat;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Data;
 using ArcCreate.Utility;
 using ArcCreate.Utility.ExternalAssets;
@@ -11,6 +12,46 @@ using UnityEngine.Networking;
 
 namespace ArcCreate.Gameplay.Hitsound
 {
+    // public class FastQueue<T>
+    // {
+    //     private readonly Queue<T> queue = new Queue<T>();
+    //     private readonly HashSet<T> hashSet = new HashSet<T>();
+    //     private readonly int maxSize;
+    //
+    //     public FastQueue(int maxSize)
+    //     {
+    //         this.maxSize = maxSize;
+    //     }
+    //
+    //     public void Enqueue(T item)
+    //     {
+    //         if (hashSet.Contains(item))
+    //             return; // 避免重复存储
+    //
+    //         queue.Enqueue(item);
+    //         hashSet.Add(item);
+    //
+    //         if (queue.Count > maxSize)
+    //         {
+    //             T removedItem = queue.Dequeue();
+    //             hashSet.Remove(removedItem);
+    //         }
+    //     }
+    //
+    //     public bool Contains(T item)
+    //     {
+    //         return hashSet.Contains(item);
+    //     }
+    //
+    //     public void Clear()
+    //     {
+    //         queue.Clear();
+    //         hashSet.Clear();
+    //     }
+    //
+    //     public int Count => queue.Count;
+    // }
+
     public class HitsoundService : MonoBehaviour, IHitsoundService
     {
         [SerializeField] private AudioSource audioSource;
@@ -25,6 +66,13 @@ namespace ArcCreate.Gameplay.Hitsound
         private readonly UnorderedList<int> playedTapHitsoundTimings = new UnorderedList<int>(30);
         private readonly UnorderedList<int> playedArcHitsoundTimings = new UnorderedList<int>(30);
 
+        private readonly UnorderedList<int> playedAnswerSoundTimings = new UnorderedList<int>(30);
+        
+
+        //private readonly FastQueue<int> myQueue = new(100);
+        public ErcBassPlayer MyBassPlayer { get; private set; }
+
+
         public bool IsLoaded { get; private set; }
 
         public AudioClip TapHitsoundClip => tapClipLoader.Value;
@@ -35,46 +83,67 @@ namespace ArcCreate.Gameplay.Hitsound
 
         private bool IsMuted => hitsoundPlayer == null || hitsoundPlayer.Volume < 0.1f;
 
-        public void PlayTapHitsound(int timing)
+        public void PlayArcAnswerSound(int timing)
         {
-            if (Services.Audio.IsPlaying && !IsMuted)
+            if (MyBassPlayer != null)
             {
-                if (playedTapHitsoundTimings.Contains(timing))
-                {
-                    return;
-                }
-
-                playedTapHitsoundTimings.Add(timing);
-                hitsoundPlayer?.PlayTap();
+                //MyBassPlayer.PlayAnswerSound(timing);
             }
         }
 
+        public void PlayAnswerSound(int timing, int delay = 0)
+        {
+            
+            BassAudioService.Instance.PlayAnswer(timing, delay);
+        }
+
+        public void PlayTapHitSound()
+        {
+            //MyBassPlayer?.PlayAnswerSound(timing:0);
+        }
+
+
+        public void PlayTapHitsound(int timing)
+        {
+            // if (Services.Audio.IsPlaying && !IsMuted)
+            // {
+            //     if (playedTapHitsoundTimings.Contains(timing))
+            //     {
+            //         return;
+            //     }
+            //
+            //     playedTapHitsoundTimings.Add(timing);
+            //     hitsoundPlayer?.PlayTap();
+            // }
+            BassAudioService.Instance.PlayTapHitSound(timing);
+        }
+
+
         public void PlayArcHitsound(int timing)
         {
-            if (Services.Audio.IsPlaying && !IsMuted)
-            {
-                if (playedArcHitsoundTimings.Contains(timing))
-                {
-                    return;
-                }
-
-                playedArcHitsoundTimings.Add(timing);
-                hitsoundPlayer?.PlayArc();
-            }
+            // if (!Services.Audio.IsPlaying || IsMuted) return;
+            // if (playedArcHitsoundTimings.Contains(timing))
+            // {
+            //     return;
+            // }
+            //
+            // playedArcHitsoundTimings.Add(timing);
+            // hitsoundPlayer?.PlayArc();
+            BassAudioService.Instance.PlayArcHitSound(timing);
         }
 
         public void PlayArcTapHitsound(int timing, string sfx, bool isFromJudgement)
         {
-            if (Services.Audio.IsPlaying)
+            if (!Services.Audio.IsPlaying) return;
+            if ((IsMuted ^ isFromJudgement) && !string.IsNullOrEmpty(sfx) &&
+                sfxClips.TryGetValue(sfx, out AudioClip clip))
             {
-                if ((IsMuted ^ isFromJudgement) && !string.IsNullOrEmpty(sfx) && sfxClips.TryGetValue(sfx, out AudioClip clip))
-                {
-                    musicAudioSource.PlayOneShot(clip);
-                }
-                else if (!IsMuted && isFromJudgement)
-                {
-                    PlayArcHitsound(timing);
-                }
+                musicAudioSource.PlayOneShot(clip);
+            }
+            else if (!IsMuted && isFromJudgement)
+            {
+                PlayArcHitsound(timing);
+                //BassAudioService.Instance.PlayTapHitSound(timing);
             }
         }
 
@@ -114,7 +183,9 @@ namespace ArcCreate.Gameplay.Hitsound
                     finalSfx = finalSfx + ".wav";
                 }
 
-                Uri uri = fileAccess == null ? new Uri(Path.Combine(parentFolder, finalSfx)) : fileAccess.GetFileUri(finalSfx);
+                Uri uri = fileAccess == null
+                    ? new Uri(Path.Combine(parentFolder, finalSfx))
+                    : fileAccess.GetFileUri(finalSfx);
                 if (uri != null)
                 {
                     loadTasks.Add(LoadCustomSfx(sfx, uri));
@@ -129,10 +200,12 @@ namespace ArcCreate.Gameplay.Hitsound
         {
             PurgeOldSoundPlayedTimings(currentTiming, playedArcHitsoundTimings, Values.HoldMissLateJudgeWindow);
             PurgeOldSoundPlayedTimings(currentTiming, playedTapHitsoundTimings, Values.HoldMissLateJudgeWindow);
+            PurgeOldSoundPlayedTimings(currentTiming, playedAnswerSoundTimings, Values.HoldMissLateJudgeWindow);
         }
 
         public void ResetHitsoundHistory()
         {
+            playedAnswerSoundTimings.Clear();
             playedTapHitsoundTimings.Clear();
             playedArcHitsoundTimings.Clear();
         }
@@ -163,9 +236,11 @@ namespace ArcCreate.Gameplay.Hitsound
 #if (UNITY_ANDROID || UNITY_IOS) && USE_NATIVE_AUDIO && !UNITY_EDITOR
             hitsoundPlayer = new NativeAudioHitsoundPlayer();
 #else
+            MyBassPlayer = new ErcBassPlayer();
             hitsoundPlayer = new UnityHitsoundPlayer(audioSource);
 #endif
-
+            MyBassPlayer.LoadAudio();
+            MyBassPlayer.LoadClock();
             Settings.EffectAudio.OnValueChanged.AddListener(OnEffectAudioSettings);
             OnEffectAudioSettings(Settings.EffectAudio.Value);
             LoadExternalClips().Forget();
@@ -194,11 +269,17 @@ namespace ArcCreate.Gameplay.Hitsound
             IsLoaded = true;
         }
 
+        private void Update()
+        {
+            //MyBassPlayer.Update();
+        }
+
         private void OnDestroy()
         {
             tapClipLoader.Unload();
             arcClipLoader.Unload();
             hitsoundPlayer.Dispose();
+            MyBassPlayer.Dispose();
             Settings.EffectAudio.OnValueChanged.RemoveListener(OnEffectAudioSettings);
         }
 

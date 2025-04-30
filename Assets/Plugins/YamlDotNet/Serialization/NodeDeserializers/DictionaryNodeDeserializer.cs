@@ -38,11 +38,13 @@ namespace YamlDotNet.Serialization.NodeDeserializers
             _objectFactory = objectFactory;
         }
 
-        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object> nestedObjectDeserializer, out object value)
+        bool INodeDeserializer.Deserialize(IParser parser, Type expectedType,
+            Func<IParser, Type, object> nestedObjectDeserializer, out object value)
         {
             IDictionary dictionary;
             Type keyType, valueType;
-            var genericDictionaryType = ReflectionUtility.GetImplementedGenericInterface(expectedType, typeof(IDictionary<,>));
+            var genericDictionaryType =
+                ReflectionUtility.GetImplementedGenericInterface(expectedType, typeof(IDictionary<,>));
             if (genericDictionaryType != null)
             {
                 var genericArguments = genericDictionaryType.GetGenericArguments();
@@ -53,9 +55,7 @@ namespace YamlDotNet.Serialization.NodeDeserializers
 
                 dictionary = value as IDictionary;
                 if (dictionary == null)
-                {
                     dictionary = new GenericDictionaryToNonGenericAdapter(value, genericDictionaryType);
-                }
             }
             else if (typeof(IDictionary).IsAssignableFrom(expectedType))
             {
@@ -76,7 +76,8 @@ namespace YamlDotNet.Serialization.NodeDeserializers
             return true;
         }
 
-        private static void DeserializeHelper(Type tKey, Type tValue, IParser parser, Func<IParser, Type, object> nestedObjectDeserializer, IDictionary result)
+        private static void DeserializeHelper(Type tKey, Type tValue, IParser parser,
+            Func<IParser, Type, object> nestedObjectDeserializer, IDictionary result)
         {
             parser.Expect<MappingStart>();
             while (!parser.Accept<MappingEnd>())
@@ -90,15 +91,11 @@ namespace YamlDotNet.Serialization.NodeDeserializers
                 if (keyPromise == null)
                 {
                     if (valuePromise == null)
-                    {
                         // Happy path: both key and value are known
                         result[key] = value;
-                    }
                     else
-                    {
                         // Key is known, value is pending
                         valuePromise.ValueAvailable += v => result[key] = v;
-                    }
                 }
                 else
                 {
@@ -140,6 +137,7 @@ namespace YamlDotNet.Serialization.NodeDeserializers
                     }
                 }
             }
+
             parser.Expect<MappingEnd>();
         }
     }

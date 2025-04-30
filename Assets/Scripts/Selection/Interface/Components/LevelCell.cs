@@ -102,7 +102,7 @@ namespace ArcCreate.Selection.Interface
 
             (string name, string number) = visibleChart.ParseDifficultyName(maxNumberLength: 3);
             difficulty.text = string.IsNullOrEmpty(number) ? name : InterfaceUtility.AlignedDiffNumber(number);
-            rating.text = playHistory.Rating == 0 ? "?" : playHistory.Rating.ToString();
+            rating.text = ""; //playHistory.Rating == 0 ? "?" : playHistory.Rating.ToString();
 
             foreach (var im in difficultyCells)
             {
@@ -129,12 +129,12 @@ namespace ArcCreate.Selection.Interface
             }
 
             jacketFill.texture = jacket.texture;
-            grade.Display(playHistory.BestScorePlayOrDefault.Grade);
-            clearResult.Display(playHistory.BestResultPlayOrDefault.ClearResult);
-            grade.gameObject.SetActive(playHistory.PlayCount > 0);
-            clearResult.gameObject.SetActive(playHistory.PlayCount > 0);
-            newIndicator.SetActive(playHistory.PlayCount <= 0);
-            scoreDetailsParent.SetActive(playHistory.PlayCount > 0);
+            //grade.Display(playHistory.BestScorePlayOrDefault.Grade);
+            //clearResult.Display(playHistory.BestResultPlayOrDefault.ClearResult);
+            //grade.gameObject.SetActive(playHistory.PlayCount > 0);
+            //clearResult.gameObject.SetActive(playHistory.PlayCount > 0);
+            //newIndicator.SetActive(playHistory.PlayCount <= 0);
+            //scoreDetailsParent.SetActive(playHistory.PlayCount > 0);
         }
 
         private void Awake()

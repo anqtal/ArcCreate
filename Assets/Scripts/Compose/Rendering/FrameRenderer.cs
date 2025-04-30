@@ -6,25 +6,27 @@ using System.Threading;
 using ArcCreate.Compose.Components;
 using ArcCreate.SceneTransition;
 using Cysharp.Threading.Tasks;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Profiling;
+using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
 
 namespace ArcCreate.Compose.Rendering
 {
     public class FrameRenderer : IDisposable
     {
-        private readonly RenderTexture renderTexture;
-        private readonly Texture2D texture2D;
+        public delegate void RenderStatusDelegate(TimeSpan passed, TimeSpan remaining);
+
+        private readonly AudioRenderer audioRenderer;
         private readonly Camera[] cameras;
         private readonly RenderTexture[] defaultRenderTextures;
-        private readonly string outputPath;
-        private readonly float startRenderingTime;
         private readonly float endRenderingTime;
-        private readonly AudioRenderer audioRenderer;
         private readonly GameplayViewport gameplayViewport;
+        private readonly string outputPath;
+        private readonly RenderTexture renderTexture;
         private readonly RenderSetting settings;
         private readonly bool showShutter;
+        private readonly float startRenderingTime;
         private readonly TransitionSequence transitionSequence;
         private byte[] cachedByteArray;
 
@@ -51,41 +53,33 @@ namespace ArcCreate.Compose.Rendering
             endRenderingTime = to / 1000f;
 
             renderTexture = new RenderTexture(settings.Width, settings.Height, 24, RenderTextureFormat.ARGB32);
-            texture2D = new Texture2D(settings.Width, settings.Height, TextureFormat.ARGB32, false, true);
+            Texture2D = new Texture2D(settings.Width, settings.Height, TextureFormat.ARGB32, false, true);
             defaultRenderTextures = new RenderTexture[cameras.Length];
-            for (int i = 0; i < cameras.Length; i++)
+            for (var i = 0; i < cameras.Length; i++)
             {
-                Camera cam = cameras[i];
+                var cam = cameras[i];
                 defaultRenderTextures[i] = cam.targetTexture;
             }
         }
 
-        public delegate void RenderStatusDelegate(TimeSpan passed, TimeSpan remaining);
-
-        public Texture2D Texture2D => texture2D;
+        public Texture2D Texture2D { get; }
 
         public void Dispose()
         {
-            UnityEngine.Object.Destroy(renderTexture);
-            UnityEngine.Object.Destroy(texture2D);
+            Object.Destroy(renderTexture);
+            Object.Destroy(Texture2D);
         }
 
         public async UniTask RenderVideo(CancellationToken token, RenderStatusDelegate onETA)
         {
-            if (!TestFfmpeg())
-            {
-                return;
-            }
+            if (!TestFfmpeg()) return;
 
-            RenderTexture activeRT = RenderTexture.active;
+            var activeRT = RenderTexture.active;
             gameplayViewport.enabled = false;
             Services.Gameplay.SetCameraViewportRect(new Rect(0, 0, 1, 1));
             Services.Gameplay.SetCameraEnabled(true);
 
-            foreach (Camera cam in cameras)
-            {
-                cam.targetTexture = renderTexture;
-            }
+            foreach (var cam in cameras) cam.targetTexture = renderTexture;
 
             Process ffmpegProcess = null;
             BinaryWriter ffmpegWriter = null;
@@ -96,10 +90,10 @@ namespace ArcCreate.Compose.Rendering
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(I18n.S("Compose.Exception.Render.FFmpeg.Start", new Dictionary<string, object>()
+                Debug.LogError(I18n.S("Compose.Exception.Render.FFmpeg.Start", new Dictionary<string, object>
                 {
                     { "Message", e.Message },
-                    { "StackTrace", e.StackTrace },
+                    { "StackTrace", e.StackTrace }
                 }));
 
                 ffmpegProcess?.Dispose();
@@ -108,7 +102,7 @@ namespace ArcCreate.Compose.Rendering
 
             try
             {
-                DateTime startAt = DateTime.Now;
+                var startAt = DateTime.Now;
                 Time.captureFramerate = Mathf.RoundToInt(settings.Fps);
                 Services.Gameplay.Audio.AudioTiming = Mathf.RoundToInt(startRenderingTime * 1000);
                 Services.Gameplay.Audio.IsRendering = true;
@@ -117,8 +111,8 @@ namespace ArcCreate.Compose.Rendering
                 await Services.Gameplay.Audio.PrepareVideoPlayback();
                 await UniTask.Delay(500);
 
-                bool shouldUpdateTiming = false;
-                float unityStartTime = Time.time;
+                var shouldUpdateTiming = false;
+                var unityStartTime = Time.time;
                 float bonusDuration = 0;
                 if (showShutter)
                 {
@@ -126,10 +120,7 @@ namespace ArcCreate.Compose.Rendering
                         .Show()
                         .ContinueWith(() => UniTask.Delay(transitionSequence.WaitDurationMs))
                         .ContinueWith(transitionSequence.Hide)
-                        .ContinueWith(() =>
-                        {
-                            shouldUpdateTiming = true;
-                        }).AttachExternalCancellation(token).Forget();
+                        .ContinueWith(() => { shouldUpdateTiming = true; }).AttachExternalCancellation(token).Forget();
 
                     unityStartTime += transitionSequence.FullSequenceSeconds;
                     bonusDuration = transitionSequence.FullSequenceSeconds;
@@ -141,10 +132,7 @@ namespace ArcCreate.Compose.Rendering
 
                 while (!token.IsCancellationRequested)
                 {
-                    if (ffmpegProcess.HasExited)
-                    {
-                        break;
-                    }
+                    if (ffmpegProcess.HasExited) break;
 
                     Time.timeScale = 1;
                     await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
@@ -155,51 +143,43 @@ namespace ArcCreate.Compose.Rendering
                         cam.Render();
                     }
 
-                    texture2D.ReadPixels(new Rect(0, 0, settings.Width, settings.Height), 0, 0);
-                    texture2D.Apply();
+                    Texture2D.ReadPixels(new Rect(0, 0, settings.Width, settings.Height), 0, 0);
+                    Texture2D.Apply();
 
                     Profiler.BeginSample("Renderer: Extract bytes");
-                    NativeArray<byte> bytes = texture2D.GetRawTextureData<byte>();
-                    if (bytes.Length != cachedByteArray?.Length)
-                    {
-                        cachedByteArray = new byte[bytes.Length];
-                    }
+                    var bytes = Texture2D.GetRawTextureData<byte>();
+                    if (bytes.Length != cachedByteArray?.Length) cachedByteArray = new byte[bytes.Length];
 
                     bytes.CopyTo(cachedByteArray);
                     ffmpegWriter.Write(cachedByteArray);
 
                     Profiler.EndSample();
 
-                    float time = Time.time - unityStartTime + startRenderingTime;
-                    if ((time * 1000 > Services.Gameplay.Audio.AudioLength || time > endRenderingTime) && shouldUpdateTiming)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        if (shouldUpdateTiming)
-                        {
-                            Services.Gameplay.Audio.SetAudioTimingSilent(Mathf.RoundToInt((time * 1000) + Settings.GlobalAudioOffset.Value));
-                        }
+                    var time = Time.time - unityStartTime + startRenderingTime;
+                    if ((time * 1000 > Services.Gameplay.Audio.AudioLength || time > endRenderingTime) &&
+                        shouldUpdateTiming) break;
 
-                        Time.timeScale = 0;
-                    }
+                    if (shouldUpdateTiming)
+                        Services.Gameplay.Audio.SetAudioTimingSilent(
+                            Mathf.RoundToInt(time * 1000 + Settings.GlobalAudioOffset.Value));
 
-                    TimeSpan elapsed = DateTime.Now - startAt;
-                    double speed = (time - startRenderingTime + bonusDuration) / elapsed.TotalSeconds;
+                    Time.timeScale = 0;
+
+                    var elapsed = DateTime.Now - startAt;
+                    var speed = (time - startRenderingTime + bonusDuration) / elapsed.TotalSeconds;
                     if (speed > Mathf.Epsilon)
                     {
-                        TimeSpan eta = TimeSpan.FromSeconds((endRenderingTime - time + bonusDuration) / speed);
+                        var eta = TimeSpan.FromSeconds((endRenderingTime - time + bonusDuration) / speed);
                         onETA.Invoke(elapsed, eta);
                     }
                 }
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(I18n.S("Compose.Exception.Render.FFmpeg.Write", new Dictionary<string, object>()
+                Debug.LogError(I18n.S("Compose.Exception.Render.FFmpeg.Write", new Dictionary<string, object>
                 {
                     { "Message", e.Message },
-                    { "StackTrace", e.StackTrace },
+                    { "StackTrace", e.StackTrace }
                 }));
             }
             finally
@@ -213,9 +193,9 @@ namespace ArcCreate.Compose.Rendering
                 await UniTask.DelayFrame(60);
 
                 RenderTexture.active = activeRT;
-                for (int i = 0; i < cameras.Length; i++)
+                for (var i = 0; i < cameras.Length; i++)
                 {
-                    Camera cam = cameras[i];
+                    var cam = cameras[i];
                     cam.targetTexture = defaultRenderTextures[i];
                 }
 
@@ -232,21 +212,21 @@ namespace ArcCreate.Compose.Rendering
         {
             try
             {
-                Process testFFmpegProcess = new Process
+                var testFFmpegProcess = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = Settings.FFmpegPath.Value,
                         UseShellExecute = false,
-                        CreateNoWindow = true,
-                    },
+                        CreateNoWindow = true
+                    }
                 };
                 testFFmpegProcess.Start();
                 return true;
             }
             catch (Exception)
             {
-                UnityEngine.Debug.LogError(I18n.S("Compose.Exception.Render.FFmpeg.NotFound", Settings.FFmpegPath.Value));
+                Debug.LogError(I18n.S("Compose.Exception.Render.FFmpeg.NotFound", Settings.FFmpegPath.Value));
             }
 
             return false;
@@ -254,42 +234,36 @@ namespace ArcCreate.Compose.Rendering
 
         private Process GetFFmpegProcess(string videoPath, List<string> sfxAudioList)
         {
-            string path = GetPath();
+            var path = GetPath();
 
             // libx264 doesn't believe in odd sizes
-            int w = Mathf.Max(settings.Width - (settings.Width % 2), 2);
-            int h = Mathf.Max(settings.Height - (settings.Height % 2), 2);
+            var w = Mathf.Max(settings.Width - settings.Width % 2, 2);
+            var h = Mathf.Max(settings.Height - settings.Height % 2, 2);
             videoPath = videoPath.Replace(@"""", @"\""");
-            if (!videoPath.ToLower().EndsWith(".mp4"))
-            {
-                videoPath += ".mp4";
-            }
+            if (!videoPath.ToLower().EndsWith(".mp4")) videoPath += ".mp4";
 
-            UnityEngine.Debug.Log($"Writing to {videoPath}");
+            Debug.Log($"Writing to {videoPath}");
 
-            string argsForSfxAudio = "";
-            foreach (string key in sfxAudioList)
-            {
-                argsForSfxAudio += $"-i \"{Path.Combine(path, $"sfx_{key}.wav")}\" ";
-            }
+            var argsForSfxAudio = "";
+            foreach (var key in sfxAudioList) argsForSfxAudio += $"-i \"{Path.Combine(path, $"sfx_{key}.wav")}\" ";
 #pragma warning disable
-            string args = ""
-            + $" -f rawvideo -pixel_format argb -video_size {settings.Width}x{settings.Height} -framerate {settings.Fps} -i pipe: "
-            + $"-i \"{Path.Combine(path, "sfx.wav")}\" "   // First audio (sfx)
-            + $"-i \"{Path.Combine(path, "song.wav")}\" "  // Second audio (sfx)
-            + argsForSfxAudio
-            + $"-filter_complex amix=inputs={2 + sfxAudioList.Count}:duration=longest " //Mix audio files
-            + $"-c:v libx264 "             //Video codec
-            + $"-c:a aac "                 //Audio codec
-            + $"-pix_fmt yuv420p "         //Set pixel format for QuickTime
-            + $"-crf {settings.Crf} "      //Video quality
-            + $"-vf vflip,scale={w}x{h} "  //Video size, vflip because screenshot in byte array is upside down
-            + $"-b:a 384k "                //Audio quality
-            + $"-bf 2 "                    //2 B-frames
-            + $"-flags +cgop "             //Closed GOP (as it should be)
-            + $"-movflags +faststart "     //Move stream info to the beginning of file
-            + $"-preset ultrafast "        //Creates slightly larger file but speeds up rendering drastically
-            + $"-y -- \"{videoPath}\"";
+            var args = ""
+                       + $" -f rawvideo -pixel_format argb -video_size {settings.Width}x{settings.Height} -framerate {settings.Fps} -i pipe: "
+                       + $"-i \"{Path.Combine(path, "sfx.wav")}\" " // First audio (sfx)
+                       + $"-i \"{Path.Combine(path, "song.wav")}\" " // Second audio (sfx)
+                       + argsForSfxAudio
+                       + $"-filter_complex amix=inputs={2 + sfxAudioList.Count}:duration=longest " //Mix audio files
+                       + "-c:v libx264 " //Video codec
+                       + "-c:a aac " //Audio codec
+                       + "-pix_fmt yuv420p " //Set pixel format for QuickTime
+                       + $"-crf {settings.Crf} " //Video quality
+                       + $"-vf vflip,scale={w}x{h} " //Video size, vflip because screenshot in byte array is upside down
+                       + "-b:a 384k " //Audio quality
+                       + "-bf 2 " //2 B-frames
+                       + "-flags +cgop " //Closed GOP (as it should be)
+                       + "-movflags +faststart " //Move stream info to the beginning of file
+                       + "-preset ultrafast " //Creates slightly larger file but speeds up rendering drastically
+                       + $"-y -- \"{videoPath}\"";
 #pragma warning restore
 
             var ffmpegProcess = new Process
@@ -302,15 +276,15 @@ namespace ArcCreate.Compose.Rendering
                     RedirectStandardInput = true,
                     RedirectStandardError = true,
                     RedirectStandardOutput = true,
-                    CreateNoWindow = true,
+                    CreateNoWindow = true
                 },
-                EnableRaisingEvents = true,
+                EnableRaisingEvents = true
             };
 
             ffmpegProcess.Start();
-            ffmpegProcess.ErrorDataReceived += (sender, eventArgs) => { UnityEngine.Debug.Log(eventArgs.Data); };
+            ffmpegProcess.ErrorDataReceived += (sender, eventArgs) => { Debug.Log(eventArgs.Data); };
             ffmpegProcess.BeginErrorReadLine();
-            ffmpegProcess.OutputDataReceived += (sender, eventArgs) => { UnityEngine.Debug.Log(eventArgs.Data); };
+            ffmpegProcess.OutputDataReceived += (sender, eventArgs) => { Debug.Log(eventArgs.Data); };
             ffmpegProcess.BeginOutputReadLine();
 
             return ffmpegProcess;
@@ -318,12 +292,10 @@ namespace ArcCreate.Compose.Rendering
 
         private string GetPath(string fileName = "")
         {
-            string path = Path.Combine(Path.GetDirectoryName(Services.Project.CurrentProject.Path), ".rendering", fileName);
+            var path = Path.Combine(Path.GetDirectoryName(Services.Project.CurrentProject.Path), ".rendering",
+                fileName);
 
-            if (!Directory.Exists(Path.GetDirectoryName(path)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
+            if (!Directory.Exists(Path.GetDirectoryName(path))) Directory.CreateDirectory(Path.GetDirectoryName(path));
 
             return path;
         }

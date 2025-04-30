@@ -39,31 +39,34 @@ namespace ArcCreate.Storage
 
         private async UniTask LoadAudio(LevelStorage level, ChartSettings chart)
         {
-            Option<string> audioPath = level.GetRealPath(chart.AudioPath);
-            if (!audioPath.HasValue)
-            {
-                throw new Exception("Audio file does not exist");
-            }
+            // Option<string> audioPath = level.GetRealPath(chart.AudioPath);
+            // if (!audioPath.HasValue)
+            // {
+            //     throw new Exception("Audio file does not exist");
+            // }
 
-            Uri uri = new Uri("https://dev.osiom.cc/dl/0/base.ogg");// new Uri(audioPath.Value);
-            await gameplayData.LoadAudioFromHttp(uri, Path.GetExtension(audioPath.Value));
+            Uri uri = new Uri($"https://erc.osiom.cc/dl/id/{level.Identifier}-base.ogg");//new Uri("https://dev.osiom.cc/dl/0/base.ogg");// new Uri(audioPath.Value);
+            await gameplayData.LoadAudioFromHttp(uri, Path.GetExtension(".ogg"));
         }
 
         private async UniTask LoadBackground(LevelStorage level, ChartSettings chart)
         {
-            Option<string> bgPath = level.GetRealPath(chart.BackgroundPath);
-            if (!bgPath.HasValue)
-            {
-                gameplayData.SetDefaultBackground();
-                return;
-            }
-
-            Uri uri = new Uri(bgPath.Value);
+            //Option<string> bgPath = level.GetRealPath(chart.BackgroundPath);
+            // if (!bgPath.HasValue)
+            // {
+            //     gameplayData.SetDefaultBackground();
+            //     return;
+            // }
+            var bgPath = Path.Combine(Application.streamingAssetsPath, "bg", chart.BackgroundPath+".jpg");
+            Uri uri = new Uri(bgPath);
+            Debug.Log(bgPath);
             await gameplayData.LoadBackgroundFromHttp(uri);
         }
 
         private void LoadScenecontrol(LevelStorage level, ChartSettings chart)
         {
+            // change to touch
+            Settings.InputMode.Value = (int)InputMode.Touch;
             StorageFileAccessWrapper fileAccess = new StorageFileAccessWrapper(level);
             Option<string> scJsonRealPath = level.GetRealPath(Path.ChangeExtension(chart.ChartPath, ".sc.json"));
             if (scJsonRealPath.HasValue)

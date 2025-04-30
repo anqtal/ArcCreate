@@ -40,7 +40,7 @@ namespace ArcCreate.Gameplay
         public const float HoldLengthScalar = 1 / 3.79f;
         public const float ArcTapMiddleWorldXRange = 0.5f;
         public const float TraceMeshOffset = 0.15f;
-        public const float ArcMeshOffset = 0.9f;
+        public const float ArcMeshOffset = 1f;
         public const float TraceAlphaScalar = 0.4779405f;
         public const float ShortTraceAlphaScalar = TraceAlphaScalar * 0.5f;
         public const float TextParticleYOffset = 60f;

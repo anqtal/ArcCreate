@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using ArcCreate.Data;
 using ArcCreate.Gameplay.Judgement;
+using ArcCreate.SceneTransition;
 using ArcCreate.Utility;
 using ArcCreate.Utility.Extension;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,9 +19,9 @@ namespace ArcCreate.Gameplay.Score
         [SerializeField] private TMP_Text scoreText;
         [SerializeField] private Color comboLostColor;
         [SerializeField] private GameObject predictedGradeParent;
+        [SerializeField] private GameplayData gameplayData;
 
-        [Header("Indicator")]
-        [SerializeField] private GameObject frIndicator;
+        [Header("Indicator")] [SerializeField] private GameObject frIndicator;
         [SerializeField] private GameObject pmIndicator;
         [SerializeField] private GameObject maxIndicator;
         [SerializeField] private Transform indicatorsContainer;
@@ -40,6 +42,7 @@ namespace ArcCreate.Gameplay.Score
         private readonly UnorderedList<ScoreEvent> pendingScoreEvents = new UnorderedList<ScoreEvent>(20);
         private readonly List<JudgementResult> resultReceivedThisFrame = new List<JudgementResult>(20);
         private Grade[] cachedGradeOptions;
+        private bool isBegin = true;
 
         public int CurrentScore => (int)Math.Round(CurrentScoreTotal);
 
@@ -68,7 +71,16 @@ namespace ArcCreate.Gameplay.Score
 
             if (result.IsMiss())
             {
-                currentCombo = 0;
+                isBegin = false;
+                //currentCombo = 0;
+                currentCombo--;
+                
+                if (currentCombo == 0 && !isBegin)
+                {
+                    Services.Audio.Stop();
+                    var result_ = Services.Score.GetPlayResult();
+                    gameplayData.NotifyPlayComplete(result_);
+                }
                 if (Mathf.Approximately(comboRedmix, 0))
                 {
                     comboRedmix = 1;
@@ -87,7 +99,7 @@ namespace ArcCreate.Gameplay.Score
             }
 
             comboRedmix = 0;
-            currentCombo++;
+            //currentCombo++;
             maxCombo = Mathf.Max(currentCombo, maxCombo);
 
             double scorePerNote =
@@ -124,12 +136,19 @@ namespace ArcCreate.Gameplay.Score
 
         public void UpdateScore(int currentTiming)
         {
+            if (currentCombo == 0 && isBegin)
+            {
+                currentCombo = 50;
+            }
+
+
+
             comboRedmix = comboRedmix - (Time.deltaTime / Values.ComboLostFlashDuration);
             comboRedmix = Mathf.Max(comboRedmix, 0);
             SetCombo(currentCombo);
-
             currentScorePartial = 0;
             currentCountPartial = 0;
+
             for (int i = pendingScoreEvents.Count - 1; i >= 0; i--)
             {
                 ScoreEvent scoreEvent = pendingScoreEvents[i];
@@ -152,7 +171,6 @@ namespace ArcCreate.Gameplay.Score
                     currentCountPartial += partial;
                 }
             }
-
         }
 
         public void UpdateDisplay()
@@ -226,109 +244,128 @@ namespace ArcCreate.Gameplay.Score
             };
         }
 
+        public static double CalcAcc(int noteCount, int maxPure, int pure, int far)
+        {
+            var lost = noteCount - pure - far;
+            int totalNotes = pure + far + lost;
+            if (totalNotes == 0) return 0.0; // 避免除零错误
+
+            double accScore = pure + far * 0.5 + maxPure * 0.01;
+            double acc = accScore / totalNotes;
+            return acc * 100;
+        }
+
         private void SetScore(double score, double count)
         {
-            int length = 0;
+            //int length = 0;
             double scorePerNote = noteCount != 0 ? (double)Constants.MaxScore / noteCount : 0;
             double theoreticalScore = count * (scorePerNote + 1);
             double differenceToTheoretical = score - theoreticalScore;
+            var scoreDx = CalcAcc(noteCount,
+                GetJudgementCount(JudgementResult.Max),
+                GetJudgementCount(JudgementResult.Max) + GetJudgementCount(JudgementResult.PerfectEarly) +
+                GetJudgementCount(JudgementResult.PerfectLate),
+                GetJudgementCount(JudgementResult.GoodEarly) + GetJudgementCount(JudgementResult.GoodLate)
+            );
+            scoreText.SetText($"{scoreDx:F4}%");
 
             // interfaces are overrated
-            switch ((ScoreDisplayMode)Settings.ScoreDisplayMode.Value)
-            {
-                case ScoreDisplayMode.Predictive:
-                    int maxCount = GetJudgementCount(JudgementResult.Max);
-                    int perfectCount = GetJudgementCount(JudgementResult.PerfectEarly) + GetJudgementCount(JudgementResult.PerfectLate);
-                    int nonPerfectCount =
-                        GetJudgementCount(JudgementResult.MissEarly)
-                      + GetJudgementCount(JudgementResult.MissLate)
-                      + GetJudgementCount(JudgementResult.GoodEarly)
-                      + GetJudgementCount(JudgementResult.GoodLate);
+            // switch ((ScoreDisplayMode)Settings.ScoreDisplayMode.Value)
+            // {
+            //     case ScoreDisplayMode.Predictive:
+            //         int maxCount = GetJudgementCount(JudgementResult.Max);
+            //         int perfectCount = GetJudgementCount(JudgementResult.PerfectEarly) + GetJudgementCount(JudgementResult.PerfectLate);
+            //         int nonPerfectCount =
+            //             GetJudgementCount(JudgementResult.MissEarly)
+            //           + GetJudgementCount(JudgementResult.MissLate)
+            //           + GetJudgementCount(JudgementResult.GoodEarly)
+            //           + GetJudgementCount(JudgementResult.GoodLate);
+            //
+            //         bool isAP = nonPerfectCount == 0;
+            //         int difference = 0;
+            //         if (!isAP)
+            //         {
+            //             int projectedScore = count == 0 ? 0 : (int)Math.Round((double)score / count * noteCount);
+            //             int closestScore = int.MaxValue;
+            //             Grade closestGrade = Grade.Unknown;
+            //             for (int i = 0; i < cachedGradeOptions.Length; i++)
+            //             {
+            //                 Grade option = cachedGradeOptions[i];
+            //                 if (option == Grade.D || option == Grade.Unknown)
+            //                 {
+            //                     continue;
+            //                 }
+            //
+            //                 if (Mathf.Abs((int)option - projectedScore) < Mathf.Abs(closestScore - projectedScore))
+            //                 {
+            //                     closestGrade = option;
+            //                     closestScore = (int)option;
+            //                 }
+            //             }
+            //
+            //             difference = projectedScore - (int)closestGrade;
+            //             predictedGradeText.text = closestGrade.GetText();
+            //         }
+            //         else
+            //         {
+            //             difference = maxCount;
+            //             predictedGradeText.text = perfectCount == 0 ? "AP+" : "AP";
+            //         }
+            //
+            //         difference = Mathf.Clamp(difference, -999_999, 999_999);
+            //         scoreCharArray.SetNumberDigitsToArray(Mathf.Abs(difference), out length);
+            //         for (int i = scoreCharArray.Length - 7; i < scoreCharArray.Length - length; i++)
+            //         {
+            //             scoreCharArray[i] = '0';
+            //         }
+            //
+            //         for (int i = scoreCharArray.Length - length - 1; i < scoreCharArray.Length - 3; i++)
+            //         {
+            //             scoreCharArray[i - 1] = scoreCharArray[i];
+            //         }
+            //
+            //         scoreCharArray[scoreCharArray.Length - 4] = '\'';
+            //         length = 8;
+            //         scoreCharArray[scoreCharArray.Length - length] = difference >= 0 ? '+' : '-';
+            //         break;
+            //
+            //     case ScoreDisplayMode.Difference:
+            //         int clamped = Mathf.Clamp((int)Math.Abs(Math.Round(differenceToTheoretical)), -99_999_999, 99_999_999);
+            //         scoreCharArray.SetNumberDigitsToArray(clamped, out length);
+            //         for (int i = scoreCharArray.Length - 8; i < scoreCharArray.Length - length; i++)
+            //         {
+            //             scoreCharArray[i] = '0';
+            //         }
+            //
+            //         length = 9;
+            //         scoreCharArray[scoreCharArray.Length - length] = '-';
+            //         break;
+            //
+            //     case ScoreDisplayMode.Decrease:
+            //         double theoreticalEndScore = Constants.MaxScore + noteCount + differenceToTheoretical;
+            //         scoreCharArray.SetNumberDigitsToArray((int)Math.Round(theoreticalEndScore), out length);
+            //         for (int i = scoreCharArray.Length - 8; i < scoreCharArray.Length - length; i++)
+            //         {
+            //             scoreCharArray[i] = '0';
+            //         }
+            //
+            //         length = Mathf.Max(length, 8);
+            //         break;
+            //
+            //     case ScoreDisplayMode.Default:
+            //     default:
+            //         scoreCharArray.SetNumberDigitsToArray((int)Math.Round(score), out length);
+            //         for (int i = scoreCharArray.Length - 8; i < scoreCharArray.Length - length; i++)
+            //         {
+            //             scoreCharArray[i] = '0';
+            //         }
+            //
+            //         length = Mathf.Max(length, 8);
+            //         break;
+            // }
 
-                    bool isAP = nonPerfectCount == 0;
-                    int difference = 0;
-                    if (!isAP)
-                    {
-                        int projectedScore = count == 0 ? 0 : (int)Math.Round((double)score / count * noteCount);
-                        int closestScore = int.MaxValue;
-                        Grade closestGrade = Grade.Unknown;
-                        for (int i = 0; i < cachedGradeOptions.Length; i++)
-                        {
-                            Grade option = cachedGradeOptions[i];
-                            if (option == Grade.D || option == Grade.Unknown)
-                            {
-                                continue;
-                            }
-
-                            if (Mathf.Abs((int)option - projectedScore) < Mathf.Abs(closestScore - projectedScore))
-                            {
-                                closestGrade = option;
-                                closestScore = (int)option;
-                            }
-                        }
-
-                        difference = projectedScore - (int)closestGrade;
-                        predictedGradeText.text = closestGrade.GetText();
-                    }
-                    else
-                    {
-                        difference = maxCount;
-                        predictedGradeText.text = perfectCount == 0 ? "AP+" : "AP";
-                    }
-
-                    difference = Mathf.Clamp(difference, -999_999, 999_999);
-                    scoreCharArray.SetNumberDigitsToArray(Mathf.Abs(difference), out length);
-                    for (int i = scoreCharArray.Length - 7; i < scoreCharArray.Length - length; i++)
-                    {
-                        scoreCharArray[i] = '0';
-                    }
-
-                    for (int i = scoreCharArray.Length - length - 1; i < scoreCharArray.Length - 3; i++)
-                    {
-                        scoreCharArray[i - 1] = scoreCharArray[i];
-                    }
-
-                    scoreCharArray[scoreCharArray.Length - 4] = '\'';
-                    length = 8;
-                    scoreCharArray[scoreCharArray.Length - length] = difference >= 0 ? '+' : '-';
-                    break;
-
-                case ScoreDisplayMode.Difference:
-                    int clamped = Mathf.Clamp((int)Math.Abs(Math.Round(differenceToTheoretical)), -99_999_999, 99_999_999);
-                    scoreCharArray.SetNumberDigitsToArray(clamped, out length);
-                    for (int i = scoreCharArray.Length - 8; i < scoreCharArray.Length - length; i++)
-                    {
-                        scoreCharArray[i] = '0';
-                    }
-
-                    length = 9;
-                    scoreCharArray[scoreCharArray.Length - length] = '-';
-                    break;
-
-                case ScoreDisplayMode.Decrease:
-                    double theoreticalEndScore = Constants.MaxScore + noteCount + differenceToTheoretical;
-                    scoreCharArray.SetNumberDigitsToArray((int)Math.Round(theoreticalEndScore), out length);
-                    for (int i = scoreCharArray.Length - 8; i < scoreCharArray.Length - length; i++)
-                    {
-                        scoreCharArray[i] = '0';
-                    }
-
-                    length = Mathf.Max(length, 8);
-                    break;
-
-                case ScoreDisplayMode.Default:
-                default:
-                    scoreCharArray.SetNumberDigitsToArray((int)Math.Round(score), out length);
-                    for (int i = scoreCharArray.Length - 8; i < scoreCharArray.Length - length; i++)
-                    {
-                        scoreCharArray[i] = '0';
-                    }
-
-                    length = Mathf.Max(length, 8);
-                    break;
-            }
-
-            scoreText.SetCharArray(scoreCharArray, scoreCharArray.Length - length, length);
+            //scoreText.SetCharArray(scoreCharArray, scoreCharArray.Length - length, length);
+            //
         }
 
         private void SetCombo(int combo)

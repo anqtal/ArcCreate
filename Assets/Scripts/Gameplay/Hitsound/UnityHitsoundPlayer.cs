@@ -32,6 +32,7 @@ namespace ArcCreate.Gameplay.Hitsound
         {
             tapClip = clip;
         }
+        
 
         public void PlayArc()
         {
