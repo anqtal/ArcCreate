@@ -41,7 +41,7 @@ namespace ArcCreate.Storage
 
         private static async UniTask LoadAudio(LevelStorage level, ChartSettings chart)
         {
-            var fileName = $"{level.Identifier}-base.ogg";
+            var fileName = $"{level.Identifier}.ogg";
             var localDir = Path.Combine(Application.persistentDataPath, "dl");
             var localPath = Path.Combine(localDir, fileName);
             if (!Directory.Exists(localDir))
@@ -49,7 +49,7 @@ namespace ArcCreate.Storage
             
             if (!File.Exists(localPath))
             {
-                var url = $"https://erc.osiom.cc/dl/id/{level.Identifier}-base.ogg";
+                var url = $"https://erc.osiom.cc/dl/song/{level.Identifier}/base.ogg";
 
                 using var request = UnityWebRequest.Get(url);
                 request.downloadHandler = new DownloadHandlerBuffer();
@@ -89,10 +89,9 @@ namespace ArcCreate.Storage
 
         private void LoadChart(LevelStorage level, ChartSettings chart)
         {
-            StorageFileAccessWrapper fileAccess = new StorageFileAccessWrapper(level);
-            var path = Application.streamingAssetsPath + "/songs/0/" + chart.ChartPath;
-            Debug.Log(path);
-            ChartReader reader = ChartReaderFactory.GetReader(fileAccess, path);
+            var fileAccess = new StorageFileAccessWrapper(level);
+            var path = level.Identifier+chart.ChartPath;
+            var reader = ChartReaderFactory.GetReader(fileAccess, path);
             reader.Parse();
             gameplayData.LoadChart(reader, "", fileAccess);
         }

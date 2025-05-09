@@ -28,7 +28,7 @@ namespace ArcCreate.Selection.Interface
             selectable.StorageUnit = pack;
             title.text = pack.PackName;
 
-            if (storage.TryAssignTextureFromCache(image, pack, pack.ImagePath))
+            if (storage.TryAssignTextureFromCache(image, pack, pack.ImagePath,packPath:pack.ImagePath))
             {
                 MarkFullyLoaded();
             }
@@ -36,7 +36,7 @@ namespace ArcCreate.Selection.Interface
 
         public override async UniTask LoadCellFully(CellData cellData, CancellationToken cancellationToken)
         {
-            await storage.AssignTexture(image, pack, pack.ImagePath);
+            await storage.AssignTexture(image, pack, pack.ImagePath,packPath:pack.ImagePath);
         }
 
         private void Awake()

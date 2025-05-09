@@ -160,7 +160,7 @@ namespace ArcCreate.Selection.Interface
             int prevCount = scroll.Data.Count;
             if (storageData.SelectedPack.Value != null)
             {
-                storageData.FetchLevelsForPack(storageData.SelectedPack.Value);
+                StorageData.FetchLevelsForPack(storageData.SelectedPack.Value);
             }
 
             List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? StorageData.GetAllLevels())?.ToList();

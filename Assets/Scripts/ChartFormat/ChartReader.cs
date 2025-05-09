@@ -62,10 +62,10 @@ namespace ArcCreate.ChartFormat
             CurrentTimingGroup = 0;
             TimingGroups.Add(new RawTimingGroup() { File = Filename });
             AllIncludes.Add(Filename);
-            
-            var fileName = Filename;
+            var songID = Filename[..^1];
+            var diffID = Filename[^1];
             var localDir = Path.Combine(Application.persistentDataPath, "dl");
-            var localPath = Path.Combine(localDir, fileName);
+            var localPath = Path.Combine(localDir, Filename);
             Debug.Log(localPath);
             if (!Directory.Exists(localDir))
                 Directory.CreateDirectory(localDir);
@@ -76,7 +76,7 @@ namespace ArcCreate.ChartFormat
             }
             else
             {
-                var fileUrl = $"https://erc.osiom.cc/dl/id/{fileName}";
+                var fileUrl = $"https://erc.osiom.cc/dl/song/{songID}/{diffID}.aff";
                 using var request = UnityWebRequest.Get(fileUrl);
                 request.SendWebRequest();
                 while (!request.isDone)

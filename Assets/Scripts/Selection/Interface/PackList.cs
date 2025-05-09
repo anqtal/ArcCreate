@@ -183,37 +183,28 @@ namespace ArcCreate.Selection.Interface
 
         private void RebuildList()
         {
-            List<PackStorage> packs = storageData.GetAllPacks().ToList();
-            ISortPackStrategy sortPack = GetSortPackStrategy(Settings.SelectionSortPackStrategy.Value);
-            List<PackCellData> data = new List<PackCellData>();
-
-            foreach (var pack in packs)
-            {
-                data.Add(new PackCellData
-                {
-                    PackStorage = pack,
-                    Pool = packCellPool,
-                    Size = packCellSize,
-                });
-            }
+            var packs = StorageData.GetAllPacks().ToList();
+            var sortPack = GetSortPackStrategy(Settings.SelectionSortPackStrategy.Value);
+            var data = packs.Select(pack => new PackCellData { PackStorage = pack, Pool = packCellPool, Size = packCellSize, }).ToList();
 
             scroll.SetData(sortPack.Sort(data).ToList<CellData>());
             FocusOnPack(storageData.SelectedPack.Value);
         }
 
-        private ISortPackStrategy GetSortPackStrategy(string value)
+        private static ISortPackStrategy GetSortPackStrategy(string value)
         {
-            switch(value)
-            {
-                case SortPackByName.Typename:
-                    return new SortPackByName();
-                case SortPackByPublisher.Typename:
-                    return new SortPackByPublisher();
-                case SortPackByAddedDate.Typename:
-                    return new SortPackByAddedDate();
-                default:
-                    return new SortPackByName();
-            }
+            return new SortPackByName();
+            // switch(value)
+            // {
+            //     case SortPackByName.Typename:
+            //         return new SortPackByName();
+            //     case SortPackByPublisher.Typename:
+            //         return new SortPackByPublisher();
+            //     case SortPackByAddedDate.Typename:
+            //         return new SortPackByAddedDate();
+            //     default:
+            //         return new SortPackByName();
+            // }
         }
 
         private void FocusOnPack(PackStorage pack)
