@@ -94,13 +94,13 @@ namespace ArcCreate.Gameplay.Audio
                 UpdateSlider(value);
                 if (IsPlaying)
                 {
-                    audioSource.Stop();
-                    if (videoPlayer.enabled)
-                    {
-                        videoPlayer.Pause();
-                    }
-
-                    Play(audioTiming, 0);
+                    // audioSource.Stop();
+                    // if (videoPlayer.enabled)
+                    // {
+                    //     videoPlayer.Pause();
+                    // }
+                    //
+                    //Play(audioTiming, 0);
                 }
                 else if (videoPlayer.enabled)
                 {
@@ -115,9 +115,9 @@ namespace ArcCreate.Gameplay.Audio
 
         public int AudioLength { get; private set; }
 
-        public bool IsPlaying => audioSource.isPlaying;
+        public bool IsPlaying => true;//audioSource.isPlaying;
 
-        public bool IsPlayingAndNotStationary => (audioSource.isPlaying && !isStationary) || IsRendering;
+        public bool IsPlayingAndNotStationary => true;//(audioSource.isPlaying && !isStationary) || IsRendering;
 
         public bool IsLoaded => audioSource.clip != null;
 
@@ -133,11 +133,11 @@ namespace ArcCreate.Gameplay.Audio
             }
         }
 
-        public AudioClip TapHitsoundClip => Services.Hitsound.TapHitsoundClip;
-
-        public AudioClip ArcHitsoundClip => Services.Hitsound.ArcHitsoundClip;
-
-        public Dictionary<string, AudioClip> SfxAudioClips => Services.Hitsound.SfxAudioClips;
+        // public AudioClip TapHitsoundClip => Services.Hitsound.TapHitsoundClip;
+        //
+        // public AudioClip ArcHitsoundClip => Services.Hitsound.ArcHitsoundClip;
+        //
+        // public Dictionary<string, AudioClip> SfxAudioClips => Services.Hitsound.SfxAudioClips;
 
         private int FullOffset => Values.ChartAudioOffset + Mathf.RoundToInt(Settings.GlobalAudioOffset.Value * playbackSpeed);
 
@@ -160,73 +160,78 @@ namespace ArcCreate.Gameplay.Audio
 
         public void UpdateTime()
         {
-            double dspTime = AudioSettings.dspTime;
-            if (!IsPlaying)
+            // double dspTime = AudioSettings.dspTime;
+            // if (!IsPlaying)
+            // {
+                // if (audioSource.clip != null && audioTiming >= Mathf.Max(0, AudioLength - 100))
+                // {
+                //     OnAudioEnd();
+                // }
+            //
+            //     return;
+            // }
+            //
+            // if (Application.isMobilePlatform || Settings.SyncToDSPTime.Value)
+            // {
+            //     isStationary = stationaryBeforeStart && dspTime <= dspStartPlayingTime;
+            //
+            //     if (stationaryBeforeStart)
+            //     {
+            //         dspTime = Math.Max(dspTime, dspStartPlayingTime);
+            //     }
+            //
+            //     int dspTimePassedSinceAudioStart = Mathf.RoundToInt((float)((dspTime - dspStartPlayingTime) * 1000 * playbackSpeed));
+            //     int realTimePassedSinceAudioStart = Mathf.RoundToInt((float)((Time.realtimeSinceStartup - realStartPlayingTime) * 1000 * playbackSpeed));
+            //     updatePace = realTimePassedSinceAudioStart < 0 + Mathf.Epsilon ? 1
+            //                : Mathf.Lerp(updatePace, (float)dspTimePassedSinceAudioStart / realTimePassedSinceAudioStart, 0.1f);
+            //     int newTiming = Mathf.RoundToInt(realTimePassedSinceAudioStart * updatePace) + startTime - FullOffset;
+            //
+            //     if (!stationaryBeforeStart || dspTime > dspStartPlayingTime)
+            //     {
+            //         audioTiming = newTiming;
+            //     }
+            // }
+            // else
+            // {
+            //     audioTiming = Mathf.RoundToInt(AudioSource.time * 1000f);
+            // }
+            isStationary = false;
+            audioTiming = (BassAudioService.Instance.GetAudioPosition() ?? 0);
+            if (audioTiming >= Mathf.Max(0, BassAudioService.Instance.GetAudioLength() ?? 1000 - 100))
             {
-                if (audioSource.clip != null && audioTiming >= Mathf.Max(0, AudioLength - 100))
-                {
-                    OnAudioEnd();
-                }
-
-                return;
+                OnAudioEnd();
             }
-
-            if (Application.isMobilePlatform || Settings.SyncToDSPTime.Value)
-            {
-                isStationary = stationaryBeforeStart && dspTime <= dspStartPlayingTime;
-
-                if (stationaryBeforeStart)
-                {
-                    dspTime = Math.Max(dspTime, dspStartPlayingTime);
-                }
-
-                int dspTimePassedSinceAudioStart = Mathf.RoundToInt((float)((dspTime - dspStartPlayingTime) * 1000 * playbackSpeed));
-                int realTimePassedSinceAudioStart = Mathf.RoundToInt((float)((Time.realtimeSinceStartup - realStartPlayingTime) * 1000 * playbackSpeed));
-                updatePace = realTimePassedSinceAudioStart < 0 + Mathf.Epsilon ? 1
-                           : Mathf.Lerp(updatePace, (float)dspTimePassedSinceAudioStart / realTimePassedSinceAudioStart, 0.1f);
-                int newTiming = Mathf.RoundToInt(realTimePassedSinceAudioStart * updatePace) + startTime - FullOffset;
-
-                if (!stationaryBeforeStart || dspTime > dspStartPlayingTime)
-                {
-                    audioTiming = newTiming;
-                }
-            }
-            else
-            {
-                audioTiming = Mathf.RoundToInt(AudioSource.time * 1000f);
-            }
-
             UpdateSlider(audioTiming);
         }
 
-        public void PauseButtonPressed()
-        {
-            if (!IsPlaying)
-            {
-                ResumeImmediately();
-            }
-            else
-            {
-                Pause();
-            }
-        }
+        // public void PauseButtonPressed()
+        // {
+        //     if (!IsPlaying)
+        //     {
+        //         ResumeImmediately();
+        //     }
+        //     else
+        //     {
+        //         Pause();
+        //     }
+        // }
 
         public void Pause()
         {
-            lastPausedTiming = audioTiming;
-            audioSource.Stop();
-            if (videoPlayer.enabled)
-            {
-                videoPlayer.Pause();
-            }
-
-            if (returnOnPause)
-            {
-                lastPausedTiming = onPauseReturnTo;
-                AudioTiming = onPauseReturnTo;
-            }
-
-            SetEnableAutorotation(true);
+            // lastPausedTiming = audioTiming;
+            // audioSource.Stop();
+            // if (videoPlayer.enabled)
+            // {
+            //     videoPlayer.Pause();
+            // }
+            //
+            // if (returnOnPause)
+            // {
+            //     lastPausedTiming = onPauseReturnTo;
+            //     AudioTiming = onPauseReturnTo;
+            // }
+            //
+            // SetEnableAutorotation(true);
         }
 
         public void Stop()
@@ -252,7 +257,7 @@ namespace ArcCreate.Gameplay.Audio
 
         public void PlayWithDelay(int timing, int delayMs)
         {
-            BassAudioService.Instance.StopAudioPreview();
+            BassAudioService.Instance.AudioPreviewStream.Dispose();
             var bpm = gameplayData.BaseBpm.Value;
             var timeStep = 60000/bpm;
             var delay = 1000;
@@ -263,7 +268,10 @@ namespace ArcCreate.Gameplay.Audio
             }
             stationaryBeforeStart = false;
             returnOnPause = false;
-            Play(timing, delayMs);
+            //Play(timing, delay);
+            BassAudioService.Instance.PlayAudio(delay);
+            Services.Chart.ResetJudge();
+            
         }
 
         public void ResumeImmediately(bool resetJudge = true)
@@ -320,56 +328,59 @@ namespace ArcCreate.Gameplay.Audio
 
         private void Play(int timing = 0, int delay = 0, bool resetJudge = true)
         {
-            delay = Mathf.Max(delay, 0);
-            if (videoPlayer.enabled)
-            {
-                delay = Mathf.Max(delay, 500);
-            }
-            
-            if (timing >= AudioLength - 1)
-            {
-                timing = 0;
-            }
-
-            if (timing < 0)
-            {
-                stationaryBeforeStart = false;
-                timing = 0;
-            }
-
-            audioTiming = stationaryBeforeStart ? timing : timing - delay;
-            updatePace = 1;
-
-            if (resetJudge)
-            {
-                Services.Chart.ResetJudge();
-            }
-
-            audioSource.time = Mathf.Max(0, timing) / 1000f;
-            if (timing < 0)
-            {
-                delay += -timing;
-            }
-
-            dspStartPlayingTime = AudioSettings.dspTime + ((double)delay / 1000);
-            realStartPlayingTime = Time.realtimeSinceStartup + ((double)delay / 1000);
-            startTime = timing + FullOffset;
-            if (delay > 0)
-            {
-                audioSource.PlayScheduled(dspStartPlayingTime);
-            }
-            else
-            {
-                audioSource.Play();
-            }
-
-            if (videoPlayer.enabled)
-            {
-                StartDelayedVideoPlayback(timing - GlobalOffset, delay).Forget();
-            }
-
-            SetEnableAutorotation(false);
-            audioEndReported = false;
+            // delay = Mathf.Max(delay, 0);
+            // if (videoPlayer.enabled)
+            // {
+            //     delay = Mathf.Max(delay, 500);
+            // }
+            //
+            // if (timing >= AudioLength - 1)
+            // {
+            //     timing = 0;
+            // }
+            //
+            // if (timing < 0)
+            // {
+            //     stationaryBeforeStart = false;
+            //     timing = 0;
+            // }
+            //
+            // audioTiming = stationaryBeforeStart ? timing : timing - delay;
+            // updatePace = 1;
+            //
+            // if (resetJudge)
+            // {
+            //     Services.Chart.ResetJudge();
+            // }
+            //
+            // audioSource.time = Mathf.Max(0, timing) / 1000f;
+            // if (timing < 0)
+            // {
+            //     delay += -timing;
+            // }
+            //
+            // dspStartPlayingTime = AudioSettings.dspTime + ((double)delay / 1000);
+            // realStartPlayingTime = Time.realtimeSinceStartup + ((double)delay / 1000);
+            // startTime = timing + FullOffset;
+            // if (delay > 0)
+            // {
+            //     
+            //     BassAudioService.Instance.PlayAudio(delay);
+            //     //audioSource.Play();
+            //     //audioSource.PlayScheduled(dspStartPlayingTime);
+            // }
+            // else
+            // {
+            //     //audioSource.Play();
+            // }
+            //
+            // if (videoPlayer.enabled)
+            // {
+            //     StartDelayedVideoPlayback(timing - GlobalOffset, delay).Forget();
+            // }
+            //
+            // SetEnableAutorotation(false);
+            // audioEndReported = false;
         }
 
         private async UniTask StartDelayedVideoPlayback(int timing, int delay)
@@ -447,7 +458,8 @@ namespace ArcCreate.Gameplay.Audio
 
         private void UpdateSlider(float timing)
         {
-            timingSlider.value = AudioLength > 0 ? Mathf.Clamp(timing / AudioLength, 0, 1) : 0;
+            var AudioL = BassAudioService.Instance.GetAudioLength() ?? 1;
+            timingSlider.value = AudioL > 0 ? Mathf.Clamp(timing / AudioL, 0, 1) : 0;
         }
     }
 }

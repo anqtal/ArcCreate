@@ -72,15 +72,15 @@ namespace ArcCreate.Gameplay.Score
             if (result.IsMiss())
             {
                 isBegin = false;
-                //currentCombo = 0;
-                currentCombo--;
+                currentCombo = 0;
+                //currentCombo--;
                 
-                if (currentCombo == 0 && !isBegin)
-                {
-                    Services.Audio.Stop();
-                    var result_ = Services.Score.GetPlayResult();
-                    gameplayData.NotifyPlayComplete(result_);
-                }
+                // if (currentCombo == 0 && !isBegin)
+                // {
+                //     Services.Audio.Stop();
+                //     var result_ = Services.Score.GetPlayResult();
+                //     gameplayData.NotifyPlayComplete(result_);
+                // }
                 if (Mathf.Approximately(comboRedmix, 0))
                 {
                     comboRedmix = 1;
@@ -99,7 +99,7 @@ namespace ArcCreate.Gameplay.Score
             }
 
             comboRedmix = 0;
-            //currentCombo++;
+            currentCombo++;
             maxCombo = Mathf.Max(currentCombo, maxCombo);
 
             double scorePerNote =
@@ -136,10 +136,10 @@ namespace ArcCreate.Gameplay.Score
 
         public void UpdateScore(int currentTiming)
         {
-            if (currentCombo == 0 && isBegin)
-            {
-                currentCombo = 50;
-            }
+            // if (currentCombo == 0 && isBegin)
+            // {
+            //     currentCombo = 50;
+            // }
 
 
 

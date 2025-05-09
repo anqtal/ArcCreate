@@ -64,7 +64,7 @@ namespace ArcCreate.Gameplay.Chart
             Services.Judgement.ResetJudge();
             Services.Scenecontrol.UpdateScenecontrol(timing);
             Services.Camera.UpdateCamera(timing);
-            Services.Hitsound.ResetHitsoundHistory();
+            //Services.Hitsound.ResetHitsoundHistory();
         }
 
         public IEnumerable<T> FindByTiming<T>(int from, int to)

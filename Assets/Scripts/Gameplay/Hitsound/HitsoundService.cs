@@ -1,3 +1,6 @@
+
+
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -129,7 +132,7 @@ namespace ArcCreate.Gameplay.Hitsound
             //
             // playedArcHitsoundTimings.Add(timing);
             // hitsoundPlayer?.PlayArc();
-            BassAudioService.Instance.PlayArcHitSound(timing);
+            //BassAudioService.Instance.PlayArcHitSound(timing);
         }
 
         public void PlayArcTapHitsound(int timing, string sfx, bool isFromJudgement)
@@ -237,7 +240,7 @@ namespace ArcCreate.Gameplay.Hitsound
             hitsoundPlayer = new NativeAudioHitsoundPlayer();
 #else
             MyBassPlayer = new ErcBassPlayer();
-            hitsoundPlayer = new UnityHitsoundPlayer(audioSource);
+            //hitsoundPlayer = new UnityHitsoundPlayer(audioSource);
 #endif
             MyBassPlayer.LoadAudio();
             MyBassPlayer.LoadClock();

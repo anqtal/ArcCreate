@@ -10,15 +10,13 @@ using UnityEngine.Networking;
 
 namespace ArcCreate.Gameplay.Audio
 {
-    
-    
     public sealed class BassAudioService : IDisposable
     {
         private static readonly Lazy<BassAudioService> _instance = new(() => new BassAudioService());
 
         public static BassAudioService Instance => _instance.Value;
 
-        private bool _initialized = false;
+        private bool initialized = false;
 
         // Audio Path
         private const string ClockPath = "clock.wav";
@@ -31,8 +29,9 @@ namespace ArcCreate.Gameplay.Audio
         private BassStream answerStream;
         private BassStream tapStream;
         private BassStream arcStream;
-        private BassStream audioStream;
-        private BassStream audioPreviewStream;
+        public BassStream AudioStream;
+        public BassStream AudioPreviewStream;
+        public BassStream CalibrationStream;
 
         private const float FadeDuration = 0.5f;
 
@@ -42,22 +41,21 @@ namespace ArcCreate.Gameplay.Audio
             Application.quitting += OnApplicationQuit;
         }
 
-        
 
         private void Initialize()
         {
-            if (_initialized) return;
+            if (initialized) return;
 
             if (Bass.Init())
             {
                 Debug.Log("BASS初始化成功！");
-                _initialized = true;
+                initialized = true;
                 LoadAudioAsync().Forget();
             }
             else
             {
                 Debug.LogError($"BASS初始化失败！错误代码: {Bass.LastError}");
-                _initialized = true;
+                initialized = true;
             }
         }
 
@@ -67,6 +65,7 @@ namespace ArcCreate.Gameplay.Audio
             var answerFilePath = Path.Combine(Application.streamingAssetsPath, "audio", AnswerPath);
             var tapFilePath = Path.Combine(Application.streamingAssetsPath, "audio", TapPath);
             var arcFilePath = Path.Combine(Application.streamingAssetsPath, "audio", ArcPath);
+            
 
             var clockFileBytes = await ReadFileAsync(clockFilePath);
             var answerFileBytes = await ReadFileAsync(answerFilePath);
@@ -74,10 +73,10 @@ namespace ArcCreate.Gameplay.Audio
             var arcFileBytes = await ReadFileAsync(arcFilePath);
 
             clockStream = new BassStream(clockFileBytes);
-            answerStream =  new BassStream(answerFileBytes);
+            answerStream = new BassStream(answerFileBytes);
+            clockStream.Volume = 2.0f;
             tapStream = new BassStream(tapFileBytes);
             arcStream = new BassStream(arcFileBytes);
-            //Bass.ChannelSetAttribute(tapStream, ChannelAttribute.Volume, 1.0f);
         }
 
         private static async UniTask<byte[]> ReadFileAsync(string filePath)
@@ -89,6 +88,7 @@ namespace ArcCreate.Gameplay.Audio
             {
                 return request.downloadHandler.data;
             }
+
             Debug.LogError($"Failed to load file: {request.error}");
             return null;
         }
@@ -96,7 +96,7 @@ namespace ArcCreate.Gameplay.Audio
 
         public void PlayClock(int delayMilliseconds)
         {
-            UniTask.Delay(delayMilliseconds).ContinueWith(() => {clockStream.Play();});
+            UniTask.Delay(delayMilliseconds).ContinueWith(() => { clockStream.Play(); });
         }
 
         public void PlayAnswer(int timing, int delay = 0)
@@ -107,47 +107,68 @@ namespace ArcCreate.Gameplay.Audio
                 return;
             }
 
-            DelayAndPlay(delay).Forget();
+            DelayAndPlay(delay, answerStream).Forget();
         }
 
-        private UniTask DelayAndPlay(int delayMilliseconds)
+        private static UniTask DelayAndPlay(int delayMilliseconds, BassStream stream)
         {
-            return UniTask.Delay(delayMilliseconds).ContinueWith(() => {answerStream.Play();});
+            return UniTask.Delay(delayMilliseconds).ContinueWith(stream.Play);
         }
 
         public void PlayTapHitSound(int timing)
         {
-            //Bass.ChannelPlay(tapStream, true);
+            tapStream.Play();
         }
 
         public void PlayArcHitSound(int timing)
         {
-            //Bass.ChannelPlay(arcStream, true);
+            arcStream.Play();
         }
 
         public async UniTask PlayAudioPreview(string fullPath)
         {
-            StopAudioPreview();
+            AudioPreviewStream?.Dispose();
             var audioBytes = await ReadFileAsync(fullPath);
-            audioPreviewStream = new BassStream(audioBytes,BassFlags.Loop);
-            audioPreviewStream.Play();
+            AudioPreviewStream = new BassStream(audioBytes, BassFlags.Loop);
+            AudioPreviewStream.FadeInAsync(0.7f).Forget();
+            AudioPreviewStream.Play();
         }
 
-        public void PauseAudioPreview()
+        public async UniTask LoadAudioAsync(string fullPath)
         {
-            audioPreviewStream?.Pause();
+            AudioStream?.Dispose();
+            var audioBytes = await ReadFileAsync(fullPath);
+            AudioStream = new BassStream(audioBytes);
         }
-        
-        public void ResumeAudioPreview()
+
+        public void PlayAudio(int delay = 0)
         {
-            audioPreviewStream?.Resume();
+            if (delay > 0)
+            {
+                DelayAndPlay(delay, AudioStream).Forget();
+                return;
+            }
+
+            AudioStream.Play();
         }
-        
-        public void StopAudioPreview()
+
+
+        public int? GetAudioPosition()
         {
-            audioPreviewStream?.Dispose();
+            return AudioStream?.Position;
         }
-        
+
+        public int? GetAudioLength()
+        {
+            return AudioStream?.Length;
+        }
+
+        public async UniTask LoadCalibrationStream()
+        {
+            var calibrationFilePath = Path.Combine(Application.streamingAssetsPath, "audio", "Calibrate.ogg");
+            var calibrationFileBytes = await ReadFileAsync(calibrationFilePath);
+            CalibrationStream = new BassStream(calibrationFileBytes);
+        }
 
         private void OnApplicationQuit()
         {
@@ -156,10 +177,11 @@ namespace ArcCreate.Gameplay.Audio
 
         public void Dispose()
         {
-            if (!_initialized) return;
+            tapStream.Dispose();
+            if (!initialized) return;
             Bass.Free();
             Debug.Log("BASS已释放");
-            _initialized = false;
+            initialized = false;
         }
     }
 }

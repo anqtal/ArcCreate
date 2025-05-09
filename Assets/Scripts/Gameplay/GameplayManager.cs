@@ -41,8 +41,8 @@ namespace ArcCreate.Gameplay
         public bool IsLoaded =>
             Services.Chart.IsLoaded
             && Services.Scenecontrol.IsLoaded
-            && Services.Render.IsLoaded
-            && Services.Hitsound.IsLoaded;
+            && Services.Render.IsLoaded;
+            //&& Services.Hitsound.IsLoaded;
 
         public bool EnablePauseMenu { get => Values.EnablePauseMenu; set => Values.EnablePauseMenu = value; }
 
@@ -149,7 +149,7 @@ namespace ArcCreate.Gameplay
             Services.Camera.UpdateCamera(currentTiming);
             Services.Chart.UpdateChartRender(currentTiming);
             Services.Score.UpdateDisplay();
-            Services.Hitsound.UpdateHitsoundHistory(currentTiming);
+            //Services.Hitsound.UpdateHitsoundHistory(currentTiming);
             Services.Render.UpdateRenderers();
 
             gameplayData.NotifyUpdate(currentTiming);

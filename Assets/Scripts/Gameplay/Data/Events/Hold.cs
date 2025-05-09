@@ -229,7 +229,6 @@ namespace ArcCreate.Gameplay.Data
             highlight = true;
             Services.InputFeedback.LaneFeedback(Lane);
             Services.Particle.PlayHoldParticle(this, new Vector3(ArcFormula.LaneToWorldX(Lane), 0, 0) + props.CurrentJudgementOffset);
-            //Services.Hitsound.PlayTapHitsound(Timing);
             BassAudioService.Instance.PlayTapHitSound(Timing);
 
             // Extend the note back

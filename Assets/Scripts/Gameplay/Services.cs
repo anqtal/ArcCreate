@@ -25,7 +25,7 @@ namespace ArcCreate.Gameplay
         [SerializeField] private ScoreService score;
         [SerializeField] private ScenecontrolService scenecontrol;
         [SerializeField] private RenderService render;
-        [SerializeField] private HitsoundService hitsound;
+        //[SerializeField] private HitsoundService hitsound;
 
         public static ISkinService Skin { get; private set; }
 
@@ -47,7 +47,7 @@ namespace ArcCreate.Gameplay
 
         public static IRenderService Render { get; private set; }
 
-        public static IHitsoundService Hitsound { get; private set; }
+        //public static IHitsoundService Hitsound { get; private set; }
 
         private void Awake()
         {
@@ -61,7 +61,7 @@ namespace ArcCreate.Gameplay
             Scenecontrol = scenecontrol;
             Camera = camera;
             Render = render;
-            Hitsound = hitsound;
+            //Hitsound = hitsound;
         }
     }
 }

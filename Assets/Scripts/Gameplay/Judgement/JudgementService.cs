@@ -1,3 +1,4 @@
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Judgement.Input;
 using ArcCreate.Utility;
 using UnityEngine;
@@ -45,14 +46,14 @@ namespace ArcCreate.Gameplay.Judgement
             var list = request.Properties.Autoplay ? autoLaneTapRequests : laneTapRequests;
             var a = request.ExpireAtTiming;
             // play the answer sound of tap
-            Services.Hitsound.PlayAnswerSound(request.AutoAtTiming,120);
+            BassAudioService.Instance.PlayAnswer(request.AutoAtTiming,120);
             // if hold
             if (request.ExpireAtTiming - request.AutoAtTiming > 120)
             {;
                 var holdStartTiming = request.AutoAtTiming;
                 var holdEndTiming = request.ExpireAtTiming - 90;
                 var holdLastTiming = holdEndTiming - holdStartTiming;
-                Services.Hitsound.PlayAnswerSound(holdEndTiming, holdLastTiming+120);
+                BassAudioService.Instance.PlayAnswer(holdEndTiming, holdLastTiming+120);
             }
             list.Add(request);
         }
@@ -73,7 +74,7 @@ namespace ArcCreate.Gameplay.Judgement
         public void Request(ArcTapJudgementRequest request)
         {
             var list = request.Properties.Autoplay ? autoArcTapRequests : arcTapRequests;
-            Services.Hitsound.PlayAnswerSound(request.AutoAtTiming, 120);
+            BassAudioService.Instance.PlayAnswer(request.AutoAtTiming, 120);
             list.Add(request);
         }
 
@@ -93,10 +94,10 @@ namespace ArcCreate.Gameplay.Judgement
 
         public void ProcessInput(int currentTiming)
         {
-            if (!Services.Audio.IsPlayingAndNotStationary)
-            {
-                return;
-            }
+            // if (!Services.Audio.IsPlayingAndNotStationary)
+            // {
+            //     return;
+            // }
 
             bool forceAuto = gameplayData.EnableAutoplayMode.Value;
             if (!isAuto && !forceAuto)

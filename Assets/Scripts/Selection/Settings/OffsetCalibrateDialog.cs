@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Utility.Animation;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -16,14 +17,14 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private RectTransform mainButtonRect;
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button cancelButton;
-        [SerializeField] private AudioSource audioSource;
+        //[SerializeField] private AudioSource audioSource;
         [SerializeField] private int[] expectedHitTimings;
         [SerializeField] private TMP_Text[] offsetTexts;
         [SerializeField] private Toggle[] offsetToggles;
-        [SerializeField] private AudioPreview audioPreview;
+        //[SerializeField] private AudioPreview audioPreview;
         [SerializeField] private ScriptedAnimator hitAnimator;
         [SerializeField] private ScriptedAnimator dialogAnimator;
-        private CancellationTokenSource cts = new CancellationTokenSource();
+        private CancellationTokenSource cts = new();
         private bool confirmPressed;
         private bool retryPressed;
 
@@ -33,6 +34,7 @@ namespace ArcCreate.Selection.Interface
             confirmButton.onClick.AddListener(ConfirmCalibration);
             cancelButton.onClick.AddListener(CancelCalibration);
             confirmButton.interactable = false;
+            BassAudioService.Instance.LoadCalibrationStream().Forget();
         }
 
         private void OnDestroy()
@@ -40,6 +42,7 @@ namespace ArcCreate.Selection.Interface
             mainButton.onClick.RemoveListener(StartCalibration);
             confirmButton.onClick.RemoveListener(ConfirmCalibration);
             cancelButton.onClick.RemoveListener(CancelCalibration);
+            BassAudioService.Instance.CalibrationStream?.Dispose();
         }
 
         private void ConfirmCalibration()
@@ -63,8 +66,8 @@ namespace ArcCreate.Selection.Interface
             cts.Cancel();
             cts.Dispose();
             cts = new CancellationTokenSource();
-            audioSource.Stop();
-            audioPreview.ResumePreview();
+            BassAudioService.Instance.CalibrationStream?.Pause();
+            BassAudioService.Instance.AudioPreviewStream?.Resume();
             mainButton.onClick.AddListener(StartCalibration);
             dialogAnimator.Hide();
         }
@@ -72,16 +75,14 @@ namespace ArcCreate.Selection.Interface
         private async UniTask StartCalibrationTask(CancellationToken ct)
         {
             mainButton.onClick.RemoveAllListeners();
-            audioPreview.StopPreview();
+            BassAudioService.Instance.AudioPreviewStream?.Pause();
 
             while (true)
             {
                 confirmButton.interactable = false;
 
-                double dspStartTime = AudioSettings.dspTime + PlayDelay;
-                double dspEndTime = dspStartTime + audioSource.clip.length;
-                audioSource.PlayScheduled(dspStartTime);
-                int[] hitTimings = new int[expectedHitTimings.Length];
+                BassAudioService.Instance.CalibrationStream.Play();
+                var hitTimings = new int[expectedHitTimings.Length];
                 Array.Fill(hitTimings, 0);
                 SetOffsetTextsState(hitTimings);
 
@@ -90,7 +91,7 @@ namespace ArcCreate.Selection.Interface
                     hitTimings[i] = int.MinValue;
                 }
 
-                while (AudioSettings.dspTime <= dspStartTime)
+                while (BassAudioService.Instance.CalibrationStream.Position <= 0)
                 {
                     await UniTask.NextFrame();
                     if (ct.IsCancellationRequested)
@@ -99,13 +100,13 @@ namespace ArcCreate.Selection.Interface
                     }
                 }
 
-                while (AudioSettings.dspTime <= dspEndTime)
+                while (BassAudioService.Instance.CalibrationStream.IsPlaying)
                 {
-                    bool hit = Input.GetMouseButtonDown(0) && 
-                        RectTransformUtility.RectangleContainsScreenPoint(mainButtonRect, Input.mousePosition);
+                    var hit = Input.GetMouseButtonDown(0) && 
+                              RectTransformUtility.RectangleContainsScreenPoint(mainButtonRect, Input.mousePosition);
 
-                    int touchCount = Input.touchCount;
-                    for (int t = 0; t < touchCount; t++)
+                    var touchCount = Input.touchCount;
+                    for (var t = 0; t < touchCount; t++)
                     {
                         var touch = Input.GetTouch(t);
                         hit |= touch.phase == TouchPhase.Began &&
@@ -119,17 +120,15 @@ namespace ArcCreate.Selection.Interface
                     
                     if (hit)
                     {
-                        int timing = (int)Math.Round((AudioSettings.dspTime - dspStartTime) * 1000);
-                        int minDiff = int.MaxValue;
-                        int minDiffIndex = 0;
-                        for (int i = 0; i < expectedHitTimings.Length; i++)
+                        var timing = BassAudioService.Instance.CalibrationStream.Position;
+                        var minDiff = int.MaxValue;
+                        var minDiffIndex = 0;
+                        for (var i = 0; i < expectedHitTimings.Length; i++)
                         {
-                            int diff = Mathf.Abs(expectedHitTimings[i] - timing);
-                            if (diff < minDiff)
-                            {
-                                minDiff = diff;
-                                minDiffIndex = i;
-                            }
+                            var diff = Mathf.Abs(expectedHitTimings[i] - timing);
+                            if (diff >= minDiff) continue;
+                            minDiff = diff;
+                            minDiffIndex = i;
                         }
 
                         hitTimings[minDiffIndex] = timing;
@@ -177,8 +176,8 @@ namespace ArcCreate.Selection.Interface
                 }
 
                 Settings.GlobalAudioOffset.Value = avgOffset;
-                audioSource.Stop();
-                audioPreview.ResumePreview();
+                BassAudioService.Instance.CalibrationStream?.Pause();
+                BassAudioService.Instance.AudioPreviewStream?.Resume();
                 mainButton.onClick.AddListener(StartCalibration);
                 dialogAnimator.Hide();
                 return;
@@ -187,11 +186,11 @@ namespace ArcCreate.Selection.Interface
 
         private void SetOffsetTextsState(int[] hitTimings)
         {
-            int max = -1;
-            for (int i = 0; i < hitTimings.Length; i++)
+            var max = -1;
+            for (var i = 0; i < hitTimings.Length; i++)
             {
-                TMP_Text text = offsetTexts[i];
-                int hit = hitTimings[i];
+                var text = offsetTexts[i];
+                var hit = hitTimings[i];
                 if (hit <= 0)
                 {
                     text.text = "-";
@@ -199,12 +198,12 @@ namespace ArcCreate.Selection.Interface
                 else
                 {
                     max = Mathf.Max(max, i);
-                    int offset = hit - expectedHitTimings[i];
+                    var offset = hit - expectedHitTimings[i];
                     text.text = offset.ToString();
                 }
             }
 
-            for (int i = 0; i < offsetToggles.Length; i++)
+            for (var i = 0; i < offsetToggles.Length; i++)
             {
                 offsetToggles[i].isOn = i <= max;
             }

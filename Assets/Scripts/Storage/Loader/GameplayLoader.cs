@@ -4,10 +4,12 @@ using System.IO;
 using ArcCreate.ChartFormat;
 using ArcCreate.Data;
 using ArcCreate.Gameplay;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Storage.Data;
 using ArcCreate.Utility.Extension;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace ArcCreate.Storage
 {
@@ -30,36 +32,43 @@ namespace ArcCreate.Storage
             LoadScenecontrol(level, chart);
 
             // Avoid jacket flickering after reload
-            UniTask audioTask = LoadAudio(level, chart);
-            UniTask bgTask = LoadBackground(level, chart);
+            var audioTask = LoadAudio(level, chart);
+            var bgTask = LoadBackground(level, chart);
 
             await UniTask.WhenAll(audioTask, bgTask);
             await UniTask.WaitUntil(() => gameplayControl.IsLoaded);
         }
 
-        private async UniTask LoadAudio(LevelStorage level, ChartSettings chart)
+        private static async UniTask LoadAudio(LevelStorage level, ChartSettings chart)
         {
-            // Option<string> audioPath = level.GetRealPath(chart.AudioPath);
-            // if (!audioPath.HasValue)
-            // {
-            //     throw new Exception("Audio file does not exist");
-            // }
+            var fileName = $"{level.Identifier}-base.ogg";
+            var localDir = Path.Combine(Application.persistentDataPath, "dl");
+            var localPath = Path.Combine(localDir, fileName);
+            if (!Directory.Exists(localDir))
+                Directory.CreateDirectory(localDir);
+            
+            if (!File.Exists(localPath))
+            {
+                var url = $"https://erc.osiom.cc/dl/id/{level.Identifier}-base.ogg";
 
-            Uri uri = new Uri($"https://erc.osiom.cc/dl/id/{level.Identifier}-base.ogg");//new Uri("https://dev.osiom.cc/dl/0/base.ogg");// new Uri(audioPath.Value);
-            await gameplayData.LoadAudioFromHttp(uri, Path.GetExtension(".ogg"));
+                using var request = UnityWebRequest.Get(url);
+                request.downloadHandler = new DownloadHandlerBuffer();
+                await request.SendWebRequest();
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    throw new Exception($"下载音频失败: {request.error}");
+                }
+
+                await File.WriteAllBytesAsync(localPath, request.downloadHandler.data);
+            }
+            await BassAudioService.Instance.LoadAudioAsync(localPath);
         }
 
         private async UniTask LoadBackground(LevelStorage level, ChartSettings chart)
         {
-            //Option<string> bgPath = level.GetRealPath(chart.BackgroundPath);
-            // if (!bgPath.HasValue)
-            // {
-            //     gameplayData.SetDefaultBackground();
-            //     return;
-            // }
             var bgPath = Path.Combine(Application.streamingAssetsPath, "bg", chart.BackgroundPath+".jpg");
-            Uri uri = new Uri(bgPath);
-            Debug.Log(bgPath);
+            var uri = new Uri(bgPath);
             await gameplayData.LoadBackgroundFromHttp(uri);
         }
 

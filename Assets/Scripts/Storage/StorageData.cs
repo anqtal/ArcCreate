@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using ArcCreate.Data;
 using ArcCreate.Gameplay;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.SceneTransition;
 using ArcCreate.Storage.Data;
 using ArcCreate.Utility.Extension;
@@ -76,14 +77,27 @@ namespace ArcCreate.Storage
 
         public LevelStorage GetLevel(string id)
         {
-            return LevelCollection.FindOne(Query.EQ("Identifier", id));
+            var levels = LoadYaml();
+            return levels[0];
+            //return LevelCollection.FindOne(Query.EQ("Identifier", id));
         }
         
         
         private static List<LevelStorage> LoadYaml()
         {
             var yamlFilePath = Path.Combine(Application.streamingAssetsPath, "songs.yaml");
-            var yamlText = File.ReadAllText(yamlFilePath);
+            var uri = new Uri(yamlFilePath);
+            var request = UnityWebRequest.Get(uri);
+            request.SendWebRequest();
+            while (!request.isDone)
+            {
+            }
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Failed to load YAML file: " + request.error);
+                return null;
+            }
+            var yamlText = request.downloadHandler.text;
             var levels = ParseYaml(yamlText);
             return levels;
         }
@@ -191,7 +205,7 @@ namespace ArcCreate.Storage
             return levels;
         }
 
-        public IEnumerable<LevelStorage> GetAllLevels()
+        public static IEnumerable<LevelStorage> GetAllLevels()
         {
             var levels = LoadYaml();
             return levels;
@@ -276,14 +290,14 @@ namespace ArcCreate.Storage
         public async UniTask AssignTexture(RawImage image, IStorageUnit storage, string jacketPath, CancellationToken ct = default)
         {
             jacketPath = Application.streamingAssetsPath + "/songs/" + storage.Identifier +"/base.jpg";
-            Option<string> realJacketPath = storage.GetRealPath(jacketPath);
-            if (!realJacketPath.HasValue)
-            {
-                image.texture = defaultJacket;
-                return;
-            }
+            //Option<string> realJacketPath = storage.GetRealPath(jacketPath);
+            // if (!realJacketPath.HasValue)
+            // {
+            //     image.texture = defaultJacket;
+            //     return;
+            // }
 
-            jacketPath = realJacketPath.Value;
+            //jacketPath = realJacketPath.Value;
             Incompletable<Texture> cachedTexture = JacketCache.Get(jacketPath);
             if (cachedTexture != null)
             {
@@ -307,27 +321,25 @@ namespace ArcCreate.Storage
             Incompletable<Texture> loading = new Incompletable<Texture>();
             JacketCache.Add(jacketPath, loading);
             Uri uri = new Uri(jacketPath);
-            using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(uri))
+            using var req = UnityWebRequestTexture.GetTexture(uri);
+            await req.SendWebRequest();
+
+            loading.Completed = true;
+            if (string.IsNullOrEmpty(req.error))
             {
-                await req.SendWebRequest();
-
-                loading.Completed = true;
-                if (string.IsNullOrEmpty(req.error))
+                Texture2D texture = DownloadHandlerTexture.GetContent(req);
+                loading.Value = texture;
+                loading.IsSuccess = true;
+                if (ct.IsCancellationRequested)
                 {
-                    Texture2D texture = DownloadHandlerTexture.GetContent(req);
-                    loading.Value = texture;
-                    loading.IsSuccess = true;
-                    if (ct.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    image.texture = texture;
-                }
-                else
-                {
-                    loading.IsSuccess = false;
-                }
+                image.texture = texture;
+            }
+            else
+            {
+                loading.IsSuccess = false;
             }
         }
 
@@ -367,35 +379,35 @@ namespace ArcCreate.Storage
             return false;
         }
 
-        public async UniTask<AudioClip> GetAudioClipStreaming(IStorageUnit level, string audioPath)
-        {
-            var auPath = Path.Combine(Application.streamingAssetsPath,"songs",level.Identifier,"preview.ogg");
-            Uri uri = new Uri(auPath);
-            using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(
-                       uri,
-                       AudioType.OGGVORBIS))
-            {
-                req.disposeDownloadHandlerOnDispose = true; // 确保每次请求都会清除下载处理器
-                ((DownloadHandlerAudioClip)req.downloadHandler).streamAudio = true;
-                req.SetRequestHeader("Cache-Control", "no-cache"); // 禁用缓存
-                await req.SendWebRequest();
-
-                while (req.result == UnityWebRequest.Result.ConnectionError && req.downloadedBytes < 1024)
-                {
-                    await UniTask.NextFrame();
-                }
-
-                if (string.IsNullOrEmpty(req.error))
-                {
-                    AudioClip clip = ((DownloadHandlerAudioClip)req.downloadHandler).audioClip;
-                    return clip;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
+        // public async UniTask<AudioClip> GetAudioClipStreaming(IStorageUnit level, string audioPath)
+        // {
+        //     var auPath = Path.Combine(Application.streamingAssetsPath,"songs",level.Identifier,"preview.ogg");
+        //     Uri uri = new Uri(auPath);
+        //     using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(
+        //                uri,
+        //                AudioType.OGGVORBIS))
+        //     {
+        //         req.disposeDownloadHandlerOnDispose = true; // 确保每次请求都会清除下载处理器
+        //         ((DownloadHandlerAudioClip)req.downloadHandler).streamAudio = true;
+        //         req.SetRequestHeader("Cache-Control", "no-cache"); // 禁用缓存
+        //         await req.SendWebRequest();
+        //
+        //         while (req.result == UnityWebRequest.Result.ConnectionError && req.downloadedBytes < 1024)
+        //         {
+        //             await UniTask.NextFrame();
+        //         }
+        //
+        //         if (string.IsNullOrEmpty(req.error))
+        //         {
+        //             AudioClip clip = ((DownloadHandlerAudioClip)req.downloadHandler).audioClip;
+        //             return clip;
+        //         }
+        //         else
+        //         {
+        //             return null;
+        //         }
+        //     }
+        // }
 
         public void SwitchToPlayScene((LevelStorage level, ChartSettings chart) selection)
         {
@@ -460,8 +472,9 @@ namespace ArcCreate.Storage
                         gameplay = gameplayControl;
                         gameplay.ShouldNotifyOnAudioEnd = true;
                         gameplay.EnablePauseMenu = true;
-                        gameplay.Audio.AudioTiming = -Values.DelayBeforeAudioStart;
+                        //gameplay.Audio.AudioTiming = -Values.DelayBeforeAudioStart;
                         gameplayData.PlaybackSpeed.Value = 1;
+                        BassAudioService.Instance.AudioPreviewStream.FadeOutAsync(4f).Forget();
                     }
                 },
                 e =>
@@ -501,34 +514,36 @@ namespace ArcCreate.Storage
             double cc = PlayerPrefs.GetFloat($"Selection.LastCc", 0);
 
             LevelStorage lv = null;
-            if (string.IsNullOrEmpty(levelId))
-            {
-                PackStorage pack = GetPack(packId);
-                if (pack == null || pack.Levels.Count <= 0)
-                {
-                    lv = LevelCollection.FindOne(Query.All());
-                }
-                else
-                {
-                    lv = pack.Levels[0];
-                }
-            }
-            else
-            {
-                lv = GetLevel(levelId);
-            }
-
-            if (lv == null)
-            {
-                if (SelectedPack.Value != null)
-                {
-                    lv = SelectedPack.Value.Levels.First();
-                }
-                else
-                {
-                    lv = GetAllLevels().First();
-                }
-            }
+            // if (string.IsNullOrEmpty(levelId))
+            // {
+            //     PackStorage pack = GetPack(packId);
+            //     if (pack == null || pack.Levels.Count <= 0)
+            //     {
+            //         lv = LevelCollection.FindOne(Query.All());
+            //     }
+            //     else
+            //     {
+            //         lv = pack.Levels[0];
+            //     }
+            // }
+            // else
+            // {
+            //     lv = GetLevel(levelId);
+            // }
+            //
+            // if (lv == null)
+            // {
+            //     if (SelectedPack.Value != null)
+            //     {
+            //         lv = SelectedPack.Value.Levels.First();
+            //     }
+            //     else
+            //     {
+            //         lv = GetAllLevels().First();
+            //     }
+            // }
+            
+            lv = GetAllLevels().First();
 
             if (SelectedChart.Value.chart != null)
             {

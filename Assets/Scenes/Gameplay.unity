@@ -5144,7 +5144,7 @@ AudioSource:
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
-  Mute: 0
+  Mute: 1
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
@@ -15193,7 +15193,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1968444550
 Transform:
   m_ObjectHideFlags: 0
@@ -15216,7 +15216,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1968444549}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
@@ -15312,7 +15312,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1968444549}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c04538d5b3add31d8b70d541da90b4fa, type: 3}
   m_Name: 
@@ -17430,7 +17430,6 @@ MonoBehaviour:
   score: {fileID: 2030730635}
   scenecontrol: {fileID: 1382682619}
   render: {fileID: 1059070196}
-  hitsound: {fileID: 1968444552}
 --- !u!4 &2136307878
 Transform:
   m_ObjectHideFlags: 0

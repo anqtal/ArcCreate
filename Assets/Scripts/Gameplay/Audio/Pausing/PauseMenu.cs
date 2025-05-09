@@ -104,42 +104,45 @@ namespace ArcCreate.Gameplay.Audio
         {
             if (deviceWasChanged)
             {
-                Services.Audio.Pause();
+                //Services.Audio.Pause();
                 promptAudioConfigChange.SetActive(true);
             }
         }
 
         private void OnFocusChange(bool focused)
         {
-            OnPauseButton();
+            //OnPauseButton();
         }
 
         private void OnPauseButton()
         {
             // Hacky but whatever
-            if (Values.EnablePauseMenu
-            && (Services.Audio.IsPlayingAndNotStationary || (Services.Audio.AudioTiming >= Services.Audio.AudioLength - 1000)))
-            {
-                int touchCount = Input.touchCount;
-                for (int i = 0; i < touchCount; i++)
-                {
-                    var touch = Input.GetTouch(i);
-                    if (!RectTransformUtility.RectangleContainsScreenPoint(pauseButtonRect, touch.position, uiCamera))
-                    {
-                        return;
-                    }
-                }
+            // if (Values.EnablePauseMenu
+            // && (Services.Audio.IsPlayingAndNotStationary || (Services.Audio.AudioTiming >= Services.Audio.AudioLength - 1000)))
+            // {
+            //     int touchCount = Input.touchCount;
+            //     for (int i = 0; i < touchCount; i++)
+            //     {
+            //         var touch = Input.GetTouch(i);
+            //         if (!RectTransformUtility.RectangleContainsScreenPoint(pauseButtonRect, touch.position, uiCamera))
+            //         {
+            //             return;
+            //         }
+            //     }
 
                 pauseScreen.SetActive(true);
-                Services.Hitsound.MyBassPlayer.ResetScheduledTimes();
-                Services.Audio.Pause();
-            }
+                Debug.Log("Pause button pressed");
+                //Services.Hitsound.MyBassPlayer.ResetScheduledTimes();
+                //Services.Audio.Pause();
+                BassAudioService.Instance.AudioStream?.Pause();
+            // }
         }
 
         private void OnPlayButton()
         {
             pauseScreen.SetActive(false);
-            Services.Audio.ResumeWithDelay(Values.DelayBeforeAudioResume, false);
+            //Services.Audio.ResumeWithDelay(Values.DelayBeforeAudioResume, false);
+            BassAudioService.Instance.AudioStream?.Resume();
             Services.Judgement.RefreshInputHandler();
             DisablePauseButton().Forget();
         }
@@ -156,11 +159,11 @@ namespace ArcCreate.Gameplay.Audio
         private async UniTask StartRetry()
         {
             await retryTransition.Show();
-            Services.Audio.AudioTiming = -Values.DelayBeforeAudioStart;
+            BassAudioService.Instance.AudioStream.Position = 0;
+            //Services.Audio.AudioTiming = -Values.DelayBeforeAudioStart;
             await retryTransition.Hide();
             if (!pauseScreen.activeInHierarchy)
             {
-                Services.Hitsound.MyBassPlayer.ResetPlayCount();
                 Services.Audio.PlayWithDelay(0, Values.DelayBeforeAudioStart);
             }
 
@@ -176,6 +179,7 @@ namespace ArcCreate.Gameplay.Audio
 
         private void OnReturnButton()
         {
+            BassAudioService.Instance.AudioStream?.Dispose();
             TransitionSequence transition = new TransitionSequence()
                 .OnShow()
                 .AddTransition(new TriangleTileTransition())

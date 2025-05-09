@@ -114,7 +114,7 @@ namespace ArcCreate.Gameplay.Data
                 SetGroupHighlight(true, currentTiming + Values.HoldParticlePersistDuration);
                 if (!hasBeenHitOnce)
                 {
-                    BassAudioService.Instance.PlayTapHitSound(Timing);
+                    BassAudioService.Instance.PlayArcHitSound(Timing);
                     //Services.Hitsound.PlayArcHitsound(Timing);
                 }
 
@@ -150,7 +150,7 @@ namespace ArcCreate.Gameplay.Data
                     Receiver = this,
                     Properties = props,
                 });
-                Services.Hitsound.PlayAnswerSound(td);
+                BassAudioService.Instance.PlayAnswer(td);
             }
 
             numJudgementRequestsSent = TotalCombo;

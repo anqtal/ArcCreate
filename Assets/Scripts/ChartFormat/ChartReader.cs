@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -62,34 +63,34 @@ namespace ArcCreate.ChartFormat
             TimingGroups.Add(new RawTimingGroup() { File = Filename });
             AllIncludes.Add(Filename);
             
-            var fileUrl = $"https://erc.osiom.cc/dl/id/{Filename}";
-            
-            UnityWebRequest request = UnityWebRequest.Get(fileUrl);
-            
-            // 发送同步请求
-            request.SendWebRequest();
-            
-            // 等待请求完成（阻塞方式）
-            while (!request.isDone)
+            var fileName = Filename;
+            var localDir = Path.Combine(Application.persistentDataPath, "dl");
+            var localPath = Path.Combine(localDir, fileName);
+            Debug.Log(localPath);
+            if (!Directory.Exists(localDir))
+                Directory.CreateDirectory(localDir);
+            string content;
+            if (File.Exists(localPath))
             {
-                // 可以在此处添加一些进度显示等逻辑
+                content = File.ReadAllText(localPath);
+            }
+            else
+            {
+                var fileUrl = $"https://erc.osiom.cc/dl/id/{fileName}";
+                using var request = UnityWebRequest.Get(fileUrl);
+                request.SendWebRequest();
+                while (!request.isDone)
+                {
+                }
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"请求失败: {request.error}");
+                }
+                File.WriteAllBytes(localPath, request.downloadHandler.data);
+                content = System.Text.Encoding.UTF8.GetString(request.downloadHandler.data);
             }
             
-            // // 检查请求结果
-            // if (request.result != UnityWebRequest.Result.Success)
-            // {
-            //     // 请求失败，处理错误
-            //     Debug.LogError($"Request failed: {request.error}");
-            //     return; // 返回，终止处理
-            // }
-            
-            // 请求成功，获取下载的内容
-            string content = request.downloadHandler.text;
-            
-            // 将文件内容按行拆分为字符串数组
-            Option<string[]> lines = content.Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None);
-            //
-            //Option<string[]> lines = FileAccess.ReadFileByLines(FullPath);
+            Option<string[]> lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (!lines.HasValue)
             {
                 errors.Add(ChartError.Format(RawEventType.Unknown, ChartError.Kind.FileDoesNotExist));

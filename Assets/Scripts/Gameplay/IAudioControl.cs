@@ -39,11 +39,11 @@ namespace ArcCreate.Gameplay
 
         bool IsRendering { get; set; }
 
-        AudioClip TapHitsoundClip { get; }
-
-        AudioClip ArcHitsoundClip { get; }
-
-        Dictionary<string, AudioClip> SfxAudioClips { get; }
+        // AudioClip TapHitsoundClip { get; }
+        //
+        // AudioClip ArcHitsoundClip { get; }
+        //
+        // Dictionary<string, AudioClip> SfxAudioClips { get; }
 
         /// <summary>
         /// Play the audio immediately without delay. See <see cref="PlayWithDelay"/> for playing audio with minimal audio lag.

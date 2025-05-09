@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Judgement;
 using ArcCreate.Utility.Extension;
 using UnityEngine;
@@ -96,7 +97,7 @@ namespace ArcCreate.Gameplay.Data
 
             if (currentTiming >= Timing && !sfxPlayed)
             {
-                Services.Hitsound.PlayArcTapHitsound(Timing, Sfx, isFromJudgement: false);
+                //Services.Hitsound.PlayArcTapHitsound(Timing, Sfx, isFromJudgement: false);
                 sfxPlayed = true;
             }
         }
@@ -148,7 +149,8 @@ namespace ArcCreate.Gameplay.Data
 
             if (!result.IsMiss())
             {
-                Services.Hitsound.PlayArcTapHitsound(Timing, Sfx, isFromJudgement: true);
+                BassAudioService.Instance.PlayArcHitSound(Timing);
+                //Services.Hitsound.PlayArcTapHitsound(Timing, Sfx, isFromJudgement: true);
             }
         }
 

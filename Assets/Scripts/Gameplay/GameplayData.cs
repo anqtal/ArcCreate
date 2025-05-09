@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using ArcCreate.ChartFormat;
 using ArcCreate.Data;
+using ArcCreate.Gameplay.Audio;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -206,7 +207,7 @@ namespace ArcCreate.Gameplay
         public void LoadChart(ChartReader reader, string sfxParentFolder, IFileAccessWrapper fileAccess = null)
         {
             Services.Chart.LoadChart(reader);
-            Services.Hitsound.LoadCustomSfxs(sfxParentFolder, fileAccess).Forget();
+            //Services.Hitsound.LoadCustomSfxs(sfxParentFolder, fileAccess).Forget();
             OnChartFileLoad?.Invoke();
         }
 
@@ -244,7 +245,7 @@ namespace ArcCreate.Gameplay
                         { "Error", req.error },
                     }));
                 }
-
+                
                 AudioClip.Value = DownloadHandlerAudioClip.GetContent(req);
             }
         }

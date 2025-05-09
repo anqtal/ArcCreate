@@ -41,6 +41,7 @@ namespace ArcCreate
         public static readonly IntSetting GlobalAudioOffset = new IntSetting("GlobalAudioOffset", 0);
         public static readonly FloatSetting MusicAudio = new FloatSetting("SoundPreferences.ChartAudio", 1f, 0, 1);
         public static readonly FloatSetting EffectAudio = new FloatSetting("SoundPreferences.EffectAudio", 0.4f, 0, 2);
+        public static readonly IntSetting GuideAudio = new("SoundPreferences.GuideAudio", 5, 0, 10);
 
         // Display
         public static readonly IntSetting Framerate = new IntSetting("DisplayFramerate", -1, 0, 360);

@@ -163,7 +163,7 @@ namespace ArcCreate.Selection.Interface
                 storageData.FetchLevelsForPack(storageData.SelectedPack.Value);
             }
 
-            List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? storageData.GetAllLevels())?.ToList();
+            List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? StorageData.GetAllLevels())?.ToList();
 
             if (levels?.Count == 0)
             {
@@ -255,7 +255,7 @@ namespace ArcCreate.Selection.Interface
 
         private void SelectRandom()
         {
-            List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? storageData.GetAllLevels())?.ToList();
+            List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? StorageData.GetAllLevels())?.ToList();
             if (levels?.Count <= 0)
             {
                 return;
