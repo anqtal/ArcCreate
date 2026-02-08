@@ -26,9 +26,8 @@ namespace ArcCreate.Gameplay.Score
 
         private void OnScoreDisplayMode(int v)
         {
-            ScoreDisplayMode mode = (ScoreDisplayMode)v;
+            var mode = (ScoreDisplayMode)v;
             foreach (var m in displayModes)
-            {
                 if (mode == m.Mode)
                 {
                     predictiveDisplay.SetActive(m.ShowPredictive);
@@ -37,7 +36,6 @@ namespace ArcCreate.Gameplay.Score
                     scoreTextRect.offsetMax = new Vector2(m.OffsetMax, scoreTextRect.offsetMax.y);
                     scoreText.fontSize = m.FontSize;
                 }
-            }
         }
 
         [Serializable]

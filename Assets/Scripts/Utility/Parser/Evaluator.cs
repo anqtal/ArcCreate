@@ -1,16 +1,18 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Jace;
+using Jace.Execution;
 
 namespace ArcCreate.Utility.Parser
 {
     /// <summary>
-    /// Class for conversion from string to numbers, capable of evaluating math expressions.
+    ///     Class for conversion from string to numbers, capable of evaluating math expressions.
     /// </summary>
     public class Evaluator
     {
         private static readonly CalculationEngine Engine =
-            new CalculationEngine(System.Globalization.CultureInfo.CurrentCulture, Jace.Execution.ExecutionMode.Interpreted);
+            new(CultureInfo.CurrentCulture, ExecutionMode.Interpreted);
 
         public static bool TryCalculate(string str, IDictionary<string, double> variables, out float value)
         {
@@ -82,7 +84,7 @@ namespace ArcCreate.Utility.Parser
 
         private static int Int(string str)
         {
-            return (int)System.Math.Round(Engine.Calculate(str));
+            return (int)Math.Round(Engine.Calculate(str));
         }
     }
 }

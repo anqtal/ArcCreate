@@ -1,20 +1,20 @@
+using System;
 using System.Collections.Generic;
 using ArcCreate.Gameplay.Data;
 using ArcCreate.Utility.Extension;
-using UnityEngine;
 
 namespace ArcCreate.Gameplay.Chart
 {
     /// <summary>
-    /// Base class for taps and arc taps note groups.
+    ///     Base class for taps and arc taps note groups.
     /// </summary>
     /// <typeparam name="Note">The note type.</typeparam>
     public abstract class ShortNoteGroup<Note> : NoteGroup<Note>
         where Note : ArcEvent, INote
     {
-        private CachedBisect<Note, int> timingSearch;
+        private readonly List<Note> lastRenderingNotes = new();
         private CachedBisect<Note, double> floorPositionSearch;
-        private readonly List<Note> lastRenderingNotes = new List<Note>();
+        private CachedBisect<Note, int> timingSearch;
 
         public override int ComboAt(int timing)
         {
@@ -23,21 +23,15 @@ namespace ArcCreate.Gameplay.Chart
 
         public override void UpdateJudgement(int timing, double floorPosition, GroupProperties groupProperties)
         {
-            if (Notes.Count == 0 || groupProperties.NoInput)
-            {
-                return;
-            }
+            if (Notes.Count == 0 || groupProperties.NoInput) return;
 
-            int judgeFrom = timing - Values.MissJudgeWindow;
-            int judgeTo = timing + Values.MissJudgeWindow;
-            int judgeIndex = timingSearch.Bisect(judgeFrom);
+            var judgeFrom = timing - Values.MissJudgeWindow;
+            var judgeTo = timing + Values.MissJudgeWindow;
+            var judgeIndex = timingSearch.Bisect(judgeFrom);
             while (judgeIndex < timingSearch.List.Count)
             {
-                Note note = timingSearch.List[judgeIndex];
-                if (note.Timing > judgeTo)
-                {
-                    break;
-                }
+                var note = timingSearch.List[judgeIndex];
+                if (note.Timing > judgeTo) break;
                 timingSearch.List[judgeIndex].UpdateJudgement(timing, groupProperties);
                 judgeIndex++;
             }
@@ -46,29 +40,21 @@ namespace ArcCreate.Gameplay.Chart
         public override void UpdateRender(int timing, double floorPosition, GroupProperties groupProperties)
         {
             lastRenderingNotes.Clear();
-            if (Notes.Count == 0 || !groupProperties.Visible)
-            {
-                return;
-            }
+            if (Notes.Count == 0 || !groupProperties.Visible) return;
 
-            double fpDistForward = System.Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthForward));
-            double fpDistBackward = System.Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthBackward));
-            double renderFrom =
-                (groupProperties.NoInput && !groupProperties.NoClip) ?
-                floorPosition :
-                floorPosition - fpDistBackward;
-            double renderTo = floorPosition + fpDistForward;
+            var fpDistForward = Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthForward));
+            var fpDistBackward = Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthBackward));
+            var renderFrom =
+                groupProperties.NoInput && !groupProperties.NoClip ? floorPosition : floorPosition - fpDistBackward;
+            var renderTo = floorPosition + fpDistForward;
 
-            int renderIndex = floorPositionSearch.Bisect(renderFrom);
+            var renderIndex = floorPositionSearch.Bisect(renderFrom);
 
             // Update notes
             while (renderIndex < floorPositionSearch.List.Count)
             {
-                Note note = floorPositionSearch.List[renderIndex];
-                if (note.FloorPosition > renderTo)
-                {
-                    break;
-                }
+                var note = floorPositionSearch.List[renderIndex];
+                if (note.FloorPosition > renderTo) break;
                 note.UpdateRender(timing, floorPosition, groupProperties);
                 lastRenderingNotes.Add(note);
                 renderIndex++;
@@ -90,14 +76,12 @@ namespace ArcCreate.Gameplay.Chart
         public override IEnumerable<Note> FindByTiming(int from, int to)
         {
             // Avoid modifying the cache of search tree.
-            if (Notes.Count == 0)
-            {
-                yield break;
-            }
+            if (Notes.Count == 0) yield break;
 
-            int i = timingSearch.List.BisectLeft(from, n => n.Timing);
+            var i = timingSearch.List.BisectLeft(from, n => n.Timing);
 
-            while (i >= 0 && i < timingSearch.List.Count && timingSearch.List[i].Timing >= from && timingSearch.List[i].Timing <= to)
+            while (i >= 0 && i < timingSearch.List.Count && timingSearch.List[i].Timing >= from &&
+                   timingSearch.List[i].Timing <= to)
             {
                 yield return timingSearch.List[i];
                 i++;
@@ -105,8 +89,13 @@ namespace ArcCreate.Gameplay.Chart
         }
 
         public override IEnumerable<Note> FindEventsWithinRange(int from, int to, bool overlapCompletely = true)
-            => FindByTiming(from, to);
+        {
+            return FindByTiming(from, to);
+        }
 
-        public override IEnumerable<Note> GetRenderingNotes() => lastRenderingNotes;
+        public override IEnumerable<Note> GetRenderingNotes()
+        {
+            return lastRenderingNotes;
+        }
     }
 }

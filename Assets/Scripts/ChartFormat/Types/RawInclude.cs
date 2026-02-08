@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ArcCreate.ChartFormat
 {
     public class RawInclude : RawEvent

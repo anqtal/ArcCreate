@@ -673,7 +673,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3795450976761728121}
-  - component: {fileID: 3795450976761728120}
   m_Layer: 11
   m_Name: TextMacroField
   m_TagString: Untagged
@@ -702,22 +701,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3795450976761728120
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3795450976761728122}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43c504f5afb6e0b469ba34d5dcda7430, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  label: {fileID: 1460084738186223550}
-  textField: {fileID: 1460084738559709840}
-  invalidFeedback: {fileID: 3795450976890384920}
-  baseHeight: 30
 --- !u!1 &3795450976890384922
 GameObject:
   m_ObjectHideFlags: 0

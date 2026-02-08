@@ -15,9 +15,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         [MoonSharpHidden] private T targetEffect;
 
-        public string SerializedType { get; set; }
-
         protected T TargetEffect => targetEffect;
+
+        protected abstract void Reset();
 
         [MoonSharpHidden]
         public void Start()
@@ -28,16 +28,13 @@ namespace ArcCreate.Gameplay.Scenecontrol
             Reset();
         }
 
-        public abstract void EnableEffect(string[] effects);
-
         [MoonSharpHidden]
         public void TryUpdate(int timing)
         {
-            if (TargetEffect.enabled.overrideState)
-            {
-                UpdateController(timing);
-            }
+            if (TargetEffect.enabled.overrideState) UpdateController(timing);
         }
+
+        public string SerializedType { get; set; }
 
         [MoonSharpHidden]
         public abstract void UpdateController(int timing);
@@ -53,10 +50,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public abstract List<object> SerializeProperties(ScenecontrolSerialization serialization);
 
         [MoonSharpHidden]
-        public abstract void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization);
+        public abstract void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization);
+
+        public abstract void EnableEffect(string[] effects);
 
         protected abstract void SetupDefault();
-
-        protected abstract void Reset();
     }
 }

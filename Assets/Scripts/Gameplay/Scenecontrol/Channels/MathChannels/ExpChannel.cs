@@ -7,8 +7,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class ExpChannel : ValueChannel
     {
-        private ValueChannel num;
         private ValueChannel exp;
+        private ValueChannel num;
 
         public ExpChannel()
         {
@@ -31,7 +31,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
             return new List<object>
             {
                 serialization.AddUnitAndGetId(num),
-                serialization.AddUnitAndGetId(exp),
+                serialization.AddUnitAndGetId(exp)
             };
         }
 

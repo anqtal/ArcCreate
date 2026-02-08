@@ -21,10 +21,7 @@ namespace ArcCreate.SceneTransition
 
         private void OnDestroy()
         {
-            if (colorSO != null)
-            {
-                colorSO.OnValueChange.RemoveListener(OnColorChange);
-            }
+            if (colorSO != null) colorSO.OnValueChange.RemoveListener(OnColorChange);
         }
 
         private void OnColorChange(Color color)

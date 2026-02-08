@@ -13,6 +13,16 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private TMP_Text text;
         private string id;
 
+        private void Awake()
+        {
+            button.onClick.AddListener(OnButton);
+        }
+
+        private void OnDestroy()
+        {
+            button.onClick.RemoveListener(OnButton);
+        }
+
         public override UniTask LoadCellFully(CellData cellData, CancellationToken cancellationToken)
         {
             return default;
@@ -22,16 +32,6 @@ namespace ArcCreate.Selection.Interface
         {
             text.text = (cellData as LocaleCellData).Name;
             id = (cellData as LocaleCellData).Id;
-        }
-
-        private void Awake()
-        {
-            button.onClick.AddListener(OnButton);
-        }
-
-        private void OnDestroy()
-        {
-            button.onClick.RemoveListener(OnButton);
         }
 
         private void OnButton()

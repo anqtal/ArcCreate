@@ -10,7 +10,8 @@ Material:
   m_Name: ArcNoteParticle
   m_Shader: {fileID: 4800000, guid: 87079ba2aa056e44e9e24be81dd374cd, type: 3}
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _EMISSION
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -68,12 +69,20 @@ Material:
     m_Floats:
     - PixelSnap: 0
     - _Alpha: 1
+    - _AlphaMultiplier: 0.5
+    - _AudioLength: 0
     - _BlendOp: 0
+    - _Boundary12: 0
+    - _Boundary23: 0
+    - _Boundary34: 0
+    - _Boundary4R: 0
+    - _BoundaryL1: 0
     - _BumpScale: 1
     - _CameraFadingEnabled: 0
     - _CameraFarFadeDistance: 2
     - _CameraNearFadeDistance: 1
     - _Cull: 2
+    - _CurrentTimingSample: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DistortionBlend: 0.5
@@ -81,6 +90,8 @@ Material:
     - _DistortionStrength: 1
     - _DistortionStrengthScaled: 0
     - _DstBlend: 0
+    - _EdgeLAlpha: 1
+    - _EdgeRAlpha: 1
     - _EmissionEnabled: 0
     - _EnableExternalAlpha: 0
     - _FlipbookMode: 0
@@ -89,11 +100,18 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _InvFade: 1
+    - _Lane1Alpha: 1
+    - _Lane2Alpha: 1
+    - _Lane3Alpha: 1
+    - _Lane4Alpha: 1
     - _LightingEnabled: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
+    - _Offset: 1
     - _Parallax: 0.02
+    - _RepeatSampleFrom: 0
+    - _RepeatSampleTo: 0
     - _SmoothnessTextureChannel: 0
     - _SoftParticlesEnabled: 0
     - _SoftParticlesFarFadeDistance: 1
@@ -105,13 +123,19 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - _Background: {r: 1, g: 1, b: 1, a: 1}
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmisColor: {r: 0.2, g: 0.2, b: 0.2, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Modify: {r: 0, g: 0, b: 1, a: 1}
+    - _Properties: {r: 0, g: 0, b: 0, a: 0}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RepeatColor: {r: 1, g: 1, b: 1, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
-    - _TintColor: {r: 1, g: 1, b: 1, a: 0.49803922}
+    - _TintColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TraceColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

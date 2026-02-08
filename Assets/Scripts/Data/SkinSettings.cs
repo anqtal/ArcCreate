@@ -1,20 +1,18 @@
-using System;
-
 namespace ArcCreate.Data
 {
     public class SkinSettings
     {
-        public string Side { get; set; } = null;
+        public string Side { get; set; }
 
-        public string Note { get; set; } = null;
+        public string Note { get; set; }
 
-        public string Particle { get; set; } = null;
+        public string Particle { get; set; }
 
-        public string Track { get; set; } = null;
+        public string Track { get; set; }
 
-        public string Accent { get; set; } = null;
+        public string Accent { get; set; }
 
-        public string SingleLine { get; set; } = null;
+        public string SingleLine { get; set; }
 
         public SkinSettings Clone()
         {
@@ -25,7 +23,7 @@ namespace ArcCreate.Data
                 Particle = Particle,
                 Track = Track,
                 Accent = Accent,
-                SingleLine = SingleLine,
+                SingleLine = SingleLine
             };
         }
     }

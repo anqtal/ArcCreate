@@ -8,13 +8,13 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class JudgementTrigger : Trigger
     {
-        private bool triggerOnMax = false;
-        private bool triggerOnPerfectEarly = false;
-        private bool triggerOnPerfectLate = false;
-        private bool triggerOnGoodEarly = false;
-        private bool triggerOnGoodLate = false;
-        private bool triggerOnMissEarly = false;
-        private bool triggerOnMissLate = false;
+        private bool triggerOnGoodEarly;
+        private bool triggerOnGoodLate;
+        private bool triggerOnMax;
+        private bool triggerOnMissEarly;
+        private bool triggerOnMissLate;
+        private bool triggerOnPerfectEarly;
+        private bool triggerOnPerfectLate;
 
         [EmmyDoc("Sets the channel to listen to Max judge event")]
         public JudgementTrigger OnMax()
@@ -121,7 +121,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
             {
                 Value = value,
                 Duration = duration ?? ValueChannel.ConstantOneChannel,
-                Easing = Easing.FromString(easing),
+                Easing = Easing.FromString(easing)
             };
 
             return this;
@@ -129,59 +129,38 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override void Poll(int timing)
         {
-            List<JudgementResult> judgements = Services.Score.GetJudgementsThisFrame();
-            for (int i = 0; i < judgements.Count; i++)
+            var judgements = Services.Score.GetJudgementsThisFrame();
+            for (var i = 0; i < judgements.Count; i++)
             {
-                JudgementResult res = judgements[i];
+                var res = judgements[i];
                 switch (res)
                 {
                     case JudgementResult.MissEarly:
-                        if (triggerOnMissEarly)
-                        {
-                            Dispatch(timing);
-                        }
+                        if (triggerOnMissEarly) Dispatch(timing);
 
                         break;
                     case JudgementResult.GoodEarly:
-                        if (triggerOnGoodEarly)
-                        {
-                            Dispatch(timing);
-                        }
+                        if (triggerOnGoodEarly) Dispatch(timing);
 
                         break;
                     case JudgementResult.PerfectEarly:
-                        if (triggerOnPerfectEarly)
-                        {
-                            Dispatch(timing);
-                        }
+                        if (triggerOnPerfectEarly) Dispatch(timing);
 
                         break;
                     case JudgementResult.Max:
-                        if (triggerOnMax)
-                        {
-                            Dispatch(timing);
-                        }
+                        if (triggerOnMax) Dispatch(timing);
 
                         break;
                     case JudgementResult.PerfectLate:
-                        if (triggerOnPerfectLate)
-                        {
-                            Dispatch(timing);
-                        }
+                        if (triggerOnPerfectLate) Dispatch(timing);
 
                         break;
                     case JudgementResult.GoodLate:
-                        if (triggerOnGoodLate)
-                        {
-                            Dispatch(timing);
-                        }
+                        if (triggerOnGoodLate) Dispatch(timing);
 
                         break;
                     case JudgementResult.MissLate:
-                        if (triggerOnMissLate)
-                        {
-                            Dispatch(timing);
-                        }
+                        if (triggerOnMissLate) Dispatch(timing);
 
                         break;
                 }
@@ -201,7 +180,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 triggerOnMissLate,
                 serialization.AddUnitAndGetId(TriggerDispatch.Value),
                 serialization.AddUnitAndGetId(TriggerDispatch.Duration),
-                TriggerDispatch.EasingString,
+                TriggerDispatch.EasingString
             };
         }
 
@@ -219,7 +198,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 Value = deserialization.GetUnitFromId<ValueChannel>(properties[7]),
                 Duration = deserialization.GetUnitFromId<ValueChannel>(properties[8]),
                 EasingString = (string)properties[9],
-                Easing = Easing.FromString((string)properties[9]),
+                Easing = Easing.FromString((string)properties[9])
             };
         }
     }

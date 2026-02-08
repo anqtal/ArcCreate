@@ -4,6 +4,6 @@ namespace ArcCreate.Gameplay.Skin
     {
         Default,
         Light,
-        Conflict,
+        Conflict
     }
 }

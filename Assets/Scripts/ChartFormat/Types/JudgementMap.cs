@@ -12,6 +12,6 @@ namespace ArcCreate.ChartFormat
         MissLate,
         PerfectMapped,
         GoodMapped,
-        MissMapped,
+        MissMapped
     }
 }

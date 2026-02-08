@@ -7,8 +7,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class StackingTriggerChannel : TriggerChannel
     {
-        private readonly UnorderedList<TriggerValueDispatchEvent> dispatchingEvents
-            = new UnorderedList<TriggerValueDispatchEvent>(5);
+        private readonly UnorderedList<TriggerValueDispatchEvent> dispatchingEvents = new(5);
 
         private float currentValue;
 
@@ -36,9 +35,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
         protected override float CalculateAfterPoll(int timing)
         {
             float partial = 0;
-            for (int i = dispatchingEvents.Count - 1; i >= 0; i--)
+            for (var i = dispatchingEvents.Count - 1; i >= 0; i--)
             {
-                TriggerValueDispatchEvent dispatching = dispatchingEvents[i];
+                var dispatching = dispatchingEvents[i];
 
                 if (timing >= dispatching.StartTiming + dispatching.Duration)
                 {
@@ -47,8 +46,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 }
                 else
                 {
-                    float t = (float)(timing - dispatching.StartTiming) / dispatching.Duration;
-                    float dispatchingVal = dispatching.Easing.Invoke(0, dispatching.Value, t);
+                    var t = (float)(timing - dispatching.StartTiming) / dispatching.Duration;
+                    var dispatchingVal = dispatching.Easing.Invoke(0, dispatching.Value, t);
                     partial += dispatchingVal;
                 }
             }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using ArcCreate.Data;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,80 +5,76 @@ using UnityEngine.Video;
 
 namespace ArcCreate.Gameplay.Audio
 {
-    public class AudioService : MonoBehaviour, IAudioService, IAudioControl
+    public class AudioService : MonoBehaviour
     {
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private VideoPlayer videoPlayer;
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private Slider timingSlider;
 
-        /// <summary>
-        /// Timing at which the audio started playing from.
-        /// </summary>
-        private int startTime = 0;
+        // /// <summary>
+        // /// Whether or not chart timing is being stationary. Example of this being true is during warming up period after a play with delay.
+        // /// </summary>
+        // private bool isStationary;
+
+        // /// <summary>
+        // /// Scalar to speed up or slow down chart update speed to sync with music.
+        // /// </summary>
+        // private float updatePace = 1;
+
+        private bool audioEndReported;
+
+        // /// <summary>
+        // /// Timing at which the audio started playing from.
+        // /// </summary>
+        // private int startTime = 0;
+        //
+        // /// <summary>
+        // /// Time (in dsp unit) at which the audio started playing.
+        // /// </summary>
+        // private double dspStartPlayingTime = 0;
+        //
+        // /// <summary>
+        // /// Time (in realTimeSinceStartup unit) at which the audio started playing.
+        // /// </summary>
+        // private double realStartPlayingTime = 0;
+        //
+        // /// <summary>
+        // /// Whether to let the timing stay unchanged until the audio start playing, or to increate it linearly.
+        // /// </summary>
+        // private bool stationaryBeforeStart;
 
         /// <summary>
-        /// Time (in dsp unit) at which the audio started playing.
-        /// </summary>
-        private double dspStartPlayingTime = 0;
-
-        /// <summary>
-        /// Time (in realTimeSinceStartup unit) at which the audio started playing.
-        /// </summary>
-        private double realStartPlayingTime = 0;
-
-        /// <summary>
-        /// Whether to let the timing stay unchanged until the audio start playing, or to increate it linearly.
-        /// </summary>
-        private bool stationaryBeforeStart;
-
-        /// <summary>
-        /// The current timing value in ms.
+        ///     The current timing value in ms.
         /// </summary>
         private int audioTiming;
 
         /// <summary>
-        /// The audio playback speed.
+        ///     Last timing the audio was paused at.
+        /// </summary>
+        private int lastPausedTiming;
+
+        /// <summary>
+        ///     Return to this timing point after next pause.
+        /// </summary>
+        private int onPauseReturnTo;
+
+        /// <summary>
+        ///     The audio playback speed.
         /// </summary>
         private float playbackSpeed = 1;
 
         /// <summary>
-        /// Last timing the audio was paused at.
+        ///     Whether to return to <see cref="onPauseReturnTo" /> timing point after next pause.
         /// </summary>
-        private int lastPausedTiming = 0;
-
-        /// <summary>
-        /// Whether to return to <see cref="onPauseReturnTo"/> timing point after next pause.
-        /// </summary>
-        private bool returnOnPause = false;
-
-        /// <summary>
-        /// Return to this timing point after next pause.
-        /// </summary>
-        private int onPauseReturnTo = 0;
-
-        /// <summary>
-        /// Whether or not chart timing is being stationary. Example of this being true is during warming up period after a play with delay.
-        /// </summary>
-        private bool isStationary;
-
-        /// <summary>
-        /// Scalar to speed up or slow down chart update speed to sync with music.
-        /// </summary>
-        private float updatePace = 1;
-
-        private bool audioEndReported;
-
-        public AudioSource AudioSource => audioSource;
-
-        public VideoPlayer VideoPlayer => videoPlayer;
+        private bool returnOnPause;
 
         public int ChartTiming
         {
-            get => AudioTiming - FullOffset;
+            get => BassAudioService.Instance.MyChartTimer?.GetElapsedMilliseconds() ?? -2000;
             set
             {
-                AudioTiming = value + FullOffset;
+                //AudioTiming = value + FullOffset;
             }
         }
 
@@ -115,23 +108,13 @@ namespace ArcCreate.Gameplay.Audio
 
         public int AudioLength { get; private set; }
 
-        public bool IsPlaying => true;//audioSource.isPlaying;
+        public bool IsPlaying => true; //audioSource.isPlaying;
 
-        public bool IsPlayingAndNotStationary => true;//(audioSource.isPlaying && !isStationary) || IsRendering;
 
-        public bool IsLoaded => audioSource.clip != null;
+        public bool IsLoaded => BassAudioService.Instance.AudioStream != null;
 
-        public bool IsRendering { get; set; }
+        public bool IsReadyForUpdate => BassAudioService.Instance.AudioStream != null;
 
-        public AudioClip AudioClip
-        {
-            get => audioSource.clip;
-            set
-            {
-                audioSource.clip = value;
-                AudioLength = Mathf.RoundToInt(value.length * 1000);
-            }
-        }
 
         // public AudioClip TapHitsoundClip => Services.Hitsound.TapHitsoundClip;
         //
@@ -139,9 +122,24 @@ namespace ArcCreate.Gameplay.Audio
         //
         // public Dictionary<string, AudioClip> SfxAudioClips => Services.Hitsound.SfxAudioClips;
 
-        private int FullOffset => Values.ChartAudioOffset + Mathf.RoundToInt(Settings.GlobalAudioOffset.Value * playbackSpeed);
+        private int FullOffset =>
+            Values.ChartAudioOffset + Mathf.RoundToInt(Settings.GlobalAudioOffset.Value * playbackSpeed);
 
         private int GlobalOffset => Mathf.RoundToInt(Settings.GlobalAudioOffset.Value * playbackSpeed);
+
+        private void Awake()
+        {
+            Settings.MusicAudio.OnValueChanged.AddListener(OnMusicAudioSettings);
+            OnMusicAudioSettings(Settings.MusicAudio.Value);
+            gameplayData.PlaybackSpeed.OnValueChange += OnPlaybackSpeedChange;
+            OnPlaybackSpeedChange(gameplayData.PlaybackSpeed.Value);
+        }
+
+        private void OnDestroy()
+        {
+            Settings.MusicAudio.OnValueChanged.RemoveListener(OnMusicAudioSettings);
+            gameplayData.PlaybackSpeed.OnValueChange -= OnPlaybackSpeedChange;
+        }
 
         public void SetAudioTimingSilent(int timing)
         {
@@ -160,13 +158,13 @@ namespace ArcCreate.Gameplay.Audio
 
         public void UpdateTime()
         {
-            // double dspTime = AudioSettings.dspTime;
+            // double dspTime =   
             // if (!IsPlaying)
             // {
-                // if (audioSource.clip != null && audioTiming >= Mathf.Max(0, AudioLength - 100))
-                // {
-                //     OnAudioEnd();
-                // }
+            // if (audioSource.clip != null && audioTiming >= Mathf.Max(0, AudioLength - 100))
+            // {
+            //     OnAudioEnd();
+            // }
             //
             //     return;
             // }
@@ -195,13 +193,26 @@ namespace ArcCreate.Gameplay.Audio
             // {
             //     audioTiming = Mathf.RoundToInt(AudioSource.time * 1000f);
             // }
-            isStationary = false;
-            audioTiming = (BassAudioService.Instance.GetAudioPosition() ?? 0);
-            if (audioTiming >= Mathf.Max(0, BassAudioService.Instance.GetAudioLength() ?? 1000 - 100))
-            {
-                OnAudioEnd();
-            }
-            UpdateSlider(audioTiming);
+            // isStationary = false;
+            //audioTiming = (BassAudioService.Instance.GetAudioPosition() ?? 0);
+            //audioTiming = BassAudioService.Instance.MyChartTimer.GetElapsedMilliseconds();
+            // if (BassAudioService.Instance.AudioStream != null)
+            // {
+            //     audioTiming = BassAudioService.Instance.AudioStream.Position > 0 ? BassAudioService.Instance.AudioStream.Position : 0;
+            //     if (audioTiming != 0 && !BassAudioService.Instance.AudioStream.IsPlaying && !PauseMenu.IsPausing)
+            //     {
+            //         OnAudioEnd();
+            //     }
+            // }
+            if (BassAudioService.Instance.AudioStream == null) return;
+
+            if (ChartTiming > BassAudioService.Instance.AudioStream.Length) OnAudioEnd();
+
+            // if (audioTiming >= Mathf.Max(0, BassAudioService.Instance.GetAudioLength() ?? 1000 - 100))
+            // {
+            //     OnAudioEnd();
+            // }
+            UpdateSlider(ChartTiming);
         }
 
         // public void PauseButtonPressed()
@@ -237,10 +248,7 @@ namespace ArcCreate.Gameplay.Audio
         public void Stop()
         {
             audioSource.Stop();
-            if (videoPlayer.enabled)
-            {
-                videoPlayer.Stop();
-            }
+            if (videoPlayer.enabled) videoPlayer.Stop();
 
             lastPausedTiming = 0;
             AudioTiming = 0;
@@ -250,47 +258,39 @@ namespace ArcCreate.Gameplay.Audio
 
         public void PlayImmediately(int timing)
         {
-            stationaryBeforeStart = false;
+            // stationaryBeforeStart = false;
             returnOnPause = false;
-            Play(timing, 0);
+            Play(timing);
         }
 
         public void PlayWithDelay(int timing, int delayMs)
         {
             BassAudioService.Instance.AudioPreviewStream.Dispose();
             var bpm = gameplayData.BaseBpm.Value;
-            var timeStep = 60000/bpm;
-            var delay = 1000;
-            for (int i = 0; i < 4; i++)
-            {
-                BassAudioService.Instance.PlayClock(delay);
-                delay += (int)timeStep;
-            }
-            stationaryBeforeStart = false;
+            BassAudioService.Instance.StartGameAudio(bpm).Forget();
+            // stationaryBeforeStart = false;
             returnOnPause = false;
             //Play(timing, delay);
-            BassAudioService.Instance.PlayAudio(delay);
             Services.Chart.ResetJudge();
-            
         }
 
         public void ResumeImmediately(bool resetJudge = true)
         {
-            stationaryBeforeStart = true;
+            // stationaryBeforeStart = true;
             returnOnPause = false;
             Play(lastPausedTiming, 0, resetJudge);
         }
 
         public void ResumeWithDelay(int delayMs, bool resetJudge = true)
         {
-            stationaryBeforeStart = true;
+            // stationaryBeforeStart = true;
             returnOnPause = false;
             Play(lastPausedTiming, delayMs, resetJudge);
         }
 
         public void ResumeReturnableImmediately()
         {
-            stationaryBeforeStart = true;
+            // stationaryBeforeStart = true;
             returnOnPause = true;
             onPauseReturnTo = audioTiming;
             Play(lastPausedTiming);
@@ -298,7 +298,7 @@ namespace ArcCreate.Gameplay.Audio
 
         public void ResumeReturnableWithDelay(int delayMs)
         {
-            stationaryBeforeStart = true;
+            // stationaryBeforeStart = true;
             returnOnPause = true;
             onPauseReturnTo = audioTiming;
             Play(lastPausedTiming, delayMs);
@@ -317,10 +317,7 @@ namespace ArcCreate.Gameplay.Audio
 
         public async UniTask PrepareVideoPlayback()
         {
-            if (!videoPlayer.enabled)
-            {
-                return;
-            }
+            if (!videoPlayer.enabled) return;
 
             videoPlayer.Prepare();
             await UniTask.WaitUntil(() => videoPlayer.isPrepared);
@@ -397,39 +394,19 @@ namespace ArcCreate.Gameplay.Audio
             await UniTask.Delay(delay);
             videoPlayer.Play();
         }
-        
-        private void Awake()
-        {
-            gameplayData.AudioClip.OnValueChange += OnClipLoad;
-            Settings.MusicAudio.OnValueChanged.AddListener(OnMusicAudioSettings);
-            OnMusicAudioSettings(Settings.MusicAudio.Value);
-            gameplayData.PlaybackSpeed.OnValueChange += OnPlaybackSpeedChange;
-            OnPlaybackSpeedChange(gameplayData.PlaybackSpeed.Value);
-        }
-
-        private void OnDestroy()
-        {
-            gameplayData.AudioClip.OnValueChange -= OnClipLoad;
-            Settings.MusicAudio.OnValueChanged.RemoveListener(OnMusicAudioSettings);
-            gameplayData.PlaybackSpeed.OnValueChange -= OnPlaybackSpeedChange;
-        }
 
         private void OnPlaybackSpeedChange(float value)
         {
             playbackSpeed = value;
             audioSource.pitch = value;
             videoPlayer.playbackSpeed = value;
-            if (IsPlayingAndNotStationary && (Application.isMobilePlatform || Settings.SyncToDSPTime.Value))
+            if (Application.isMobilePlatform || Settings.SyncToDSPTime.Value)
             {
                 Pause();
                 ResumeWithDelay(200, false);
             }
         }
 
-        private void OnClipLoad(AudioClip clip)
-        {
-            AudioClip = clip;
-        }
 
         private void SetEnableAutorotation(bool v)
         {
@@ -441,13 +418,17 @@ namespace ArcCreate.Gameplay.Audio
 
         private void OnMusicAudioSettings(float volume)
         {
-            audioSource.volume = Mathf.Clamp(volume, 0, 1);
+            var stream = BassAudioService.Instance.AudioStream;
+            if (stream == null) return;
+            stream.Volume = Mathf.Clamp(volume, 0, 1);
         }
 
         private void OnAudioEnd()
         {
             if (!audioEndReported && Values.ShouldNotifyOnAudioEnd && !gameplayData.EnablePracticeMode.Value)
             {
+                BassAudioService.Instance.AudioStream.Dispose();
+                BassAudioService.Instance.MyChartTimer.StopTiming().ResetTiming();
                 var result = Services.Score.GetPlayResult();
                 gameplayData.NotifyPlayComplete(result);
                 SetEnableAutorotation(true);
@@ -458,8 +439,8 @@ namespace ArcCreate.Gameplay.Audio
 
         private void UpdateSlider(float timing)
         {
-            var AudioL = BassAudioService.Instance.GetAudioLength() ?? 1;
-            timingSlider.value = AudioL > 0 ? Mathf.Clamp(timing / AudioL, 0, 1) : 0;
+            var audioLength = BassAudioService.Instance.ChartEndTiming;
+            timingSlider.value = audioLength > 0 ? Mathf.Clamp(timing / audioLength, 0, 1) : 0;
         }
     }
 }

@@ -18,17 +18,9 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private GameObject collapsedIcon;
         [SerializeField] private float offsetLeft;
 
-        public override UniTask LoadCellFully(CellData cellData, CancellationToken cancellationToken)
-        {
-            return default;
-        }
-
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (Services.Select.IsAnySelected || storage.IsTransitioning)
-            {
-                return;
-            }
+            if (storage != null && storage.IsTransitioning) return;
 
             ToggleCollapse();
             expandedIcon.SetActive(!HierarchyData.IsCollapsed);
@@ -36,11 +28,16 @@ namespace ArcCreate.Selection.Interface
             Services.SoundEffect.Play(Sound.CellSelect);
         }
 
+        public override UniTask LoadCellFully(CellData cellData, CancellationToken cancellationToken)
+        {
+            return default;
+        }
+
         public override void SetCellData(CellData cellData)
         {
-            GroupCellData groupCellData = cellData as GroupCellData;
+            var groupCellData = cellData as GroupCellData;
             text.text = groupCellData.Title;
-            float textWidth = text.preferredWidth;
+            var textWidth = text.preferredWidth;
             icon.anchoredPosition = new Vector2(
                 textWidth + offsetLeft,
                 icon.anchoredPosition.y);

@@ -30,12 +30,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
             return new List<object>
             {
                 serialization.AddUnitAndGetId(a),
-                serialization.AddUnitAndGetId(b),
+                serialization.AddUnitAndGetId(b)
             };
         }
 
         public override float ValueAt(int timing)
-            => a.ValueAt(timing) * b.ValueAt(timing);
+        {
+            return a.ValueAt(timing) * b.ValueAt(timing);
+        }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()
         {

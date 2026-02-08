@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using UnityEngine;
 
@@ -5,13 +6,15 @@ namespace ArcCreate
 {
     public class SettingManager
     {
-        private static string FilePath => Path.Combine(Application.persistentDataPath, "Settings.json");
         private SettingsItem settings;
 
         public SettingManager()
         {
             LoadSettings();
         }
+
+        private static string FilePath => Path.Combine(Application.persistentDataPath, "Settings.json");
+
         private void LoadSettings()
         {
             if (File.Exists(FilePath))
@@ -25,21 +28,21 @@ namespace ArcCreate
                 SaveSettings();
             }
         }
-        
+
         private void SaveSettings()
         {
             var jsonContent = JsonUtility.ToJson(settings, true);
             File.WriteAllText(FilePath, jsonContent);
         }
 
-        [System.Serializable]
+        [Serializable]
         public class SettingsItem
         {
             public AudioSettings audio = new();
             public string token = "";
         }
-        
-        [System.Serializable]
+
+        [Serializable]
         public class AudioSettings
         {
             public float musicVolume = 1.0f;

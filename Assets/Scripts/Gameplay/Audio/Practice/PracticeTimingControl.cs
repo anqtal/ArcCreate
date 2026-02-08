@@ -8,7 +8,7 @@ namespace ArcCreate.Gameplay.Audio.Practice
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private Button backButton;
         [SerializeField] private Button forwardButton;
-        
+
         private void Awake()
         {
             backButton.onClick.AddListener(JumpBack);
@@ -23,18 +23,18 @@ namespace ArcCreate.Gameplay.Audio.Practice
 
         private void JumpBack()
         {
-            int timing = Services.Audio.AudioTiming;
-            int duration = JumpDuration(gameplayData.PlaybackSpeed.Value);
-            int newTiming = Mathf.Clamp(timing - duration, 0, Services.Audio.AudioLength);
+            var timing = Services.Audio.AudioTiming;
+            var duration = JumpDuration(gameplayData.PlaybackSpeed.Value);
+            var newTiming = Mathf.Clamp(timing - duration, 0, Services.Audio.AudioLength);
             Services.Audio.Pause();
             Services.Audio.PlayWithDelay(newTiming, Values.DelayBeforeAudioResume);
         }
 
         private void JumpForward()
         {
-            int timing = Services.Audio.AudioTiming;
-            int duration = JumpDuration(gameplayData.PlaybackSpeed.Value);
-            int newTiming = Mathf.Clamp(timing + duration, 0, Services.Audio.AudioLength);
+            var timing = Services.Audio.AudioTiming;
+            var duration = JumpDuration(gameplayData.PlaybackSpeed.Value);
+            var newTiming = Mathf.Clamp(timing + duration, 0, Services.Audio.AudioLength);
             Services.Audio.Pause();
             Services.Audio.PlayWithDelay(newTiming, Values.DelayBeforeAudioResume);
         }

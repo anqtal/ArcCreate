@@ -7,10 +7,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class SineChannel : ValueChannel
     {
-        private ValueChannel period;
-        private ValueChannel offset;
-        private ValueChannel min;
         private ValueChannel max;
+        private ValueChannel min;
+        private ValueChannel offset;
+        private ValueChannel period;
 
         public SineChannel()
         {
@@ -39,16 +39,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(period),
                 serialization.AddUnitAndGetId(offset),
                 serialization.AddUnitAndGetId(min),
-                serialization.AddUnitAndGetId(max),
+                serialization.AddUnitAndGetId(max)
             };
         }
 
         public override float ValueAt(int timing)
         {
-            float omega = 2 * Mathf.PI / (float)period.ValueAt(timing);
-            float minVal = min.ValueAt(timing);
-            float maxVal = max.ValueAt(timing);
-            return minVal + ((maxVal - minVal) * Mathf.Sin(omega * (timing + offset.ValueAt(timing))));
+            var omega = 2 * Mathf.PI / period.ValueAt(timing);
+            var minVal = min.ValueAt(timing);
+            var maxVal = max.ValueAt(timing);
+            return minVal + (maxVal - minVal) * Mathf.Sin(omega * (timing + offset.ValueAt(timing)));
         }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()

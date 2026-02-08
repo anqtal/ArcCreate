@@ -1,15 +1,14 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 namespace ArcCreate.Gameplay.Audio
 {
     public class HoldPauseHandler : IPauseButtonHandler
     {
-        private readonly PauseButton parent;
         private readonly float minDuration;
-        private bool released;
+        private readonly PauseButton parent;
         private CancellationTokenSource cts;
+        private bool released;
 
         public HoldPauseHandler(PauseButton parent, float minDuration)
         {
@@ -35,10 +34,7 @@ namespace ArcCreate.Gameplay.Audio
         private async UniTask HoldTask(CancellationToken token)
         {
             await UniTask.Delay((int)(minDuration * 1000), cancellationToken: token);
-            if (!released)
-            {
-                parent.Activate();
-            }
+            if (!released) parent.Activate();
         }
     }
 }

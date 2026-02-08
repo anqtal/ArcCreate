@@ -1,4 +1,5 @@
 // Credit: https://stackoverflow.com/questions/754233/is-it-there-any-lru-implementation-of-idictionary#3719378
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -7,10 +8,10 @@ namespace ArcCreate.Utility.LRUCache
 {
     public class LRUCache<K, V>
     {
+        private readonly Dictionary<K, LinkedListNode<LRUCacheItem<K, V>>> cacheMap = new();
         private readonly int capacity;
+        private readonly LinkedList<LRUCacheItem<K, V>> lruList = new();
         private readonly Action<V> onRemove;
-        private readonly Dictionary<K, LinkedListNode<LRUCacheItem<K, V>>> cacheMap = new Dictionary<K, LinkedListNode<LRUCacheItem<K, V>>>();
-        private readonly LinkedList<LRUCacheItem<K, V>> lruList = new LinkedList<LRUCacheItem<K, V>>();
 
         public LRUCache(int capacity, Action<V> onRemove = null)
         {
@@ -21,9 +22,9 @@ namespace ArcCreate.Utility.LRUCache
         [MethodImpl(MethodImplOptions.Synchronized)]
         public V Get(K key)
         {
-            if (cacheMap.TryGetValue(key, out LinkedListNode<LRUCacheItem<K, V>> node))
+            if (cacheMap.TryGetValue(key, out var node))
             {
-                V value = node.Value.Value;
+                var value = node.Value.Value;
                 lruList.Remove(node);
                 lruList.AddLast(node);
                 return value;
@@ -35,13 +36,10 @@ namespace ArcCreate.Utility.LRUCache
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Add(K key, V val)
         {
-            if (cacheMap.Count >= capacity)
-            {
-                RemoveFirst();
-            }
+            if (cacheMap.Count >= capacity) RemoveFirst();
 
-            LRUCacheItem<K, V> cacheItem = new LRUCacheItem<K, V>(key, val);
-            LinkedListNode<LRUCacheItem<K, V>> node = new LinkedListNode<LRUCacheItem<K, V>>(cacheItem);
+            var cacheItem = new LRUCacheItem<K, V>(key, val);
+            var node = new LinkedListNode<LRUCacheItem<K, V>>(cacheItem);
             lruList.AddLast(node);
             cacheMap.Add(key, node);
         }
@@ -49,7 +47,7 @@ namespace ArcCreate.Utility.LRUCache
         private void RemoveFirst()
         {
             // Remove from LRUPriority
-            LinkedListNode<LRUCacheItem<K, V>> node = lruList.First;
+            var node = lruList.First;
             lruList.RemoveFirst();
 
             // Remove from cache

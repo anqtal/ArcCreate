@@ -1,7 +1,5 @@
 using ArcCreate.Gameplay.Scenecontrol;
 using ArcCreate.SceneTransition;
-using ArcCreate.Utility;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 

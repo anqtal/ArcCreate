@@ -8,30 +8,29 @@ namespace ArcCreate.Gameplay.Data
 {
     public class Tap : Note, INote, ILaneTapJudgementReceiver
     {
-        private bool judgementRequestSent = false;
-        private bool isHit = false;
-        private Texture texture;
         private Color connectionLineColor;
+        private bool isHit;
+        private bool judgementRequestSent;
+        private Texture texture;
 
-        public HashSet<ArcTap> ConnectedArcTaps { get; } = new HashSet<ArcTap>();
+        public HashSet<ArcTap> ConnectedArcTaps { get; } = new();
 
         public int Lane { get; set; }
 
-        public override ArcEvent Clone()
+        public void ProcessLaneTapJudgement(int offset, GroupProperties props)
         {
-            return new Tap()
+            var judgeOffset = props.CurrentJudgementOffset;
+            var result = props.MapJudgementResult(offset.CalculateJudgeResult());
+            Services.Particle.PlayTapParticle(new Vector3(ArcFormula.LaneToWorldX(Lane), 0) + judgeOffset, result);
+            Services.Particle.PlayTextParticle(new Vector3(ArcFormula.LaneToWorldX(Lane), 0) + judgeOffset, result,
+                offset);
+            Services.Score.ProcessJudgement(result, offset);
+            isHit = true;
+            if (!result.IsMiss())
             {
-                Timing = Timing,
-                TimingGroup = TimingGroup,
-                Lane = Lane,
-            };
-        }
-
-        public override void Assign(ArcEvent newValues)
-        {
-            base.Assign(newValues);
-            Tap e = newValues as Tap;
-            Lane = e.Lane;
+                Services.InputFeedback.LaneFeedback(Lane);
+                BassAudioService.Instance.PlayTapHitSound(Timing);
+            }
         }
 
         public void ResetJudgeTo(int timing)
@@ -55,35 +54,12 @@ namespace ArcCreate.Gameplay.Data
             return Timing.CompareTo(other.Timing);
         }
 
-        public override void GenerateColliderTriangles(int timing, List<Vector3> vertices, List<int> triangles)
-        {
-            Mesh mesh = Services.Render.TapMesh;
-            vertices.Clear();
-            triangles.Clear();
-            mesh.GetVertices(vertices);
-            mesh.GetTriangles(triangles, 0);
-
-            float z = ZPos(TimingGroupInstance.GetFloorPosition(timing));
-            Vector3 basePos = new Vector3(ArcFormula.LaneToWorldX(Lane), 0, 0);
-            Vector3 pos = (TimingGroupInstance.GroupProperties.FallDirection * z) + basePos;
-            Vector3 scl = TimingGroupInstance.GroupProperties.ScaleIndividual;
-            scl.z *= ArcFormula.CalculateTapSizeScalar(z);
-
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                Vector3 v = vertices[i];
-                v = v.Multiply(scl);
-                v += pos;
-                vertices[i] = v;
-            }
-        }
-
         public void UpdateJudgement(int currentTiming, GroupProperties groupProperties)
         {
             if (!judgementRequestSent && currentTiming >= Timing)
             {
-                
             }
+
             if (!judgementRequestSent && currentTiming <= Timing)
             {
                 RequestJudgement(groupProperties);
@@ -93,78 +69,92 @@ namespace ArcCreate.Gameplay.Data
 
         public void UpdateRender(int currentTiming, double currentFloorPosition, GroupProperties groupProperties)
         {
-            if (isHit && !groupProperties.NoClip)
-            {
-                return;
-            }
+            if (isHit && !groupProperties.NoClip) return;
 
-            if (texture == null)
-            {
-                ReloadSkin();
-            }
+            if (texture == null) ReloadSkin();
 
-            float z = ZPos(currentFloorPosition);
-            Vector3 basePos = new Vector3(ArcFormula.LaneToWorldX(Lane), 0, 0);
-            Vector3 pos = (groupProperties.FallDirection * z) + basePos;
-            Quaternion rot = groupProperties.RotationIndividual;
-            Vector3 scl = groupProperties.ScaleIndividual;
+            var z = ZPos(currentFloorPosition);
+            var basePos = new Vector3(ArcFormula.LaneToWorldX(Lane), 0, 0);
+            var pos = groupProperties.FallDirection * z + basePos;
+            var rot = groupProperties.RotationIndividual;
+            var scl = groupProperties.ScaleIndividual;
             scl.z *= ArcFormula.CalculateTapSizeScalar(z);
-            Matrix4x4 matrix = groupProperties.GroupMatrix * Matrix4x4.TRS(pos, rot, scl);
+            var matrix = groupProperties.GroupMatrix * Matrix4x4.TRS(pos, rot, scl);
 
-            float alpha = ArcFormula.CalculateFadeOutAlpha(z);
-            Color color = groupProperties.Color;
-            Color connectionColor = connectionLineColor;
+            var alpha = ArcFormula.CalculateFadeOutAlpha(z);
+            var color = groupProperties.Color;
+            var connectionColor = connectionLineColor;
             color.a *= alpha;
             connectionColor.a *= alpha;
 
             Services.Render.DrawTap(texture, matrix, color, IsSelected);
 
             if (!groupProperties.NoConnection)
-            {
                 foreach (var arctap in ConnectedArcTaps)
                 {
-                    if (arctap.TimingGroupInstance.GroupProperties.NoConnection)
-                    {
-                        return;
-                    }
+                    if (arctap.TimingGroupInstance.GroupProperties.NoConnection) return;
 
-                    Vector3 arctapPos = new Vector3(arctap.WorldX, arctap.WorldY, 0);
-                    Vector3 direction = arctapPos - basePos;
+                    var arctapPos = new Vector3(arctap.WorldX, arctap.WorldY, 0);
+                    var direction = arctapPos - basePos;
 
-                    Matrix4x4 lineMatrix = matrix * Matrix4x4.TRS(
-                        pos: Vector3.zero,
-                        q: Quaternion.LookRotation(direction, Vector3.up),
-                        s: new Vector3(1, 1, direction.magnitude));
+                    var lineMatrix = matrix * Matrix4x4.TRS(
+                        Vector3.zero,
+                        Quaternion.LookRotation(direction, Vector3.up),
+                        new Vector3(1, 1, direction.magnitude));
                     Services.Render.DrawConnectionLine(lineMatrix, connectionColor);
                 }
-            }
         }
 
-        public void ProcessLaneTapJudgement(int offset, GroupProperties props)
+        public override ArcEvent Clone()
         {
-            Vector3 judgeOffset = props.CurrentJudgementOffset;
-            JudgementResult result = props.MapJudgementResult(offset.CalculateJudgeResult());
-            Services.Particle.PlayTapParticle(new Vector3(ArcFormula.LaneToWorldX(Lane), 0) + judgeOffset, result);
-            Services.Particle.PlayTextParticle(new Vector3(ArcFormula.LaneToWorldX(Lane), 0) + judgeOffset, result, offset);
-            Services.Score.ProcessJudgement(result, offset);
-            isHit = true;
-            if (!result.IsMiss())
+            return new Tap
             {
-                Services.InputFeedback.LaneFeedback(Lane); 
-                BassAudioService.Instance.PlayTapHitSound(Timing);
+                Timing = Timing,
+                TimingGroup = TimingGroup,
+                Lane = Lane
+            };
+        }
+
+        public override void Assign(ArcEvent newValues)
+        {
+            base.Assign(newValues);
+            var e = newValues as Tap;
+            Lane = e.Lane;
+        }
+
+        public override void GenerateColliderTriangles(int timing, List<Vector3> vertices, List<int> triangles)
+        {
+            var mesh = Services.Render.TapMesh;
+            vertices.Clear();
+            triangles.Clear();
+            mesh.GetVertices(vertices);
+            mesh.GetTriangles(triangles, 0);
+
+            var z = ZPos(TimingGroupInstance.GetFloorPosition(timing));
+            var basePos = new Vector3(ArcFormula.LaneToWorldX(Lane), 0, 0);
+            var pos = TimingGroupInstance.GroupProperties.FallDirection * z + basePos;
+            var scl = TimingGroupInstance.GroupProperties.ScaleIndividual;
+            scl.z *= ArcFormula.CalculateTapSizeScalar(z);
+
+            for (var i = 0; i < vertices.Count; i++)
+            {
+                var v = vertices[i];
+                v = v.Multiply(scl);
+                v += pos;
+                vertices[i] = v;
             }
         }
 
         private void RequestJudgement(GroupProperties props)
         {
             Services.Judgement.Request(
-                new LaneTapJudgementRequest()
+                new LaneTapJudgementRequest
                 {
                     ExpireAtTiming = Timing + Values.MissJudgeWindow,
                     AutoAtTiming = Timing,
                     Lane = Lane,
                     Receiver = this,
-                    Properties = props,
+                    Properties = props
                 });
         }
     }

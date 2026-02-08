@@ -6,7 +6,7 @@ namespace ArcCreate.Utility.Extension
     {
         public static bool ConvertHexToColor(this string str, out Color color)
         {
-            if (ColorUtility.TryParseHtmlString(str, out Color c))
+            if (ColorUtility.TryParseHtmlString(str, out var c))
             {
                 color = c;
                 return true;

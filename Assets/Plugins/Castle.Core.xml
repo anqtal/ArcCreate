@@ -625,7 +625,8 @@
         </member>
         <member name="T:Castle.Components.DictionaryAdapter.IDictionaryBehaviorBuilder">
             <summary>
-                Defines the contract for building<see cref="T:Castle.Components.DictionaryAdapter.IDictionaryBehavior"/>
+                Defines the contract for building
+                <see cref="T:Castle.Components.DictionaryAdapter.IDictionaryBehavior"/>
                 s.
             </summary>
         </member>
@@ -3855,7 +3856,8 @@
                 <see cref="T:System.Reflection.MethodInfo"/>
                 on the target class.
             </summary>
-            <returns>The concrete instantiation of<see cref="P:Castle.DynamicProxy.IInvocation.MethodInvocationTarget"/>
+            <returns>The concrete instantiation of
+                <see cref="P:Castle.DynamicProxy.IInvocation.MethodInvocationTarget"/>
                 , or
                 <see cref="P:Castle.DynamicProxy.IInvocation.MethodInvocationTarget"/>
                 if not a generic method.

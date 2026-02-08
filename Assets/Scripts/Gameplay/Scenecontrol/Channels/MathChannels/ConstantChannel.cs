@@ -27,7 +27,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
             return new List<object> { val };
         }
 
-        public override float ValueAt(int timing) => val;
+        public override float ValueAt(int timing)
+        {
+            return val;
+        }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()
         {

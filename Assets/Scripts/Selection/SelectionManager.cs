@@ -1,9 +1,7 @@
-using System;
-using ArcCreate.Data;
 using ArcCreate.Gameplay;
 using ArcCreate.SceneTransition;
 using ArcCreate.Storage;
-using ArcCreate.Storage.Data;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace ArcCreate.Selection
@@ -13,36 +11,51 @@ namespace ArcCreate.Selection
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private StorageData storageData;
         [SerializeField] private Camera selectionCamera;
-
-        protected override void OnSceneLoad()
-        {
-            storageData.SelectedPack.OnValueChange += OnPackChange;
-            storageData.SelectedChart.OnValueChange += OnChartChange;
-            TransitionScene.Instance.TriangleTileGameObject.SetActive(true);
-            TransitionScene.Instance.UpdateCameraStatus();
-            TransitionScene.Instance.EnsureDefaultTriangleScale();
-        }
+        private bool isSubscribed;
 
         private void OnDestroy()
         {
             storageData.SelectedPack.OnValueChange -= OnPackChange;
             storageData.SelectedChart.OnValueChange -= OnChartChange;
+            if (isSubscribed) SongData.Instance.OnLoaded -= OnSongDataLoaded;
         }
 
-        private void OnPackChange(PackStorage pack)
+        protected override void OnSceneLoad()
         {
-            PlayerPrefs.SetString("Selection.LastPack", pack?.Identifier);
+            storageData.SelectedPack.OnValueChange += OnPackChange;
+            storageData.SelectedChart.OnValueChange += OnChartChange;
+            InitializeAsync().Forget();
+            TransitionScene.Instance.TriangleTileGameObject.SetActive(true);
+            TransitionScene.Instance.UpdateCameraStatus();
+            TransitionScene.Instance.EnsureDefaultTriangleScale();
         }
 
-        private void OnChartChange((LevelStorage level, ChartSettings chart) obj)
+        private async UniTaskVoid InitializeAsync()
+        {
+            await DxResource.Init();
+            SongData.Instance.OnLoaded += OnSongDataLoaded;
+            isSubscribed = true;
+            if (SongData.Instance.IsLoaded) OnSongDataLoaded();
+        }
+
+        private void OnSongDataLoaded()
+        {
+            storageData.NotifyStorageChange();
+        }
+
+        private void OnPackChange(Pack pack)
+        {
+            PlayerPrefs.SetString("Selection.LastPack", pack?.id);
+        }
+
+        private void OnChartChange((SongList level, Difficulty difficulty) obj)
         {
             var (level, chart) = obj;
             if (level != null && chart != null)
             {
-                PlayerPrefs.SetString($"Selection.LastLevel.{storageData.SelectedPack.Value?.Identifier ?? "all"}", level.Identifier);
-                PlayerPrefs.SetString("Selection.LastChartPath", chart.ChartPath);
-                PlayerPrefs.SetString("Selection.LastDifficultyName", chart.Difficulty);
-                PlayerPrefs.SetFloat("Selection.LastCc", (float)chart.ChartConstant);
+                PlayerPrefs.SetString($"Selection.LastLevel.{storageData.SelectedPack.Value?.id ?? "all"}", level.id);
+                PlayerPrefs.SetString("Selection.LastChartPath", SongDifficultyUtility.GetChartPath(chart));
+                PlayerPrefs.SetString("Selection.LastDifficultyName", SongDifficultyUtility.GetDifficultyName(chart));
             }
         }
     }

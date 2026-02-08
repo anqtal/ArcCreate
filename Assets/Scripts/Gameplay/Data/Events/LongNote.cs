@@ -13,25 +13,22 @@ namespace ArcCreate.Gameplay.Data
         public double FirstJudgeTime { get; protected set; }
 
         /// <summary>
-        /// Recalculate the judge timings value of this note.
+        ///     Recalculate the judge timings value of this note.
         /// </summary>
         public abstract void RecalculateJudgeTimings();
 
         public override int ComboAt(int timing)
         {
-            if (timing < FirstJudgeTime)
-            {
-                return 0;
-            }
+            if (timing < FirstJudgeTime) return 0;
 
-            int combo = (int)((timing - FirstJudgeTime) / TimeIncrement) + 1;
+            var combo = (int)((timing - FirstJudgeTime) / TimeIncrement) + 1;
             return Mathf.Clamp(combo, 0, TotalCombo);
         }
 
         public override void Assign(ArcEvent newValues)
         {
             base.Assign(newValues);
-            LongNote e = newValues as LongNote;
+            var e = newValues as LongNote;
             EndTiming = e.EndTiming;
         }
 
@@ -42,6 +39,8 @@ namespace ArcCreate.Gameplay.Data
         }
 
         public float EndZPos(double floorPosition)
-            => ArcFormula.FloorPositionToZ(EndFloorPosition - floorPosition);
+        {
+            return ArcFormula.FloorPositionToZ(EndFloorPosition - floorPosition);
+        }
     }
 }

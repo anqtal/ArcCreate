@@ -30,10 +30,9 @@ namespace ArcCreate.Selection.Interface
 
         private async UniTask StartReloading()
         {
-            TMP_Text text = GetComponent<TMP_Text>();
-            string data = string.Empty;
+            var text = GetComponent<TMP_Text>();
+            var data = string.Empty;
             if (Application.platform == RuntimePlatform.Android)
-            {
                 using (var req = UnityWebRequest.Get(CreditsPath))
                 {
                     await req.SendWebRequest();
@@ -45,11 +44,8 @@ namespace ArcCreate.Selection.Interface
 
                     data = req.downloadHandler.text;
                 }
-            }
             else
-            {
                 data = File.ReadAllText(CreditsPath);
-            }
 
             data = Regex.Replace(data, @"{([^}]+)}", m => I18n.S(m.Groups[1].Value));
             data = Regex.Replace(data, @"\[([^\]]+)\]", m => I18n.GetLocalName(m.Groups[1].Value));

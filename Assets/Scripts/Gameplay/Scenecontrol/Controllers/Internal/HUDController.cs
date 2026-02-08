@@ -8,6 +8,13 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [EmmyDoc("Controller for the HUD canvas")]
     public class HUDController : CanvasController
     {
+        public override void UpdateRect(float w, float h, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
+        {
+            // Disable width and height changes to HUD
+            RectTransform.anchorMin = anchorMin;
+            RectTransform.anchorMax = anchorMax;
+            RectTransform.pivot = pivot;
+        }
 #pragma warning disable
         [SerializeField] private ImageController pause;
 
@@ -20,6 +27,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return pause;
             }
         }
+
         [SerializeField] private InfoPanelController infoPanel;
         [EmmyDoc("Gets the controller for the information panel")]
         public InfoPanelController InfoPanel
@@ -31,13 +39,5 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 #pragma warning restore
-
-        public override void UpdateRect(float w, float h, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
-        {
-            // Disable width and height changes to HUD
-            RectTransform.anchorMin = anchorMin;
-            RectTransform.anchorMax = anchorMax;
-            RectTransform.pivot = pivot;
-        }
     }
 }

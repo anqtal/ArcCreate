@@ -2,6 +2,14 @@ namespace ArcCreate.Utility.Parser
 {
     public class ParsingError : Error
     {
+        public enum Kind
+        {
+            CharacterNotFound,
+            InvalidConversionToInt,
+            InvalidConversionToBool,
+            InvalidConversionToFloat
+        }
+
         public ParsingError(string cause, int startCharPos, int length, Kind kind)
         {
             Cause = cause;
@@ -10,15 +18,7 @@ namespace ArcCreate.Utility.Parser
             ErrorKind = kind;
         }
 
-        public enum Kind
-        {
-            CharacterNotFound,
-            InvalidConversionToInt,
-            InvalidConversionToBool,
-            InvalidConversionToFloat,
-        }
-
-        public string Cause { get; private set; }
+        public string Cause { get; }
 
         public int StartCharPos { get; private set; }
 
@@ -27,6 +27,6 @@ namespace ArcCreate.Utility.Parser
         public override string Message
             => I18n.S($"Parsing.Exception.{ErrorKind}", Cause);
 
-        public Kind ErrorKind { get; private set; }
+        public Kind ErrorKind { get; }
     }
 }

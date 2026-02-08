@@ -9,62 +9,126 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [EmmyDoc("Controller for a text object")]
     public class TextController : Controller, IPositionController, IRectController, ITextController, IColorController
     {
+        [SerializeField] private TMP_Text textComponent;
+        [SerializeField] private RectTransform rectTransform;
+        private ValueChannel anchorMaxX;
+        private ValueChannel anchorMaxY;
+        private ValueChannel anchorMinX;
+        private ValueChannel anchorMinY;
+        private ValueChannel colorA;
+        private ValueChannel colorB;
+        private ValueChannel colorG;
+        private ValueChannel colorH;
+        private ValueChannel colorR;
+        private ValueChannel colorS;
+        private ValueChannel colorV;
         private string defaultText;
-        private ValueChannel translationX;
-        private ValueChannel translationY;
-        private ValueChannel translationZ;
+        private ValueChannel fontSize;
+        private ValueChannel lineSpacing;
+        private ValueChannel pivotX;
+        private ValueChannel pivotY;
+        private ValueChannel rectH;
+        private ValueChannel rectW;
         private ValueChannel rotationX;
         private ValueChannel rotationY;
         private ValueChannel rotationZ;
         private ValueChannel scaleX;
         private ValueChannel scaleY;
         private ValueChannel scaleZ;
-        private ValueChannel colorR;
-        private ValueChannel colorG;
-        private ValueChannel colorB;
-        private ValueChannel colorH;
-        private ValueChannel colorS;
-        private ValueChannel colorV;
-        private ValueChannel colorA;
-        private ValueChannel rectW;
-        private ValueChannel rectH;
-        private ValueChannel anchorMinX;
-        private ValueChannel anchorMinY;
-        private ValueChannel anchorMaxX;
-        private ValueChannel anchorMaxY;
-        private ValueChannel pivotX;
-        private ValueChannel pivotY;
         private TextChannel text;
-        private ValueChannel fontSize;
-        private ValueChannel lineSpacing;
-        [SerializeField] private TMP_Text textComponent;
-        [SerializeField] private RectTransform rectTransform;
+        private ValueChannel translationX;
+        private ValueChannel translationY;
+        private ValueChannel translationZ;
+
+        [MoonSharpHidden] public TMP_FontAsset DefaultFontAsset { get; private set; }
+
+        [MoonSharpHidden] public TMP_Text TextComponent => textComponent;
+
+        [MoonSharpHidden] public Color DefaultColor { get; private set; }
+
+        public ValueChannel ColorR
+        {
+            get => colorR;
+            set
+            {
+                colorR = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorG
+        {
+            get => colorG;
+            set
+            {
+                colorG = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorB
+        {
+            get => colorB;
+            set
+            {
+                colorB = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorH
+        {
+            get => colorH;
+            set
+            {
+                colorH = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorS
+        {
+            get => colorS;
+            set
+            {
+                colorS = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorV
+        {
+            get => colorV;
+            set
+            {
+                colorV = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorA
+        {
+            get => colorA;
+            set
+            {
+                colorA = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public bool EnableColorModule { get; set; }
+
+        [MoonSharpHidden]
+        public void UpdateColor(Color color)
+        {
+            textComponent.color = color;
+        }
 
         [MoonSharpHidden] public Vector3 DefaultTranslation { get; private set; }
 
         [MoonSharpHidden] public Quaternion DefaultRotation { get; private set; }
 
         [MoonSharpHidden] public Vector3 DefaultScale { get; private set; }
-
-        [MoonSharpHidden] public float DefaultRectW { get; private set; }
-
-        [MoonSharpHidden] public float DefaultRectH { get; private set; }
-
-        [MoonSharpHidden] public Vector2 DefaultAnchorMin { get; private set; }
-
-        [MoonSharpHidden] public Vector2 DefaultAnchorMax { get; private set; }
-
-        [MoonSharpHidden] public Vector2 DefaultPivot { get; private set; }
-
-        [MoonSharpHidden] public Color DefaultColor { get; private set; }
-
-        [MoonSharpHidden] public float DefaultFontSize { get; private set; }
-
-        [MoonSharpHidden] public float DefaultLineSpacing { get; private set; }
-
-        [MoonSharpHidden] public TMP_FontAsset DefaultFontAsset { get; private set; }
-
-        [MoonSharpHidden] public string DefaultFont { get; private set; }
 
         public ValueChannel TranslationX
         {
@@ -156,6 +220,26 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
+        public bool EnablePositionModule { get; set; }
+
+        [MoonSharpHidden]
+        public void UpdatePosition(Vector3 translation, Quaternion rotation, Vector3 scale)
+        {
+            rectTransform.anchoredPosition3D = translation;
+            rectTransform.localScale = scale;
+            rectTransform.localRotation = rotation;
+        }
+
+        [MoonSharpHidden] public float DefaultRectW { get; private set; }
+
+        [MoonSharpHidden] public float DefaultRectH { get; private set; }
+
+        [MoonSharpHidden] public Vector2 DefaultAnchorMin { get; private set; }
+
+        [MoonSharpHidden] public Vector2 DefaultAnchorMax { get; private set; }
+
+        [MoonSharpHidden] public Vector2 DefaultPivot { get; private set; }
+
         public ValueChannel RectW
         {
             get => rectW;
@@ -236,6 +320,24 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
+        public bool EnableRectModule { get; set; }
+
+        [MoonSharpHidden]
+        public void UpdateRect(float w, float h, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
+        {
+            rectTransform.anchorMin = anchorMin;
+            rectTransform.anchorMax = anchorMax;
+            rectTransform.pivot = pivot;
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
+        }
+
+        [MoonSharpHidden] public float DefaultFontSize { get; private set; }
+
+        [MoonSharpHidden] public float DefaultLineSpacing { get; private set; }
+
+        [MoonSharpHidden] public string DefaultFont { get; private set; }
+
         public TextChannel Text
         {
             get => text;
@@ -243,76 +345,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             {
                 text = value;
                 EnableTextModule = true;
-            }
-        }
-
-        public ValueChannel ColorR
-        {
-            get => colorR;
-            set
-            {
-                colorR = value;
-                EnableColorModule = true;
-            }
-        }
-
-        public ValueChannel ColorG
-        {
-            get => colorG;
-            set
-            {
-                colorG = value;
-                EnableColorModule = true;
-            }
-        }
-
-        public ValueChannel ColorB
-        {
-            get => colorB;
-            set
-            {
-                colorB = value;
-                EnableColorModule = true;
-            }
-        }
-
-        public ValueChannel ColorH
-        {
-            get => colorH;
-            set
-            {
-                colorH = value;
-                EnableColorModule = true;
-            }
-        }
-
-        public ValueChannel ColorS
-        {
-            get => colorS;
-            set
-            {
-                colorS = value;
-                EnableColorModule = true;
-            }
-        }
-
-        public ValueChannel ColorV
-        {
-            get => colorV;
-            set
-            {
-                colorV = value;
-                EnableColorModule = true;
-            }
-        }
-
-        public ValueChannel ColorA
-        {
-            get => colorA;
-            set
-            {
-                colorA = value;
-                EnableColorModule = true;
             }
         }
 
@@ -340,15 +372,25 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         [MoonSharpHidden] public virtual string DefaultText => defaultText;
 
-        [MoonSharpHidden] public TMP_Text TextComponent => textComponent;
-
-        public bool EnablePositionModule { get; set; }
-
-        public bool EnableRectModule { get; set; }
-
         public bool EnableTextModule { get; set; }
 
-        public bool EnableColorModule { get; set; }
+        [MoonSharpHidden]
+        public void UpdateProperties(float fontSize, float lineSpacing)
+        {
+            textComponent.lineSpacing = lineSpacing;
+            textComponent.fontSize = fontSize;
+        }
+
+        public void ApplyCustomFont(string font)
+        {
+            if (!string.IsNullOrEmpty(font)) SetFont(font);
+        }
+
+        [MoonSharpHidden]
+        public void UpdateText(char[] text, int start, int length)
+        {
+            textComponent.SetCharArray(text, start, length);
+        }
 
         [MoonSharpHidden]
         public override void SetupDefault()
@@ -375,9 +417,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
             var c = Instantiate(gameObject, transform.parent).GetComponent<TextController>();
             c.IsPersistent = false;
 
-            Controller[] children = GetChildren();
-            int i = 0;
-            foreach (Controller child in c.GetChildren())
+            var children = GetChildren();
+            var i = 0;
+            foreach (var child in c.GetChildren())
             {
                 child.IsPersistent = false;
                 child.Start();
@@ -391,55 +433,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
             return c;
         }
 
-        [MoonSharpHidden]
-        public void UpdateColor(Color color)
-        {
-            textComponent.color = color;
-        }
-
-        [MoonSharpHidden]
-        public void UpdatePosition(Vector3 translation, Quaternion rotation, Vector3 scale)
-        {
-            rectTransform.anchoredPosition3D = translation;
-            rectTransform.localScale = scale;
-            rectTransform.localRotation = rotation;
-        }
-
-        [MoonSharpHidden]
-        public void UpdateRect(float w, float h, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
-        {
-            rectTransform.anchorMin = anchorMin;
-            rectTransform.anchorMax = anchorMax;
-            rectTransform.pivot = pivot;
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
-        }
-
-        [MoonSharpHidden]
-        public void UpdateProperties(float fontSize, float lineSpacing)
-        {
-            textComponent.lineSpacing = lineSpacing;
-            textComponent.fontSize = fontSize;
-        }
-
         [EmmyDoc("Change the font of this text object.")]
         public void SetFont(string font)
         {
             textComponent.font = Services.Scenecontrol.GetFont(font);
-        }
-
-        public void ApplyCustomFont(string font)
-        {
-            if (!string.IsNullOrEmpty(font))
-            {
-                SetFont(font);
-            }
-        }
-
-        [MoonSharpHidden]
-        public void UpdateText(char[] text, int start, int length)
-        {
-            textComponent.SetCharArray(text, start, length);
         }
     }
 }

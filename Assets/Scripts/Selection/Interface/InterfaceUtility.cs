@@ -1,4 +1,4 @@
-using ArcCreate.Storage.Data;
+using ArcCreate.Storage;
 using UnityEngine;
 
 namespace ArcCreate.Selection.Interface
@@ -11,36 +11,29 @@ namespace ArcCreate.Selection.Interface
 
         public static string AlignedDiffNumber(string number)
         {
-            if (string.IsNullOrEmpty(number))
-            {
-                return string.Empty;
-            }
+            if (string.IsNullOrEmpty(number)) return string.Empty;
 
-            char end = number[number.Length - 1];
-            if (end == '+' || end == '-')
-            {
-                return ' ' + number;
-            }
+            var end = number[number.Length - 1];
+            if (end == '+' || end == '-') return ' ' + number;
 
             return number;
         }
 
         public static Color LightenDiffColor(Color color)
         {
-            Color.RGBToHSV(color, out float h, out float s, out float v);
-            Color rgb = Color.HSVToRGB(h + HueShift, s + SatShift, v + ValueShift);
+            Color.RGBToHSV(color, out var h, out var s, out var v);
+            var rgb = Color.HSVToRGB(h + HueShift, s + SatShift, v + ValueShift);
             rgb.a = color.a;
             return rgb;
         }
 
-        public static bool AreTheSame(LevelStorage a, LevelStorage b)
+        public static bool AreTheSame(SongList a, SongList b)
         {
-            if (a == null || b == null)
-            {
-                return false;
-            }
+            if (a == null || b == null) return false;
 
-            return a.Id == b.Id;
+            if (!string.IsNullOrEmpty(a.id) && !string.IsNullOrEmpty(b.id)) return a.id == b.id;
+
+            return a.idx == b.idx;
         }
     }
 }

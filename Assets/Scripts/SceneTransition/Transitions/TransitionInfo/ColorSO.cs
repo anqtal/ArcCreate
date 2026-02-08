@@ -18,7 +18,7 @@ namespace ArcCreate
             }
         }
 
-        public OnChangeEvent OnValueChange { get; set; } = new OnChangeEvent();
+        public OnChangeEvent OnValueChange { get; set; } = new();
 
         public class OnChangeEvent : UnityEvent<Color>
         {

@@ -4,37 +4,35 @@ using ArcCreate.Gameplay.Data;
 namespace ArcCreate.Gameplay.Chart
 {
     /// <summary>
-    /// Handler for a group of notes of the same type, and belonging to the same timing group.
+    ///     Handler for a group of notes of the same type, and belonging to the same timing group.
     /// </summary>
     /// <typeparam name="Note">The note type.</typeparam>
     public abstract class NoteGroup<Note>
         where Note : ArcEvent, INote
     {
-        private List<Note> notes = new List<Note>();
-
-        public List<Note> Notes => notes;
+        public List<Note> Notes { get; private set; } = new();
 
         /// <summary>
-        /// Clear the note group.
+        ///     Clear the note group.
         /// </summary>
         public virtual void Clear()
         {
-            notes.Clear();
+            Notes.Clear();
         }
 
         /// <summary>
-        /// Load notes into this note group.
+        ///     Load notes into this note group.
         /// </summary>
         /// <param name="notes">The notes to load.</param>
         public void Load(List<Note> notes)
         {
-            this.notes = notes;
+            this.Notes = notes;
             RebuildList();
         }
 
         internal void SetGroupNumber(int n)
         {
-            foreach (var note in notes)
+            foreach (var note in Notes)
             {
                 note.TimingGroup = n;
                 note.ResetTimingGroupChangedFrom();
@@ -42,47 +40,47 @@ namespace ArcCreate.Gameplay.Chart
         }
 
         /// <summary>
-        /// Reload the skin of all notes of this note group.
+        ///     Reload the skin of all notes of this note group.
         /// </summary>
         public void ReloadSkin()
         {
-            for (int i = 0; i < notes.Count; i++)
+            for (var i = 0; i < Notes.Count; i++)
             {
-                Note note = notes[i];
+                var note = Notes[i];
                 note.ReloadSkin();
             }
         }
 
         /// <summary>
-        /// Reset judgement of all notes of this group.
+        ///     Reset judgement of all notes of this group.
         /// </summary>
         /// <param name="timing">The new timing to reset to.</param>
         public virtual void ResetJudgeTo(int timing)
         {
-            for (int i = 0; i < notes.Count; i++)
+            for (var i = 0; i < Notes.Count; i++)
             {
-                Note note = notes[i];
+                var note = Notes[i];
                 note.ResetJudgeTo(timing);
             }
         }
 
         /// <summary>
-        /// Get the total max combo count at provided timing value.
+        ///     Get the total max combo count at provided timing value.
         /// </summary>
         /// <param name="timing">The timing value.</param>
         /// <returns>Max combo at the specified timing.</returns>
         public abstract int ComboAt(int timing);
 
         /// <summary>
-        /// Total combo count of all notes of this group.
+        ///     Total combo count of all notes of this group.
         /// </summary>
         /// <returns>The combo count.</returns>
         public int TotalCombo()
         {
-            int combo = 0;
-            for (int i = 0; i < notes.Count; i++)
+            var combo = 0;
+            for (var i = 0; i < Notes.Count; i++)
             {
-                Note note = notes[i];
+                var note = Notes[i];
                 combo += note.TotalCombo;
             }
 
@@ -90,16 +88,13 @@ namespace ArcCreate.Gameplay.Chart
         }
 
         /// <summary>
-        /// Add a collection of notes to this group.
+        ///     Add a collection of notes to this group.
         /// </summary>
         /// <param name="notes">The note collection.</param>
         public void Add(IEnumerable<Note> notes)
         {
-            this.notes.AddRange(notes);
-            foreach (var note in notes)
-            {
-                note.RecalculateFloorPosition();
-            }
+            this.Notes.AddRange(notes);
+            foreach (var note in notes) note.RecalculateFloorPosition();
 
             RebuildList();
 
@@ -112,7 +107,7 @@ namespace ArcCreate.Gameplay.Chart
         }
 
         /// <summary>
-        /// Remove a collection of notes from this group.
+        ///     Remove a collection of notes from this group.
         /// </summary>
         /// <param name="notes">The note collection.</param>
         public void Remove(IEnumerable<Note> notes)
@@ -120,22 +115,19 @@ namespace ArcCreate.Gameplay.Chart
             foreach (var note in notes)
             {
                 OnRemove(note);
-                this.notes.Remove(note);
+                this.Notes.Remove(note);
             }
 
             RebuildList();
         }
 
         /// <summary>
-        /// Notify that a collection of notes from this group have had their properties changed.
+        ///     Notify that a collection of notes from this group have had their properties changed.
         /// </summary>
         /// <param name="notes">The note collection.</param>
         public void Update(IEnumerable<Note> notes)
         {
-            foreach (var note in notes)
-            {
-                note.RecalculateFloorPosition();
-            }
+            foreach (var note in notes) note.RecalculateFloorPosition();
 
             UpdateList();
 
@@ -148,7 +140,7 @@ namespace ArcCreate.Gameplay.Chart
         }
 
         /// <summary>
-        /// Update judgement state of all notes of this group to the new timing value.
+        ///     Update judgement state of all notes of this group to the new timing value.
         /// </summary>
         /// <param name="timing">The timing value.</param>
         /// <param name="floorPosition">Floor position value corresponding to the timing value.</param>
@@ -156,7 +148,7 @@ namespace ArcCreate.Gameplay.Chart
         public abstract void UpdateJudgement(int timing, double floorPosition, GroupProperties groupProperties);
 
         /// <summary>
-        /// Update render state of all notes of this group to the new timing value.
+        ///     Update render state of all notes of this group to the new timing value.
         /// </summary>
         /// <param name="timing">The timing value.</param>
         /// <param name="floorPosition">Floor position value corresponding to the timing value.</param>
@@ -164,17 +156,17 @@ namespace ArcCreate.Gameplay.Chart
         public abstract void UpdateRender(int timing, double floorPosition, GroupProperties groupProperties);
 
         /// <summary>
-        /// Called every time there's a change to the note list.
+        ///     Called every time there's a change to the note list.
         /// </summary>
         public abstract void RebuildList();
 
         /// <summary>
-        /// Called every time there's a change to note's value but the list's size stays unchanged.
+        ///     Called every time there's a change to note's value but the list's size stays unchanged.
         /// </summary>
         public abstract void UpdateList();
 
         /// <summary>
-        /// Find all notes of this group that match the queried timing.
+        ///     Find all notes of this group that match the queried timing.
         /// </summary>
         /// <param name="from">The query timing value range's lower end.</param>
         /// <param name="to">The query timing value range's upper end.</param>
@@ -182,7 +174,7 @@ namespace ArcCreate.Gameplay.Chart
         public abstract IEnumerable<Note> FindByTiming(int from, int to);
 
         /// <summary>
-        /// Find all notes of this group that are bounded by the provided timing range.
+        ///     Find all notes of this group that are bounded by the provided timing range.
         /// </summary>
         /// <param name="from">The query timing lower range.</param>
         /// <param name="to">The query timing upper range.</param>
@@ -191,30 +183,30 @@ namespace ArcCreate.Gameplay.Chart
         public abstract IEnumerable<Note> FindEventsWithinRange(int from, int to, bool overlapCompletely);
 
         /// <summary>
-        /// Find all rendering notes.
+        ///     Find all rendering notes.
         /// </summary>
         /// <returns>List of rendering notes.</returns>
         public abstract IEnumerable<Note> GetRenderingNotes();
 
         /// <summary>
-        /// Called after notes are loaded into the group.
+        ///     Called after notes are loaded into the group.
         /// </summary>
         public abstract void SetupNotes();
 
         /// <summary>
-        /// Called after a note was added to the group.
+        ///     Called after a note was added to the group.
         /// </summary>
         /// <param name="note">The added note.</param>
         protected abstract void OnAdd(Note note);
 
         /// <summary>
-        /// Called after a note was removed from the group.
+        ///     Called after a note was removed from the group.
         /// </summary>
         /// <param name="note">The removed note.</param>
         protected abstract void OnRemove(Note note);
 
         /// <summary>
-        /// Called after a note has had their properties changed.
+        ///     Called after a note has had their properties changed.
         /// </summary>
         /// <param name="note">The changed note.</param>
         protected abstract void OnUpdate(Note note);

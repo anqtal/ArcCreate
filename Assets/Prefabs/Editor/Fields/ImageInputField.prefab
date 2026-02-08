@@ -342,7 +342,6 @@ GameObject:
   - component: {fileID: 4181741234193810581}
   - component: {fileID: 4181741234193810580}
   - component: {fileID: 4181741234193810579}
-  - component: {fileID: 4181741234193810576}
   m_Layer: 11
   m_Name: ImageInputField
   m_TagString: Untagged
@@ -455,36 +454,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4181741234193810576
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4181741234193810577}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0d1a3019c2d8e19da97ab74762fbc8e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  contentText: {fileID: 4181741235043097339}
-  placeholderText: {fileID: 4181741235174274206}
-  openButton: {fileID: 4181741234193810579}
-  clearButton: {fileID: 3654094321410945151}
-  invalidIndicator: {fileID: 3654094320427980040}
-  required: 1
-  isSaveFile: 0
-  isLocalFileSelector: 0
-  title: Select Image
-  initPathPrefKey: 
-  modifyPref: 1
-  extensionFilterName: Image
-  acceptedExtensions:
-  - jpg
-  - png
-  defaultSaveFileName: 
-  previewImage: {fileID: 4813327154180286684}
-  hint: {fileID: 4813327153962819746}
 --- !u!1 &4181741234364402107
 GameObject:
   m_ObjectHideFlags: 0

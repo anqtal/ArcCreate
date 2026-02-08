@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ArcCreate.SceneTransition;
 using ArcCreate.Storage;
-using ArcCreate.Storage.Data;
 using ArcCreate.Utility.Animation;
 using ArcCreate.Utility.InfiniteScroll;
 using Cysharp.Threading.Tasks;
@@ -30,63 +28,36 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private CanvasGroup packListCanvasGroup;
         [SerializeField] private Button backToPackListButton;
         [SerializeField] private Button allSongsPack;
-        [SerializeField] private Button remotePack;
         [SerializeField] private Button loadChartsPack;
         private Pool<Cell> packCellPool;
         private Tween scrollTween;
 
-        public void BackToPackList()
-        {
-            Services.Select.ClearSelection();
-            packListAnimator.Show();
-            levelListAnimator.Hide();
-            packButtonsParent.SetAsLastSibling();
-            packListCanvasGroup.interactable = true;
-            packListCanvasGroup.blocksRaycasts = true;
-            lastWasInPackList = true;
-        }
-
         private void Awake()
         {
+            if (scroll == null || packCellPrefab == null)
+            {
+                Debug.LogWarning("PackList missing scroll or packCellPrefab reference.");
+                return;
+            }
+
             packCellPool = Pools.New<Cell>("PackCell", packCellPrefab, scroll.transform, 5);
 
             storageData.OnStorageChange += RebuildList;
             storageData.OnSwitchToGameplayScene += HideUI;
             storageData.SelectedPack.OnValueChange += OnSelectedPack;
-            backToPackListButton.onClick.AddListener(BackToPackList);
-            allSongsPack.onClick.AddListener(SelectAllSongsPack);
-            remotePack.onClick.AddListener(SwitchToRemoteScene);
-            loadChartsPack.onClick.AddListener(OpenChartPicker);
+            if (backToPackListButton != null) backToPackListButton.onClick.AddListener(BackToPackList);
+
+            if (allSongsPack != null) allSongsPack.onClick.AddListener(SelectAllSongsPack);
+
+            if (loadChartsPack != null) loadChartsPack.onClick.AddListener(OpenChartPicker);
             storageData.OnSwitchToGameplaySceneException += OnGameplayException;
 
-            if (storageData.IsLoaded)
-            {
-                RebuildList();
-            }
+            if (storageData.IsLoaded) RebuildList();
 
             if (lastWasInPackList)
-            {
                 StartupAnimation().Forget();
-            }
             else
-            {
                 OnSelectedPack(storageData.SelectedPack.Value);
-            }
-        }
-
-        private async UniTask StartupAnimation()
-        {
-            Settings.SelectionSortPackStrategy.OnValueChanged.AddListener(OnSortChange);
-            hideUIAnimator.HideImmediate();
-            packListAnimator.HideImmediate();
-            await UniTask.DelayFrame(2);
-            Services.Select.ClearSelection();
-            packListAnimator.Show();
-            hideUIAnimator.Show();
-            levelListAnimator.HideImmediate();
-            packListCanvasGroup.interactable = true;
-            packListCanvasGroup.blocksRaycasts = true;
-            lastWasInPackList = true;
         }
 
         private void OnDestroy()
@@ -97,18 +68,48 @@ namespace ArcCreate.Selection.Interface
             storageData.OnStorageChange -= RebuildList;
             storageData.OnSwitchToGameplayScene -= HideUI;
             storageData.SelectedPack.OnValueChange -= OnSelectedPack;
-            backToPackListButton.onClick.RemoveListener(BackToPackList);
-            allSongsPack.onClick.RemoveListener(SelectAllSongsPack);
-            remotePack.onClick.RemoveListener(SwitchToRemoteScene);
-            loadChartsPack.onClick.RemoveListener(OpenChartPicker);
+            if (backToPackListButton != null) backToPackListButton.onClick.RemoveListener(BackToPackList);
+
+            if (allSongsPack != null) allSongsPack.onClick.RemoveListener(SelectAllSongsPack);
+
+            if (loadChartsPack != null) loadChartsPack.onClick.RemoveListener(OpenChartPicker);
             storageData.OnSwitchToGameplaySceneException -= OnGameplayException;
         }
 
-        private void OnSortChange(string arg0) => RebuildList();
+        public void BackToPackList()
+        {
+            packListAnimator.Show();
+            levelListAnimator.Hide();
+            packButtonsParent.SetAsLastSibling();
+            packListCanvasGroup.interactable = true;
+            packListCanvasGroup.blocksRaycasts = true;
+            lastWasInPackList = true;
+        }
+
+        private async UniTask StartupAnimation()
+        {
+            Settings.SelectionSortPackStrategy.OnValueChanged.AddListener(OnSortChange);
+            hideUIAnimator.HideImmediate();
+            packListAnimator.HideImmediate();
+            await UniTask.DelayFrame(2);
+            packListAnimator.Show();
+            hideUIAnimator.Show();
+            levelListAnimator.HideImmediate();
+            packListCanvasGroup.interactable = true;
+            packListCanvasGroup.blocksRaycasts = true;
+            lastWasInPackList = true;
+        }
+
+        private void OnSortChange(string arg0)
+        {
+            RebuildList();
+        }
 
         private void SelectAllSongsPack()
         {
+            var wasNull = storageData.SelectedPack.Value == null;
             storageData.SelectedPack.Value = null;
+            if (wasNull) OnSelectedPack(null);
         }
 
         private void OnGameplayException(Exception e)
@@ -119,13 +120,9 @@ namespace ArcCreate.Selection.Interface
         private void ShowUI()
         {
             if (lastWasInPackList)
-            {
                 packListAnimator.Show();
-            }
             else
-            {
                 levelListAnimator.Show();
-            }
 
             hideUIAnimator.Show();
             new TransitionSequence()
@@ -135,29 +132,11 @@ namespace ArcCreate.Selection.Interface
 
         private void HideUI()
         {
-            if (packListAnimator.IsShown)
-            {
-                packListAnimator.Hide();
-            }
+            if (packListAnimator.IsShown) packListAnimator.Hide();
 
-            if (levelListAnimator.IsShown)
-            {
-                levelListAnimator.Hide();
-            }
+            if (levelListAnimator.IsShown) levelListAnimator.Hide();
 
             hideUIAnimator.Hide();
-        }
-
-        private void SwitchToRemoteScene()
-        {
-            Services.Select.ClearSelection();
-            HideUI();
-            TransitionSequence sequence = new TransitionSequence()
-                .OnBoth()
-                .AddTransition(new TriangleTileTransition())
-                .AddTransition(new DecorationTransition());
-            SceneTransitionManager.Instance.SetTransition(sequence);
-            SceneTransitionManager.Instance.SwitchScene(SceneNames.RemoteScene).Forget();
         }
 
         private void OpenChartPicker()
@@ -165,14 +144,10 @@ namespace ArcCreate.Selection.Interface
             storageData.NotifyOpenFilePicker();
         }
 
-        private void OnSelectedPack(PackStorage pack)
+        private void OnSelectedPack(Pack pack)
         {
-            if (pack?.Levels?.Count == 0)
-            {
-                return;
-            }
+            if (pack != null && StorageData.GetSongsForPack(pack).Count == 0) return;
 
-            Services.Select.ClearSelection();
             packListAnimator.Hide();
             levelListAnimator.Show();
             listButtonsParent.SetAsLastSibling();
@@ -185,7 +160,13 @@ namespace ArcCreate.Selection.Interface
         {
             var packs = StorageData.GetAllPacks().ToList();
             var sortPack = GetSortPackStrategy(Settings.SelectionSortPackStrategy.Value);
-            var data = packs.Select(pack => new PackCellData { PackStorage = pack, Pool = packCellPool, Size = packCellSize, }).ToList();
+            var data = packs.Select((pack, index) => new PackCellData
+            {
+                Pack = pack,
+                PackIndex = index,
+                Pool = packCellPool,
+                Size = packCellSize
+            }).ToList();
 
             scroll.SetData(sortPack.Sort(data).ToList<CellData>());
             FocusOnPack(storageData.SelectedPack.Value);
@@ -207,16 +188,16 @@ namespace ArcCreate.Selection.Interface
             // }
         }
 
-        private void FocusOnPack(PackStorage pack)
+        private void FocusOnPack(Pack pack)
         {
-            float scrollFrom = scroll.Value;
+            var scrollFrom = scroll.Value;
             float scrollTo = 0;
             if (pack != null)
             {
-                for (int i = 0; i < scroll.Data.Count; i++)
+                for (var i = 0; i < scroll.Data.Count; i++)
                 {
-                    CellData data = scroll.Data[i];
-                    if (data is PackCellData packCell && packCell.PackStorage.Id == pack.Id)
+                    var data = scroll.Data[i];
+                    if (data is PackCellData packCell && packCell.Pack != null && packCell.Pack.id == pack.id)
                     {
                         scrollTo = scroll.Hierarchy[i].ValueToCenterCell;
                         break;
@@ -224,7 +205,8 @@ namespace ArcCreate.Selection.Interface
                 }
 
                 scrollTween?.Kill();
-                scrollTween = DOTween.To((float val) => scroll.Value = val, scrollFrom, scrollTo, autoScrollDuration).SetEase(Ease.OutExpo);
+                scrollTween = DOTween.To(val => scroll.Value = val, scrollFrom, scrollTo, autoScrollDuration)
+                    .SetEase(Ease.OutExpo);
             }
         }
     }

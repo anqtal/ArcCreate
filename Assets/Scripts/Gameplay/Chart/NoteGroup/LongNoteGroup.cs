@@ -1,39 +1,32 @@
+using System;
 using System.Collections.Generic;
 using ArcCreate.Gameplay.Data;
 using ArcCreate.Utility.RangeTree;
-using UnityEngine;
 
 namespace ArcCreate.Gameplay.Chart
 {
     /// <summary>
-    /// Base class for arcs and holds note groups.
+    ///     Base class for arcs and holds note groups.
     /// </summary>
     /// <typeparam name="Note">The note type.</typeparam>
     public abstract class LongNoteGroup<Note> : NoteGroup<Note>
         where Note : ArcEvent, ILongNote
     {
-        private readonly RangeTree<Note> timingTree = new RangeTree<Note>();
-        private readonly RangeTree<Note> floorPositionTree = new RangeTree<Note>();
-        private readonly List<Note> lastRenderingNotes = new List<Note>();
+        protected RangeTree<Note> TimingTree { get; } = new();
 
-        protected RangeTree<Note> TimingTree => timingTree;
+        protected RangeTree<Note> FloorPositionTree { get; } = new();
 
-        protected RangeTree<Note> FloorPositionTree => floorPositionTree;
-
-        protected List<Note> LastRenderingNotes => lastRenderingNotes;
+        protected List<Note> LastRenderingNotes { get; } = new();
 
         public override void UpdateJudgement(int timing, double floorPosition, GroupProperties groupProperties)
         {
-            if (Notes.Count == 0 || groupProperties.NoInput)
-            {
-                return;
-            }
+            if (Notes.Count == 0 || groupProperties.NoInput) return;
 
-            int judgeFrom = timing - Values.MissJudgeWindow;
-            int judgeTo = timing + Values.HoldMissLateJudgeWindow;
-            var notesInRange = timingTree[judgeFrom, judgeTo];
+            var judgeFrom = timing - Values.MissJudgeWindow;
+            var judgeTo = timing + Values.HoldMissLateJudgeWindow;
+            var notesInRange = TimingTree[judgeFrom, judgeTo];
 
-            int i = 0;
+            var i = 0;
             while (notesInRange.MoveNext())
             {
                 var note = notesInRange.Current;
@@ -44,35 +37,30 @@ namespace ArcCreate.Gameplay.Chart
 
         public override void UpdateRender(int timing, double floorPosition, GroupProperties groupProperties)
         {
-            lastRenderingNotes.Clear();
-            if (Notes.Count == 0 || !groupProperties.Visible)
-            {
-                return;
-            }
+            LastRenderingNotes.Clear();
+            if (Notes.Count == 0 || !groupProperties.Visible) return;
 
-            double fpDistForward = System.Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthForward));
-            double fpDistBackward = System.Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthBackward));
-            double renderFrom =
-                (groupProperties.NoInput && !groupProperties.NoClip) ?
-                floorPosition :
-                floorPosition - fpDistBackward;
-            double renderTo = floorPosition + fpDistForward;
+            var fpDistForward = Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthForward));
+            var fpDistBackward = Math.Abs(ArcFormula.ZToFloorPosition(Values.TrackLengthBackward));
+            var renderFrom =
+                groupProperties.NoInput && !groupProperties.NoClip ? floorPosition : floorPosition - fpDistBackward;
+            var renderTo = floorPosition + fpDistForward;
 
-            var notesInRange = floorPositionTree[renderFrom, renderTo];
+            var notesInRange = FloorPositionTree[renderFrom, renderTo];
 
             // Update notes
             while (notesInRange.MoveNext())
             {
                 var note = notesInRange.Current;
-                lastRenderingNotes.Add(note);
+                LastRenderingNotes.Add(note);
                 note.UpdateRender(timing, floorPosition, groupProperties);
             }
         }
 
         public override int ComboAt(int timing)
         {
-            var notes = timingTree[int.MinValue, timing];
-            int combo = 0;
+            var notes = TimingTree[int.MinValue, timing];
+            var combo = 0;
 
             while (notes.MoveNext())
             {
@@ -85,46 +73,46 @@ namespace ArcCreate.Gameplay.Chart
 
         public override void RebuildList()
         {
-            timingTree.Clear();
-            floorPositionTree.Clear();
+            TimingTree.Clear();
+            FloorPositionTree.Clear();
 
-            for (int i = 0; i < Notes.Count; i++)
+            for (var i = 0; i < Notes.Count; i++)
             {
-                Note note = Notes[i];
-                timingTree.AddSilent(note.Timing, note.EndTiming, note);
+                var note = Notes[i];
+                TimingTree.AddSilent(note.Timing, note.EndTiming, note);
 
-                double fpStart = System.Math.Min(note.FloorPosition, note.EndFloorPosition);
-                double fpEnd = System.Math.Max(note.FloorPosition, note.EndFloorPosition);
-                floorPositionTree.AddSilent(fpStart, fpEnd, note);
+                var fpStart = Math.Min(note.FloorPosition, note.EndFloorPosition);
+                var fpEnd = Math.Max(note.FloorPosition, note.EndFloorPosition);
+                FloorPositionTree.AddSilent(fpStart, fpEnd, note);
             }
 
-            timingTree.Rebuild();
-            floorPositionTree.Rebuild();
+            TimingTree.Rebuild();
+            FloorPositionTree.Rebuild();
         }
 
         public override void UpdateList()
         {
-            for (int i = timingTree.Items.Count - 1; i >= 0; i--)
+            for (var i = TimingTree.Items.Count - 1; i >= 0; i--)
             {
-                RangeValuePair<Note> pair = timingTree.Items[i];
-                Note note = pair.Value;
+                var pair = TimingTree.Items[i];
+                var note = pair.Value;
                 if (pair.From != note.Timing || pair.To != note.EndTiming)
                 {
-                    timingTree.RemoveAt(i);
-                    timingTree.Add(note.Timing, note.EndTiming, note);
+                    TimingTree.RemoveAt(i);
+                    TimingTree.Add(note.Timing, note.EndTiming, note);
                 }
             }
 
-            for (int i = floorPositionTree.Items.Count - 1; i >= 0; i--)
+            for (var i = FloorPositionTree.Items.Count - 1; i >= 0; i--)
             {
-                RangeValuePair<Note> pair = floorPositionTree.Items[i];
-                Note note = pair.Value;
-                double fpStart = System.Math.Min(note.FloorPosition, note.EndFloorPosition);
-                double fpEnd = System.Math.Max(note.FloorPosition, note.EndFloorPosition);
+                var pair = FloorPositionTree.Items[i];
+                var note = pair.Value;
+                var fpStart = Math.Min(note.FloorPosition, note.EndFloorPosition);
+                var fpEnd = Math.Max(note.FloorPosition, note.EndFloorPosition);
                 if (pair.From != fpStart || pair.To != fpEnd)
                 {
-                    floorPositionTree.RemoveAt(i);
-                    floorPositionTree.Add(fpStart, fpEnd, note);
+                    FloorPositionTree.RemoveAt(i);
+                    FloorPositionTree.Add(fpStart, fpEnd, note);
                 }
             }
         }
@@ -134,11 +122,8 @@ namespace ArcCreate.Gameplay.Chart
             var overlap = TimingTree[from, to];
             while (overlap.MoveNext())
             {
-                Note note = overlap.Current;
-                if (note.Timing >= from && note.Timing <= to)
-                {
-                    yield return note;
-                }
+                var note = overlap.Current;
+                if (note.Timing >= from && note.Timing <= to) yield return note;
             }
         }
 
@@ -147,11 +132,8 @@ namespace ArcCreate.Gameplay.Chart
             var overlap = TimingTree[from, to];
             while (overlap.MoveNext())
             {
-                Note note = overlap.Current;
-                if (note.EndTiming >= from && note.EndTiming <= to)
-                {
-                    yield return note;
-                }
+                var note = overlap.Current;
+                if (note.EndTiming >= from && note.EndTiming <= to) yield return note;
             }
         }
 
@@ -160,15 +142,16 @@ namespace ArcCreate.Gameplay.Chart
             var overlap = TimingTree[from, to];
             while (overlap.MoveNext())
             {
-                Note note = overlap.Current;
+                var note = overlap.Current;
                 if ((overlapCompletely && note.Timing >= from && note.EndTiming <= to)
-                 || (!overlapCompletely && note.Timing <= to && note.EndTiming >= from))
-                {
+                    || (!overlapCompletely && note.Timing <= to && note.EndTiming >= from))
                     yield return note;
-                }
             }
         }
 
-        public override IEnumerable<Note> GetRenderingNotes() => lastRenderingNotes;
+        public override IEnumerable<Note> GetRenderingNotes()
+        {
+            return LastRenderingNotes;
+        }
     }
 }

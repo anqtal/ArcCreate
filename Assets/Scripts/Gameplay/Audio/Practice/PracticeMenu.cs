@@ -9,28 +9,25 @@ namespace ArcCreate.Gameplay.Audio.Practice
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private PracticeTimeline timeline;
 
-        [Header("Speed")]
-        [SerializeField] private SpeedSlider speedSlider;
+        [Header("Speed")] [SerializeField] private SpeedSlider speedSlider;
+
         [SerializeField] private TMP_Text speedText;
 
-        [Header("Repeat")]
-        [SerializeField] private GameObject repeatOff;
+        [Header("Repeat")] [SerializeField] private GameObject repeatOff;
+
         [SerializeField] private GameObject repeatOn;
         [SerializeField] private Button repeatOffButton;
         [SerializeField] private Button repeatOnButton;
         [SerializeField] private Button repeatFromButton;
         [SerializeField] private Button repeatToButton;
-        private int repeatToTiming;
-        private int repeatFromTiming;
         private bool repeat;
+        private int repeatFromTiming;
+        private int repeatToTiming;
 
         private void Awake()
         {
             gameplayData.AudioClip.OnValueChange += OnClipChange;
-            if (gameplayData.AudioClip.Value != null)
-            {
-                OnClipChange(gameplayData.AudioClip.Value);
-            }
+            if (gameplayData.AudioClip.Value != null) OnClipChange(gameplayData.AudioClip.Value);
 
             speedSlider.OnValueChanged += OnSpeedChange;
             repeatOffButton.onClick.AddListener(TurnRepeatOff);
@@ -97,9 +94,7 @@ namespace ArcCreate.Gameplay.Audio.Practice
         private void UpdateRepeatRange()
         {
             if (repeatFromTiming > repeatToTiming)
-            {
                 (repeatFromTiming, repeatToTiming) = (repeatToTiming, repeatFromTiming);
-            }
 
             repeatToTiming = Mathf.Clamp(repeatToTiming, repeatFromTiming + 1000, Services.Audio.AudioLength);
             repeatFromTiming = Mathf.Clamp(repeatFromTiming, 0, repeatToTiming - 1000);
@@ -108,10 +103,11 @@ namespace ArcCreate.Gameplay.Audio.Practice
 
         private void CheckRepeat(int chartTiming)
         {
-            int timing = Services.Audio.AudioTiming;
-            int length = Services.Audio.AudioLength;
-            bool outsideRange = timing < repeatFromTiming - 200 * gameplayData.PlaybackSpeed.Value || timing > repeatToTiming;
-            bool audioEnd = timing >= length - 100 && repeatToTiming >= length - 100;
+            var timing = Services.Audio.AudioTiming;
+            var length = Services.Audio.AudioLength;
+            var outsideRange = timing < repeatFromTiming - 200 * gameplayData.PlaybackSpeed.Value ||
+                               timing > repeatToTiming;
+            var audioEnd = timing >= length - 100 && repeatToTiming >= length - 100;
             if ((Services.Audio.IsPlaying && outsideRange) || (audioEnd && !gameObject.activeInHierarchy))
             {
                 Services.Audio.Pause();

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MoonSharp.Interpreter;
+using UnityEngine;
 
 namespace ArcCreate.Gameplay.Scenecontrol
 {
@@ -8,8 +9,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
     {
         private TriggerChannel channel;
 
+        [MoonSharpHidden] public TriggerValueDispatch TriggerDispatch { get; set; }
+
+        void ISerializableUnit.DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
+        {
+            DeserializeProperties(properties, deserialization);
+        }
+
         [MoonSharpHidden]
-        public TriggerValueDispatch TriggerDispatch { get; set; }
+        public abstract List<object> SerializeProperties(ScenecontrolSerialization serialization);
 
         [MoonSharpHidden]
         public void BindToChannel(TriggerChannel channel)
@@ -18,16 +27,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
         }
 
         [MoonSharpHidden]
-        public abstract void DeserializeProperties(List<object> properties, ScenecontrolDeserialization deserialization);
-
-        void ISerializableUnit.DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
-            => DeserializeProperties(properties, deserialization);
+        public abstract void DeserializeProperties(List<object> properties,
+            ScenecontrolDeserialization deserialization);
 
         [MoonSharpHidden]
         public abstract void Poll(int timing);
-
-        [MoonSharpHidden]
-        public abstract List<object> SerializeProperties(ScenecontrolSerialization serialization);
 
         [MoonSharpHidden]
         protected virtual void Dispatch(int timing)
@@ -36,8 +40,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
             {
                 Value = TriggerDispatch.Value.ValueAt(timing),
                 StartTiming = timing,
-                Duration = (int)UnityEngine.Mathf.Max(1, TriggerDispatch.Duration.ValueAt(timing)),
-                Easing = TriggerDispatch.Easing,
+                Duration = (int)Mathf.Max(1, TriggerDispatch.Duration.ValueAt(timing)),
+                Easing = TriggerDispatch.Easing
             });
         }
     }

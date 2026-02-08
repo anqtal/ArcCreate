@@ -12,13 +12,10 @@ namespace ArcCreate.Utility
 
         public Color GetColor(Theme theme)
         {
-            for (int i = 0; i < colors.Count; i++)
+            for (var i = 0; i < colors.Count; i++)
             {
-                ThemeDefinition c = colors[i];
-                if (c.Theme == theme)
-                {
-                    return c.Color;
-                }
+                var c = colors[i];
+                if (c.Theme == theme) return c.Color;
             }
 
             return fallback;

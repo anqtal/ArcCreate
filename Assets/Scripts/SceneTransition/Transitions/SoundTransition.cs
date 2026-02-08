@@ -35,10 +35,7 @@ namespace ArcCreate.SceneTransition
 
         public void PlaySound()
         {
-            if (TransitionScene.Instance != null)
-            {
-                TransitionScene.Instance.PlaySoundEffect(sound);
-            }
+            if (TransitionScene.Instance != null) TransitionScene.Instance.PlaySoundEffect(sound);
         }
     }
 }

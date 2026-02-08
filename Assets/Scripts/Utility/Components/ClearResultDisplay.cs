@@ -1,3 +1,4 @@
+using System;
 using ArcCreate.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,18 +12,16 @@ namespace ArcCreate.Selection.Interface
 
         public void Display(ClearResult result)
         {
-            Image image = GetComponent<Image>();
+            var image = GetComponent<Image>();
             foreach (var spr in resultSprites)
-            {
                 if (spr.Result == result)
                 {
                     image.sprite = spr.Sprite;
                     return;
                 }
-            }
         }
 
-        [System.Serializable]
+        [Serializable]
         private struct ClearResultSprite
         {
             public ClearResult Result;

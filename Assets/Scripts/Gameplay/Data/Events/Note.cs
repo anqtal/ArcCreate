@@ -6,7 +6,7 @@ namespace ArcCreate.Gameplay.Data
     public abstract class Note : ArcEvent
     {
         /// <summary>
-        /// Gets or sets a value indicating whether or not the note is selected.
+        ///     Gets or sets a value indicating whether or not the note is selected.
         /// </summary>
         public bool IsSelected { get; set; }
 
@@ -14,7 +14,10 @@ namespace ArcCreate.Gameplay.Data
 
         public virtual int TotalCombo { get; protected set; } = 1;
 
-        public virtual int ComboAt(int timing) => (timing >= Timing) ? 1 : 0;
+        public virtual int ComboAt(int timing)
+        {
+            return timing >= Timing ? 1 : 0;
+        }
 
         public virtual void RecalculateFloorPosition()
         {
@@ -22,7 +25,9 @@ namespace ArcCreate.Gameplay.Data
         }
 
         public float ZPos(double floorPosition)
-            => ArcFormula.FloorPositionToZ(FloorPosition - floorPosition);
+        {
+            return ArcFormula.FloorPositionToZ(FloorPosition - floorPosition);
+        }
 
         public abstract void GenerateColliderTriangles(int timing, List<Vector3> vertices, List<int> triangles);
     }

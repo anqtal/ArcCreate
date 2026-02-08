@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using ArcCreate.Gameplay.Judgement.Input;
 using TMPro;
 using UnityEngine;
@@ -22,14 +21,54 @@ namespace ArcCreate.Gameplay.Judgement
         [SerializeField] private TMP_Text[] assignedIndicator;
         [SerializeField] private Camera uiCamera;
 
-        [Header("Color")]
-        [SerializeField] private Color assignedFingerColor;
+        [Header("Color")] [SerializeField] private Color assignedFingerColor;
+
         [SerializeField] private Color missColor;
         [SerializeField] private Color hitColor;
+        private readonly Dictionary<int, GUILine> lineBuffer = new();
+        private Texture2D lineTex;
 
         private List<TouchInput> touches;
-        private readonly Dictionary<int, GUILine> lineBuffer = new Dictionary<int, GUILine>();
-        private Texture2D lineTex;
+
+        private void Awake()
+        {
+            lineTex = new Texture2D(1, 1);
+        }
+
+        private void OnDestroy()
+        {
+            Destroy(lineTex);
+        }
+
+        private void OnGUI()
+        {
+            foreach (var pair in lineBuffer)
+            {
+                var line = pair.Value;
+                if (Time.realtimeSinceStartup > line.Until) continue;
+
+                DrawLine(line.From, line.To, line.Color, line.Content);
+            }
+
+            var style = new GUIStyle
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 30,
+                normal = new GUIStyleState
+                {
+                    textColor = Color.white
+                }
+            };
+
+            if (touches != null)
+                foreach (var touch in touches)
+                {
+                    var content = new GUIContent(touch.Id.ToString());
+                    Vector2 pos = touch.ScreenPos;
+                    pos.y = Screen.height - pos.y - 50;
+                    GUI.Label(new Rect(pos, style.CalcSize(content)), content, style);
+                }
+        }
 
         public void SetTouchState(List<TouchInput> touches)
         {
@@ -54,9 +93,9 @@ namespace ArcCreate.Gameplay.Judgement
         public void ShowAssignedFinger(int color, int fingerId)
         {
             if (color >= 0 && color < lineOrigins.Length
-             && TryGetFingerPosition(fingerId, out Vector2 pos))
+                           && TryGetFingerPosition(fingerId, out var pos))
             {
-                Vector2 origin = GetScreenPos(lineOrigins[color]);
+                var origin = GetScreenPos(lineOrigins[color]);
                 AddLine(color, origin, pos, assignedFingerColor, Assigned);
             }
 
@@ -70,28 +109,25 @@ namespace ArcCreate.Gameplay.Judgement
         public void ShowFingerMiss(int color, int fingerId)
         {
             if (color >= 0 && color < lineOrigins.Length
-             && TryGetFingerPosition(fingerId, out Vector2 pos))
+                           && TryGetFingerPosition(fingerId, out var pos))
             {
-                Vector2 origin = GetScreenPos(lineOrigins[color]);
+                var origin = GetScreenPos(lineOrigins[color]);
                 AddLine(color + lineOrigins.Length, origin, pos, missColor, Miss);
             }
         }
 
         public void ShowExistsArc(int color, bool exists)
         {
-            if (color >= 0 && color < arcExistsIndicator.Length)
-            {
-                arcExistsIndicator[color].SetActive(exists);
-            }
+            if (color >= 0 && color < arcExistsIndicator.Length) arcExistsIndicator[color].SetActive(exists);
         }
 
         public void ShowFingerHit(int color, int fingerId)
         {
             if (color >= 0 && color < lineOrigins.Length
-             && TryGetFingerPosition(fingerId, out Vector2 pos))
+                           && TryGetFingerPosition(fingerId, out var pos))
             {
-                Vector2 origin = GetScreenPos(lineOrigins[color]);
-                AddLine(color + (lineOrigins.Length * 2), origin, pos, hitColor, Hit);
+                var origin = GetScreenPos(lineOrigins[color]);
+                AddLine(color + lineOrigins.Length * 2, origin, pos, hitColor, Hit);
             }
         }
 
@@ -99,19 +135,14 @@ namespace ArcCreate.Gameplay.Judgement
         {
             result = default;
 
-            if (touches == null)
-            {
-                return false;
-            }
+            if (touches == null) return false;
 
-            foreach (TouchInput touch in touches)
-            {
+            foreach (var touch in touches)
                 if (touch.Id == fingerId)
                 {
                     result = touch.ScreenPos;
                     return true;
                 }
-            }
 
             return false;
         }
@@ -126,30 +157,30 @@ namespace ArcCreate.Gameplay.Judgement
             from.y = Screen.height - from.y;
             to.y = Screen.height - to.y;
 
-            GUIStyle style = new GUIStyle
+            var style = new GUIStyle
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontSize = 22,
-                normal = new GUIStyleState()
+                normal = new GUIStyleState
                 {
-                    textColor = color,
-                },
+                    textColor = color
+                }
             };
 
-            Vector2 texpos = (from + to) / 2;
-            Vector2 texsize = style.CalcSize(new GUIContent(text));
-            GUI.Label(new Rect(texpos - (texsize / 2), texsize), text, style);
+            var texpos = (from + to) / 2;
+            var texsize = style.CalcSize(new GUIContent(text));
+            GUI.Label(new Rect(texpos - texsize / 2, texsize), text, style);
 
-            Matrix4x4 matrixBackup = GUI.matrix;
+            var matrixBackup = GUI.matrix;
             GUI.color = color;
 
-            float width = 2.0f;
-            float angle = Mathf.Atan2(to.y - from.y, to.x - from.x) * 180f / Mathf.PI;
-            float length = (from - to).magnitude;
+            var width = 2.0f;
+            var angle = Mathf.Atan2(to.y - from.y, to.x - from.x) * 180f / Mathf.PI;
+            var length = (from - to).magnitude;
 
-            float lengthSubtract1 = Mathf.Abs(texsize.y * length / (to.y - from.y));
-            float lengthSubtract2 = Mathf.Abs(texsize.x * length / (to.x - from.x));
-            Vector2 lengthSize = new Vector2((length - Mathf.Min(lengthSubtract1, lengthSubtract2)) / 2, width);
+            var lengthSubtract1 = Mathf.Abs(texsize.y * length / (to.y - from.y));
+            var lengthSubtract2 = Mathf.Abs(texsize.x * length / (to.x - from.x));
+            var lengthSize = new Vector2((length - Mathf.Min(lengthSubtract1, lengthSubtract2)) / 2, width);
 
             GUIUtility.RotateAroundPivot(angle, from);
             GUI.DrawTexture(new Rect(from, lengthSize), lineTex);
@@ -165,62 +196,13 @@ namespace ArcCreate.Gameplay.Judgement
                 To = to,
                 Color = color,
                 Content = content,
-                Until = Time.realtimeSinceStartup + 0.1,
+                Until = Time.realtimeSinceStartup + 0.1
             };
 
             if (!lineBuffer.ContainsKey(id))
-            {
                 lineBuffer.Add(id, line);
-            }
             else
-            {
                 lineBuffer[id] = line;
-            }
-        }
-
-        private void Awake()
-        {
-            lineTex = new Texture2D(1, 1);
-        }
-
-        private void OnDestroy()
-        {
-            Destroy(lineTex);
-        }
-
-        private void OnGUI()
-        {
-            foreach (var pair in lineBuffer)
-            {
-                var line = pair.Value;
-                if (Time.realtimeSinceStartup > line.Until)
-                {
-                    continue;
-                }
-
-                DrawLine(line.From, line.To, line.Color, line.Content);
-            }
-
-            GUIStyle style = new GUIStyle
-            {
-                alignment = TextAnchor.MiddleCenter,
-                fontSize = 30,
-                normal = new GUIStyleState()
-                {
-                    textColor = Color.white,
-                },
-            };
-
-            if (touches != null)
-            {
-                foreach (var touch in touches)
-                {
-                    var content = new GUIContent(touch.Id.ToString());
-                    Vector2 pos = touch.ScreenPos;
-                    pos.y = Screen.height - pos.y - 50;
-                    GUI.Label(new Rect(pos, style.CalcSize(content)), content, style);
-                }
-            }
         }
 
         private struct GUILine

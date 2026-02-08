@@ -6,12 +6,12 @@ namespace ArcCreate.Gameplay.Render
     public class InstancedRendererPool
     {
         private readonly Material material;
+        private readonly List<Material> materials = new();
         private readonly Mesh mesh;
+        private readonly List<InstancedRenderer> renderers = new();
         private readonly bool useProperties;
-        private readonly List<InstancedRenderer> renderers = new List<InstancedRenderer>();
-        private readonly List<Material> materials = new List<Material>();
 
-        private int index = 0;
+        private int index;
 
         public InstancedRendererPool(Material material, Mesh mesh, bool useProperties)
         {
@@ -23,14 +23,11 @@ namespace ArcCreate.Gameplay.Render
 
         public void RegisterInstance(Matrix4x4 matrix, Color color, Vector4 property = default)
         {
-            bool accepted = renderers[index].RegisterInstance(matrix, color, property);
+            var accepted = renderers[index].RegisterInstance(matrix, color, property);
             if (!accepted)
             {
                 index += 1;
-                if (index >= renderers.Count)
-                {
-                    CreateNewRenderer();
-                }
+                if (index >= renderers.Count) CreateNewRenderer();
 
                 RegisterInstance(matrix, color, property);
             }
@@ -38,9 +35,9 @@ namespace ArcCreate.Gameplay.Render
 
         public void Draw(Camera camera, LayerMask layerMask)
         {
-            for (int i = 0; i <= index; i++)
+            for (var i = 0; i <= index; i++)
             {
-                InstancedRenderer renderer = renderers[i];
+                var renderer = renderers[i];
                 renderer.Draw(camera, layerMask);
             }
 
@@ -49,9 +46,9 @@ namespace ArcCreate.Gameplay.Render
 
         public void Dispose()
         {
-            for (int i = 0; i < materials.Count; i++)
+            for (var i = 0; i < materials.Count; i++)
             {
-                Material mat = materials[i];
+                var mat = materials[i];
                 Object.Destroy(mat);
             }
 
@@ -60,7 +57,7 @@ namespace ArcCreate.Gameplay.Render
 
         private void CreateNewRenderer()
         {
-            Material newMat = Object.Instantiate(material);
+            var newMat = Object.Instantiate(material);
             materials.Add(newMat);
             renderers.Add(new InstancedRenderer(newMat, mesh, useProperties));
         }

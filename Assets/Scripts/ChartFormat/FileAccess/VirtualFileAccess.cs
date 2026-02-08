@@ -5,8 +5,8 @@ namespace ArcCreate.ChartFormat
 {
     public class VirtualFileAccess : IFileAccessWrapper
     {
-        private readonly StreamWriter streamWriter;
         private readonly string[] data;
+        private readonly StreamWriter streamWriter;
 
         public VirtualFileAccess(string data)
         {
@@ -23,8 +23,14 @@ namespace ArcCreate.ChartFormat
             return new Uri(path);
         }
 
-        public Option<string[]> ReadFileByLines(string path) => data;
+        public Option<string[]> ReadFileByLines(string path)
+        {
+            return data;
+        }
 
-        public StreamWriter WriteFile(string path) => streamWriter;
+        public StreamWriter WriteFile(string path)
+        {
+            return streamWriter;
+        }
     }
 }

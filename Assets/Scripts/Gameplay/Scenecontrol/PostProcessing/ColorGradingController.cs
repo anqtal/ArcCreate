@@ -133,11 +133,72 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public float DefaultGainW { get; set; }
 
+        protected override void Reset()
+        {
+            Temperature = new ConstantChannel(DefaultTemperature);
+            Tint = new ConstantChannel(DefaultTint);
+            ColorR = new ConstantChannel(DefaultColorR);
+            ColorG = new ConstantChannel(DefaultColorG);
+            ColorB = new ConstantChannel(DefaultColorB);
+            ColorA = new ConstantChannel(DefaultColorA);
+            ColorH = new ConstantChannel(DefaultColorH);
+            ColorS = new ConstantChannel(DefaultColorS);
+            ColorV = new ConstantChannel(DefaultColorV);
+            Contrast = new ConstantChannel(DefaultContrast);
+            MixerRedOutRedIn = new ConstantChannel(DefaultMixerRedOutRedIn);
+            MixerRedOutBlueIn = new ConstantChannel(DefaultMixerRedOutBlueIn);
+            MixerRedOutGreenIn = new ConstantChannel(DefaultMixerRedOutGreenIn);
+            MixerGreenOutRedIn = new ConstantChannel(DefaultMixerGreenOutRedIn);
+            MixerGreenOutBlueIn = new ConstantChannel(DefaultMixerGreenOutBlueIn);
+            MixerGreenOutGreenIn = new ConstantChannel(DefaultMixerGreenOutGreenIn);
+            MixerBlueOutRedIn = new ConstantChannel(DefaultMixerBlueOutRedIn);
+            MixerBlueOutBlueIn = new ConstantChannel(DefaultMixerBlueOutBlueIn);
+            MixerBlueOutGreenIn = new ConstantChannel(DefaultMixerBlueOutGreenIn);
+            LiftX = new ConstantChannel(DefaultLiftX);
+            LiftY = new ConstantChannel(DefaultLiftY);
+            LiftZ = new ConstantChannel(DefaultLiftZ);
+            LiftW = new ConstantChannel(DefaultLiftW);
+            GammaX = new ConstantChannel(DefaultGammaX);
+            GammaY = new ConstantChannel(DefaultGammaY);
+            GammaZ = new ConstantChannel(DefaultGammaZ);
+            GammaW = new ConstantChannel(DefaultGammaW);
+            GainX = new ConstantChannel(DefaultGainX);
+            GainY = new ConstantChannel(DefaultGainY);
+            GainZ = new ConstantChannel(DefaultGainZ);
+            GainW = new ConstantChannel(DefaultGainW);
+            TargetEffect.temperature.overrideState = false;
+            TargetEffect.tint.overrideState = false;
+            TargetEffect.colorFilter.overrideState = false;
+            TargetEffect.hueShift.overrideState = false;
+            TargetEffect.saturation.overrideState = false;
+            TargetEffect.brightness.overrideState = false;
+            TargetEffect.contrast.overrideState = false;
+            TargetEffect.mixerRedOutRedIn.overrideState = false;
+            TargetEffect.mixerRedOutBlueIn.overrideState = false;
+            TargetEffect.mixerRedOutGreenIn.overrideState = false;
+            TargetEffect.mixerGreenOutRedIn.overrideState = false;
+            TargetEffect.mixerGreenOutBlueIn.overrideState = false;
+            TargetEffect.mixerGreenOutGreenIn.overrideState = false;
+            TargetEffect.mixerBlueOutRedIn.overrideState = false;
+            TargetEffect.mixerBlueOutBlueIn.overrideState = false;
+            TargetEffect.mixerBlueOutGreenIn.overrideState = false;
+            TargetEffect.lift.overrideState = false;
+            TargetEffect.gamma.overrideState = false;
+            TargetEffect.gain.overrideState = false;
+            TargetEffect.masterCurve.overrideState = false;
+            TargetEffect.redCurve.overrideState = false;
+            TargetEffect.blueCurve.overrideState = false;
+            TargetEffect.greenCurve.overrideState = false;
+            TargetEffect.hueVsHueCurve.overrideState = false;
+            TargetEffect.hueVsSatCurve.overrideState = false;
+            TargetEffect.lumVsSatCurve.overrideState = false;
+            TargetEffect.satVsSatCurve.overrideState = false;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "temperature": TargetEffect.temperature.overrideState = true; break;
@@ -160,25 +221,25 @@ namespace ArcCreate.Gameplay.Scenecontrol
                     case "gamma": TargetEffect.gamma.overrideState = true; break;
                     case "gain": TargetEffect.gain.overrideState = true; break;
                 }
-            }
         }
 
         public override void UpdateController(int timing)
         {
-            RGBA c = new RGBA(ColorR.ValueAt(timing), ColorG.ValueAt(timing), ColorB.ValueAt(timing), ColorA.ValueAt(timing));
-            Color color = c.ToColor();
+            var c = new RGBA(ColorR.ValueAt(timing), ColorG.ValueAt(timing), ColorB.ValueAt(timing),
+                ColorA.ValueAt(timing));
+            var color = c.ToColor();
 
-            Vector4 lift = new Vector4(
+            var lift = new Vector4(
                 LiftX.ValueAt(timing),
                 LiftY.ValueAt(timing),
                 LiftZ.ValueAt(timing),
                 LiftW.ValueAt(timing));
-            Vector4 gamma = new Vector4(
+            var gamma = new Vector4(
                 GammaX.ValueAt(timing),
                 GammaY.ValueAt(timing),
                 GammaZ.ValueAt(timing),
                 GammaW.ValueAt(timing));
-            Vector4 gain = new Vector4(
+            var gain = new Vector4(
                 GainX.ValueAt(timing),
                 GainY.ValueAt(timing),
                 GainZ.ValueAt(timing),
@@ -258,13 +319,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(GainX),
                 serialization.AddUnitAndGetId(GainY),
                 serialization.AddUnitAndGetId(GainZ),
-                serialization.AddUnitAndGetId(GainW),
+                serialization.AddUnitAndGetId(GainW)
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.temperature.overrideState = (bool)properties[offset++];
             TargetEffect.tint.overrideState = (bool)properties[offset++];
@@ -351,68 +413,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             DefaultGainY = TargetEffect.gain.value.y;
             DefaultGainZ = TargetEffect.gain.value.z;
             DefaultGainW = TargetEffect.gain.value.w;
-        }
-
-        protected override void Reset()
-        {
-            Temperature = new ConstantChannel(DefaultTemperature);
-            Tint = new ConstantChannel(DefaultTint);
-            ColorR = new ConstantChannel(DefaultColorR);
-            ColorG = new ConstantChannel(DefaultColorG);
-            ColorB = new ConstantChannel(DefaultColorB);
-            ColorA = new ConstantChannel(DefaultColorA);
-            ColorH = new ConstantChannel(DefaultColorH);
-            ColorS = new ConstantChannel(DefaultColorS);
-            ColorV = new ConstantChannel(DefaultColorV);
-            Contrast = new ConstantChannel(DefaultContrast);
-            MixerRedOutRedIn = new ConstantChannel(DefaultMixerRedOutRedIn);
-            MixerRedOutBlueIn = new ConstantChannel(DefaultMixerRedOutBlueIn);
-            MixerRedOutGreenIn = new ConstantChannel(DefaultMixerRedOutGreenIn);
-            MixerGreenOutRedIn = new ConstantChannel(DefaultMixerGreenOutRedIn);
-            MixerGreenOutBlueIn = new ConstantChannel(DefaultMixerGreenOutBlueIn);
-            MixerGreenOutGreenIn = new ConstantChannel(DefaultMixerGreenOutGreenIn);
-            MixerBlueOutRedIn = new ConstantChannel(DefaultMixerBlueOutRedIn);
-            MixerBlueOutBlueIn = new ConstantChannel(DefaultMixerBlueOutBlueIn);
-            MixerBlueOutGreenIn = new ConstantChannel(DefaultMixerBlueOutGreenIn);
-            LiftX = new ConstantChannel(DefaultLiftX);
-            LiftY = new ConstantChannel(DefaultLiftY);
-            LiftZ = new ConstantChannel(DefaultLiftZ);
-            LiftW = new ConstantChannel(DefaultLiftW);
-            GammaX = new ConstantChannel(DefaultGammaX);
-            GammaY = new ConstantChannel(DefaultGammaY);
-            GammaZ = new ConstantChannel(DefaultGammaZ);
-            GammaW = new ConstantChannel(DefaultGammaW);
-            GainX = new ConstantChannel(DefaultGainX);
-            GainY = new ConstantChannel(DefaultGainY);
-            GainZ = new ConstantChannel(DefaultGainZ);
-            GainW = new ConstantChannel(DefaultGainW);
-            TargetEffect.temperature.overrideState = false;
-            TargetEffect.tint.overrideState = false;
-            TargetEffect.colorFilter.overrideState = false;
-            TargetEffect.hueShift.overrideState = false;
-            TargetEffect.saturation.overrideState = false;
-            TargetEffect.brightness.overrideState = false;
-            TargetEffect.contrast.overrideState = false;
-            TargetEffect.mixerRedOutRedIn.overrideState = false;
-            TargetEffect.mixerRedOutBlueIn.overrideState = false;
-            TargetEffect.mixerRedOutGreenIn.overrideState = false;
-            TargetEffect.mixerGreenOutRedIn.overrideState = false;
-            TargetEffect.mixerGreenOutBlueIn.overrideState = false;
-            TargetEffect.mixerGreenOutGreenIn.overrideState = false;
-            TargetEffect.mixerBlueOutRedIn.overrideState = false;
-            TargetEffect.mixerBlueOutBlueIn.overrideState = false;
-            TargetEffect.mixerBlueOutGreenIn.overrideState = false;
-            TargetEffect.lift.overrideState = false;
-            TargetEffect.gamma.overrideState = false;
-            TargetEffect.gain.overrideState = false;
-            TargetEffect.masterCurve.overrideState = false;
-            TargetEffect.redCurve.overrideState = false;
-            TargetEffect.blueCurve.overrideState = false;
-            TargetEffect.greenCurve.overrideState = false;
-            TargetEffect.hueVsHueCurve.overrideState = false;
-            TargetEffect.hueVsSatCurve.overrideState = false;
-            TargetEffect.lumVsSatCurve.overrideState = false;
-            TargetEffect.satVsSatCurve.overrideState = false;
         }
     }
 }

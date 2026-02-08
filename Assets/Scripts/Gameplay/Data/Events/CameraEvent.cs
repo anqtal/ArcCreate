@@ -16,21 +16,21 @@ namespace ArcCreate.Gameplay.Data
 
         public override ArcEvent Clone()
         {
-            return new CameraEvent()
+            return new CameraEvent
             {
                 Timing = Timing,
                 Duration = Duration,
                 CameraType = CameraType,
                 Move = Move,
                 Rotate = Rotate,
-                TimingGroup = TimingGroup,
+                TimingGroup = TimingGroup
             };
         }
 
         public override void Assign(ArcEvent newValues)
         {
             base.Assign(newValues);
-            CameraEvent n = newValues as CameraEvent;
+            var n = newValues as CameraEvent;
             Move = n.Move;
             Rotate = n.Rotate;
             CameraType = n.CameraType;
@@ -40,26 +40,18 @@ namespace ArcCreate.Gameplay.Data
 
         public int CompareTo(CameraEvent other)
         {
-            if (Timing == other.Timing)
-            {
-                return Duration.CompareTo(other.Duration);
-            }
+            if (Timing == other.Timing) return Duration.CompareTo(other.Duration);
 
             return Timing.CompareTo(other.Timing);
         }
 
         public float PercentAt(int timing)
         {
-            if (timing > Timing + Duration)
-            {
-                return 1;
-            }
-            else if (timing < Timing)
-            {
-                return 0;
-            }
+            if (timing > Timing + Duration) return 1;
 
-            float p = Mathf.Clamp((float)(timing - Timing) / Duration, 0, 1);
+            if (timing < Timing) return 0;
+
+            var p = Mathf.Clamp((float)(timing - Timing) / Duration, 0, 1);
             switch (CameraType)
             {
                 case CameraType.Qi:

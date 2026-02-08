@@ -27,21 +27,21 @@ public readonly struct Result<T, E>
         return new Result<T, E>(default, error);
     }
 
-    public static Result<T, E> Ok(T value) => value;
+    public static Result<T, E> Ok(T value)
+    {
+        return value;
+    }
 
-    public static Result<T, E> Err(E e) => e;
+    public static Result<T, E> Err(E e)
+    {
+        return e;
+    }
 
     public T UnwrapOrElse(Func<E, T> errorHandler)
     {
-        if (Error == null)
-        {
-            return Value;
-        }
+        if (Error == null) return Value;
 
-        if (errorHandler == null)
-        {
-            return default;
-        }
+        if (errorHandler == null) return default;
 
         return errorHandler.Invoke(Error);
     }
@@ -51,10 +51,7 @@ public readonly struct Result<T, E>
         value = Value;
         error = Error;
 
-        if (IsError)
-        {
-            return false;
-        }
+        if (IsError) return false;
 
         return true;
     }
@@ -63,10 +60,7 @@ public readonly struct Result<T, E>
     {
         if (Error == null)
         {
-            if (mapper == null)
-            {
-                return Value;
-            }
+            if (mapper == null) return Value;
 
             return mapper.Invoke(Value);
         }
@@ -94,7 +88,13 @@ public readonly struct Result<E>
         return new Result<E>(error);
     }
 
-    public static Result<E> Ok() => new Result<E>(null);
+    public static Result<E> Ok()
+    {
+        return new Result<E>(null);
+    }
 
-    public static Result<E> Err(E e) => e;
+    public static Result<E> Err(E e)
+    {
+        return e;
+    }
 }

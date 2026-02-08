@@ -263,7 +263,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2829147889209381144}
   - component: {fileID: 2829147889209381146}
-  - component: {fileID: 2829147889209381147}
   m_Layer: 11
   m_Name: DefaultViewRow
   m_TagString: Untagged
@@ -299,18 +298,3 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2829147889209381145}
   m_CullTransparentMesh: 0
---- !u!114 &2829147889209381147
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2829147889209381145}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a759fa0514d29f4891bc9ce146516e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mainButton: {fileID: 2620395773162121515}
-  removeButton: {fileID: 0}
-  label: {fileID: 2620395773171861104}

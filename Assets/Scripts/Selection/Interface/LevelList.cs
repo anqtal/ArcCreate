@@ -1,10 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
-using ArcCreate.Data;
+using ArcCreate.Gameplay.Score;
 using ArcCreate.Storage;
-using ArcCreate.Storage.Data;
 using ArcCreate.Utility.InfiniteScroll;
-using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +10,7 @@ namespace ArcCreate.Selection.Interface
 {
     public class LevelList : MonoBehaviour
     {
-        private static bool lastWasInLevelList = false;
+        private static bool lastWasInLevelList;
 
         [SerializeField] private StorageData storageData;
         [SerializeField] private InfiniteScroll scroll;
@@ -30,9 +27,9 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private Button randomButton;
         [SerializeField] private Button jumpToTopButton;
         [SerializeField] private Button jumpToBottomButton;
-        private PackStorage currentPack;
-        private ChartSettings currentChart;
-        private LevelStorage currentLevel;
+        private Difficulty currentChart;
+        private Pack currentPack;
+        private SongList currentSong;
         private Tween scrollTween;
 
         public static float LevelCellSize { get; set; }
@@ -51,6 +48,7 @@ namespace ArcCreate.Selection.Interface
             storageData.SelectedChart.OnValueChange += OnSelectedChart;
             storageData.SelectedPack.OnValueChange += OnSelectedPack;
             options.OnNeedRebuild += RebuildList;
+            ScoreCache.OnUpdated += OnScoreCacheUpdated;
 
             randomButton.onClick.AddListener(SelectRandom);
             jumpToTopButton.onClick.AddListener(SelectTop);
@@ -61,10 +59,7 @@ namespace ArcCreate.Selection.Interface
 
             scroll.OnPointerEvent += KillTween;
 
-            if (storageData.IsLoaded && lastWasInLevelList)
-            {
-                OnStorageChange();
-            }
+            if (storageData.IsLoaded && lastWasInLevelList) OnStorageChange();
         }
 
         private void OnDestroy()
@@ -77,6 +72,7 @@ namespace ArcCreate.Selection.Interface
             storageData.SelectedChart.OnValueChange -= OnSelectedChart;
             storageData.SelectedPack.OnValueChange -= OnSelectedPack;
             options.OnNeedRebuild -= RebuildList;
+            ScoreCache.OnUpdated -= OnScoreCacheUpdated;
 
             randomButton.onClick.RemoveListener(SelectRandom);
             jumpToTopButton.onClick.RemoveListener(SelectTop);
@@ -88,11 +84,11 @@ namespace ArcCreate.Selection.Interface
         private void OnStorageChange()
         {
             currentPack = storageData.SelectedPack.Value;
-            (currentLevel, currentChart) = storageData.SelectedChart.Value;
+            (currentSong, currentChart) = storageData.SelectedChart.Value;
             RebuildList();
         }
 
-        private void OnSelectedPack(PackStorage pack)
+        private void OnSelectedPack(Pack pack)
         {
             lastWasInLevelList = true;
             if (pack == null)
@@ -100,7 +96,7 @@ namespace ArcCreate.Selection.Interface
                 var (level, chart) = storageData.GetLastSelectedChart(null);
                 if (level != null && chart != null)
                 {
-                    currentLevel = level;
+                    currentSong = level;
                     storageData.SelectedChart.Value = (level, chart);
                 }
 
@@ -109,21 +105,18 @@ namespace ArcCreate.Selection.Interface
                 return;
             }
 
-            bool found = false;
-            foreach (var level in pack.Levels)
-            {
-                if (currentLevel != null && level.Id == currentLevel.Id)
-                {
+            var packSongs = StorageData.GetSongsForPack(pack);
+            var found = false;
+            foreach (var level in packSongs)
+                if (currentSong != null && InterfaceUtility.AreTheSame(level, currentSong))
                     found = true;
-                }
-            }
 
             if (!found)
             {
-                var (level, chart) = storageData.GetLastSelectedChart(pack?.Identifier);
+                var (level, chart) = storageData.GetLastSelectedChart(pack?.id);
                 if (level != null && chart != null)
                 {
-                    currentLevel = level;
+                    currentSong = level;
                     storageData.SelectedChart.Value = (level, chart);
                 }
             }
@@ -135,35 +128,31 @@ namespace ArcCreate.Selection.Interface
             currentPack = pack;
         }
 
-        private void OnSelectedChart((LevelStorage, ChartSettings) obj)
+        private void OnSelectedChart((SongList, Difficulty) obj)
         {
             var (level, chart) = obj;
-            bool chartChanged = !chart.IsSameDifficulty(currentChart, false);
-            bool packChanged = storageData.SelectedPack.Value != currentPack;
-            if (chartChanged || packChanged)
-            {
-                RebuildList();
-            }
+            var chartChanged = !SongDifficultyUtility.IsSameDifficulty(chart, currentChart);
+            var packChanged = storageData.SelectedPack.Value != currentPack;
+            if (chartChanged || packChanged) RebuildList();
 
             FocusOnLevel(level);
             currentChart = chart;
-            currentLevel = level;
+            currentSong = level;
+        }
+
+        private void OnScoreCacheUpdated()
+        {
+            RebuildList();
         }
 
         private void RebuildList()
         {
-            if (!lastWasInLevelList)
-            {
-                return;
-            }
+            if (!lastWasInLevelList) return;
 
-            int prevCount = scroll.Data.Count;
-            if (storageData.SelectedPack.Value != null)
-            {
-                StorageData.FetchLevelsForPack(storageData.SelectedPack.Value);
-            }
-
-            List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? StorageData.GetAllLevels())?.ToList();
+            var prevCount = scroll.Data.Count;
+            var levels = storageData.SelectedPack.Value == null
+                ? StorageData.GetAllSongs().ToList()
+                : StorageData.GetSongsForPack(storageData.SelectedPack.Value);
 
             if (levels?.Count == 0)
             {
@@ -173,16 +162,17 @@ namespace ArcCreate.Selection.Interface
 
             if (string.IsNullOrWhiteSpace(options.SearchQuery))
             {
-                List<CellData> data = LevelListBuilder.Build(
+                var data = LevelListBuilder.Build(
                     levels,
-                    storageData.SelectedChart.Value.chart,
+                    storageData.SelectedChart.Value.difficulty,
                     options.GroupStrategy,
                     options.SortStrategy);
                 scroll.SetDataWithoutRebuild(data);
             }
             else
             {
-                List<CellData> data = LevelListBuilder.Filter(levels, storageData.SelectedChart.Value.chart, options.SearchQuery);
+                var data = LevelListBuilder.Filter(levels, storageData.SelectedChart.Value.difficulty,
+                    options.SearchQuery);
                 scroll.SetDataWithoutRebuild(data);
             }
 
@@ -193,116 +183,99 @@ namespace ArcCreate.Selection.Interface
                 scrollRect.DOAnchorMin(Vector2.zero, rebuildDuration).SetEase(Ease.OutCubic);
             }
 
-            FocusOnLevelImmediate(currentLevel);
+            FocusOnLevelImmediate(currentSong);
         }
 
-        private void FocusOnLevel(LevelStorage level)
+        private void FocusOnLevel(SongList level)
         {
             HierarchyData item = null;
-            if (level == null)
-            {
-                return;
-            }
+            if (level == null) return;
 
-            for (int i = 0; i < scroll.Data.Count; i++)
+            for (var i = 0; i < scroll.Data.Count; i++)
             {
-                CellData data = scroll.Data[i];
-                if (data is LevelCellData levelCell && levelCell.LevelStorage.Id == level.Id)
+                var data = scroll.Data[i];
+                if (data is LevelCellData levelCell && InterfaceUtility.AreTheSame(levelCell.Song, level))
                 {
                     item = scroll.Hierarchy[i];
                     break;
                 }
             }
 
-            if (item == null)
-            {
-                return;
-            }
+            if (item == null) return;
 
-            float scrollFrom = scroll.Value;
-            float scrollTo = item.ValueToCenterCell;
+            var scrollFrom = scroll.Value;
+            var scrollTo = item.ValueToCenterCell;
             KillTween();
-            scrollTween = DOTween.To((float val) => scroll.Value = val, scrollFrom, scrollTo, autoScrollDuration).SetEase(Ease.OutExpo);
+            scrollTween = DOTween.To(val => scroll.Value = val, scrollFrom, scrollTo, autoScrollDuration)
+                .SetEase(Ease.OutExpo);
         }
 
-        private void FocusOnLevelImmediate(LevelStorage level)
+        private void FocusOnLevelImmediate(SongList level)
         {
             HierarchyData item = null;
-            if (level == null)
-            {
-                return;
-            }
+            if (level == null) return;
 
-            for (int i = 0; i < scroll.Data.Count; i++)
+            for (var i = 0; i < scroll.Data.Count; i++)
             {
-                CellData data = scroll.Data[i];
-                if (data is LevelCellData levelCell && levelCell.LevelStorage.Id == level.Id)
+                var data = scroll.Data[i];
+                if (data is LevelCellData levelCell && InterfaceUtility.AreTheSame(levelCell.Song, level))
                 {
                     item = scroll.Hierarchy[i];
                     break;
                 }
             }
 
-            if (item == null)
-            {
-                return;
-            }
+            if (item == null) return;
 
-            float scrollTo = item.ValueToCenterCell;
+            var scrollTo = item.ValueToCenterCell;
             scroll.Value = scrollTo;
             scroll.Rebuild();
         }
 
         private void SelectRandom()
         {
-            List<LevelStorage> levels = (storageData.SelectedPack.Value?.Levels ?? StorageData.GetAllLevels())?.ToList();
-            if (levels?.Count <= 0)
-            {
-                return;
-            }
+            var levels = storageData.SelectedPack.Value == null
+                ? StorageData.GetAllSongs().ToList()
+                : StorageData.GetSongsForPack(storageData.SelectedPack.Value);
+            if (levels?.Count <= 0) return;
 
-            LevelStorage level = null;
+            SongList level = null;
 
             do
             {
-                int index = UnityEngine.Random.Range(0, levels.Count);
+                var index = Random.Range(0, levels.Count);
                 level = levels[index];
-            }
-            while (InterfaceUtility.AreTheSame(level, storageData.SelectedChart.Value.level));
+            } while (InterfaceUtility.AreTheSame(level, storageData.SelectedChart.Value.song));
 
             LevelCellData item = null;
-            for (int i = 0; i < scroll.Data.Count; i++)
+            for (var i = 0; i < scroll.Data.Count; i++)
             {
-                CellData cell = scroll.Data[i];
-                if (cell is LevelCellData lvCell && InterfaceUtility.AreTheSame(lvCell.LevelStorage, level))
+                var cell = scroll.Data[i];
+                if (cell is LevelCellData lvCell && InterfaceUtility.AreTheSame(lvCell.Song, level))
                 {
                     item = lvCell;
                     break;
                 }
             }
 
-            if (item == null)
-            {
-                return;
-            }
+            if (item == null) return;
 
-            storageData.SelectedChart.Value = (item.LevelStorage, item.ChartToDisplay);
+            storageData.SelectedChart.Value = (item.Song, item.DifficultyToDisplay);
         }
 
         private void SelectTop()
         {
-            scrollTween = DOTween.To((float val) => scroll.Value = val, scroll.Value, 0, autoScrollDuration / 2).SetEase(Ease.OutExpo);
+            scrollTween = DOTween.To(val => scroll.Value = val, scroll.Value, 0, autoScrollDuration / 2)
+                .SetEase(Ease.OutExpo);
         }
 
         private void SelectBottom()
         {
             float v = 0;
-            if (scroll.Hierarchy.Count >= 1)
-            {
-                v = scroll.Hierarchy[scroll.Hierarchy.Count - 1].ValueToCenterCell;
-            }
+            if (scroll.Hierarchy.Count >= 1) v = scroll.Hierarchy[scroll.Hierarchy.Count - 1].ValueToCenterCell;
 
-            scrollTween = DOTween.To((float val) => scroll.Value = val, scroll.Value, v, autoScrollDuration / 2).SetEase(Ease.OutExpo);
+            scrollTween = DOTween.To(val => scroll.Value = val, scroll.Value, v, autoScrollDuration / 2)
+                .SetEase(Ease.OutExpo);
         }
 
         private void OnScroll(float arg)

@@ -8,11 +8,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class ValueToTextChannel : TextChannel
     {
-        private ValueChannel source;
         private char[] charArray;
         private int precision;
-        private float prevValue = float.NaN;
         private int prevLength;
+        private float prevValue = float.NaN;
+        private ValueChannel source;
 
         public ValueToTextChannel()
         {
@@ -21,7 +21,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public ValueToTextChannel(ValueChannel source, int maxLength = 10, int precision = 0)
         {
             this.source = source;
-            this.charArray = new char[maxLength];
+            charArray = new char[maxLength];
             this.precision = precision;
         }
 
@@ -42,11 +42,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override List<object> SerializeProperties(ScenecontrolSerialization serialization)
         {
-            List<object> result = new List<object>
+            var result = new List<object>
             {
                 serialization.AddUnitAndGetId(source),
                 charArray.Length,
-                precision,
+                precision
             };
 
             return result;
@@ -54,7 +54,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override char[] ValueAt(int timing, out int length, out bool hasChanged)
         {
-            float number = source.ValueAt(timing);
+            var number = source.ValueAt(timing);
             if (number == prevValue)
             {
                 length = prevLength;
@@ -63,38 +63,30 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
 
             prevValue = number;
-            bool isNegativeNumber = number < 0f;
+            var isNegativeNumber = number < 0f;
             number = isNegativeNumber ? -number : number;
 
-            int integer = (int)number;
-            double fraction = (double)number - integer;
-            float epsilon = Mathf.Pow(10, -precision);
+            var integer = (int)number;
+            var fraction = (double)number - integer;
+            var epsilon = Mathf.Pow(10, -precision);
 
-            int charIndex = precision;
-            int truncateAmount = 0;
-            for (int i = 0; i < precision; i++)
+            var charIndex = precision;
+            var truncateAmount = 0;
+            for (var i = 0; i < precision; i++)
             {
                 // Floating point arithmetics are not deterministic, try to handle
                 // edge cases properly via these if conditions
                 if (fraction >= 0f)
-                {
                     fraction *= 10f;
-                }
                 else
-                {
                     fraction *= -10f;
-                }
 
                 int digit;
-                double diff = Math.Abs(fraction - Math.Round(fraction));
+                var diff = Math.Abs(fraction - Math.Round(fraction));
                 if (Math.Abs(fraction - Math.Round(fraction)) <= epsilon)
-                {
                     digit = Mathf.RoundToInt((float)fraction);
-                }
                 else
-                {
                     digit = (int)fraction;
-                }
 
                 if (digit <= 0)
                 {
@@ -103,10 +95,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 }
                 else
                 {
-                    if (digit > 9)
-                    {
-                        digit = 9;
-                    }
+                    if (digit > 9) digit = 9;
 
                     truncateAmount = 0;
                 }
@@ -120,13 +109,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
             if (truncateAmount < precision)
             {
                 if (truncateAmount > 0)
-                {
                     // Truncate redundant 0's
                     for (int i = charIndex + truncateAmount, j = i + precision; i < j; i++)
-                    {
                         charArray[i - truncateAmount] = charArray[i];
-                    }
-                }
 
                 charIndex += precision - truncateAmount;
                 charArray[charIndex++] = '.';
@@ -138,33 +123,23 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 isNegativeNumber = false;
             }
 
-            if (truncateAmount == precision || precision == 0)
-            {
-                integer = UnityEngine.Mathf.RoundToInt(number);
-            }
+            if (truncateAmount == precision || precision == 0) integer = Mathf.RoundToInt(number);
 
             if (integer == 0)
-            {
                 charArray[charIndex++] = '0';
-            }
             else
-            {
                 while (integer > 0)
                 {
-                    charArray[charIndex++] = (char)('0' + (integer % 10));
+                    charArray[charIndex++] = (char)('0' + integer % 10);
                     integer /= 10;
                 }
-            }
 
-            if (isNegativeNumber)
-            {
-                charArray[charIndex++] = '-';
-            }
+            if (isNegativeNumber) charArray[charIndex++] = '-';
 
             // Reverse array
-            for (int i = (charIndex / 2) - 1; i >= 0; i--)
+            for (var i = charIndex / 2 - 1; i >= 0; i--)
             {
-                int j = charIndex - 1 - i;
+                var j = charIndex - 1 - i;
 
                 (charArray[j], charArray[i]) = (charArray[i], charArray[j]);
             }

@@ -1,7 +1,6 @@
 using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Chart;
 using ArcCreate.Gameplay.GameplayCamera;
-using ArcCreate.Gameplay.Hitsound;
 using ArcCreate.Gameplay.InputFeedback;
 using ArcCreate.Gameplay.Judgement;
 using ArcCreate.Gameplay.Particle;
@@ -25,29 +24,27 @@ namespace ArcCreate.Gameplay
         [SerializeField] private ScoreService score;
         [SerializeField] private ScenecontrolService scenecontrol;
         [SerializeField] private RenderService render;
-        //[SerializeField] private HitsoundService hitsound;
 
-        public static ISkinService Skin { get; private set; }
+        public static SkinService Skin { get; private set; }
 
-        public static IChartService Chart { get; private set; }
+        public static ChartService Chart { get; private set; }
 
-        public static ICameraService Camera { get; private set; }
+        public static CameraService Camera { get; private set; }
 
-        public static IAudioService Audio { get; private set; }
+        public static AudioService Audio { get; private set; }
 
-        public static IParticleService Particle { get; private set; }
+        public static ParticleService Particle { get; private set; }
 
-        public static IJudgementService Judgement { get; private set; }
+        public static JudgementService Judgement { get; private set; }
 
-        public static IInputFeedbackService InputFeedback { get; private set; }
+        public static InputFeedbackService InputFeedback { get; private set; }
 
-        public static IScenecontrolService Scenecontrol { get; private set; }
+        public static ScenecontrolService Scenecontrol { get; private set; }
 
-        public static IScoreService Score { get; private set; }
+        public static ScoreService Score { get; private set; }
 
-        public static IRenderService Render { get; private set; }
+        public static RenderService Render { get; private set; }
 
-        //public static IHitsoundService Hitsound { get; private set; }
 
         private void Awake()
         {
@@ -61,7 +58,6 @@ namespace ArcCreate.Gameplay
             Scenecontrol = scenecontrol;
             Camera = camera;
             Render = render;
-            //Hitsound = hitsound;
         }
     }
 }

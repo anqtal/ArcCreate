@@ -7,12 +7,12 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class SawChannel : ValueChannel
     {
-        private ValueChannel period;
-        private ValueChannel offset;
-        private ValueChannel min;
-        private ValueChannel max;
-        private Func<float, float, float, float> easingFunc;
         private string easing;
+        private Func<float, float, float, float> easingFunc;
+        private ValueChannel max;
+        private ValueChannel min;
+        private ValueChannel offset;
+        private ValueChannel period;
 
         public SawChannel()
         {
@@ -21,7 +21,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public SawChannel(string easing, ValueChannel period, ValueChannel min, ValueChannel max, ValueChannel offset)
         {
             this.easing = easing;
-            this.easingFunc = Easing.FromString(easing);
+            easingFunc = Easing.FromString(easing);
             this.period = period;
             this.min = min;
             this.max = max;
@@ -46,14 +46,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(offset),
                 serialization.AddUnitAndGetId(min),
                 serialization.AddUnitAndGetId(max),
-                easing,
+                easing
             };
         }
 
         public override float ValueAt(int timing)
         {
-            float looped = (timing + offset.ValueAt(timing)) % period.ValueAt(timing);
-            return easingFunc(min.ValueAt(timing), max.ValueAt(timing), (float)looped / period.ValueAt(timing));
+            var looped = (timing + offset.ValueAt(timing)) % period.ValueAt(timing);
+            return easingFunc(min.ValueAt(timing), max.ValueAt(timing), looped / period.ValueAt(timing));
         }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()

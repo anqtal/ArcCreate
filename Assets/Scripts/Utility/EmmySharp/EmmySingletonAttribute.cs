@@ -10,8 +10,5 @@ namespace EmmySharp
     [AttributeUsage(AttributeTargets.Class)]
     public class EmmySingletonAttribute : Attribute
     {
-        public EmmySingletonAttribute()
-        {
-        }
     }
 }

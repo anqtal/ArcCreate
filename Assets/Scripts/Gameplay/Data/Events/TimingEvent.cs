@@ -10,19 +10,19 @@ namespace ArcCreate.Gameplay.Data
 
         public override ArcEvent Clone()
         {
-            return new TimingEvent()
+            return new TimingEvent
             {
                 Timing = Timing,
                 Bpm = Bpm,
                 Divisor = Divisor,
-                TimingGroup = TimingGroup,
+                TimingGroup = TimingGroup
             };
         }
 
         public override void Assign(ArcEvent newValues)
         {
             base.Assign(newValues);
-            TimingEvent n = newValues as TimingEvent;
+            var n = newValues as TimingEvent;
             Bpm = n.Bpm;
             Divisor = n.Divisor;
         }

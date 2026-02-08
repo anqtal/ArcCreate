@@ -31,7 +31,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
             return new List<object>
             {
                 serialization.AddUnitAndGetId(a),
-                serialization.AddUnitAndGetId(b),
+                serialization.AddUnitAndGetId(b)
             };
         }
 

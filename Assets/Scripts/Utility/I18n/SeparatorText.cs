@@ -3,7 +3,7 @@ using UnityEngine;
 namespace ArcCreate.Utility
 {
     /// <summary>
-    /// Component for text in a separator object.
+    ///     Component for text in a separator object.
     /// </summary>
     public class SeparatorText : I18nText
     {
@@ -14,7 +14,7 @@ namespace ArcCreate.Utility
         {
             base.ApplyLocale();
 
-            float textWidth = Text.preferredWidth;
+            var textWidth = Text.preferredWidth;
             divideLine.offsetMax = new Vector2(
                 -textWidth - spacing,
                 divideLine.offsetMax.y);

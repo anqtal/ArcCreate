@@ -10,24 +10,34 @@ namespace ArcCreate.SceneTransition
 {
     public class TransitionScene : MonoBehaviour
     {
-        [Header("Objects")]
-        [SerializeField] private Camera transitionCamera;
+        public enum Sound
+        {
+            RenderStart,
+            EnterGameplay,
+            GameplayLoadComplete,
+            Retry,
+            General
+        }
+
+        [Header("Objects")] [SerializeField] private Camera transitionCamera;
+
         [SerializeField] private Image triangleTileImage;
         [SerializeField] private GameObject playRetryCountParent;
         [SerializeField] private GameObject infoParent;
         [SerializeField] private GameObject decorationParent;
         [SerializeField] private Canvas[] canvases;
 
-        [Header("Audio")]
-        [SerializeField] private AudioSource audioSource;
+        [Header("Audio")] [SerializeField] private AudioSource audioSource;
+
         [SerializeField] private AudioClip renderStartAudio;
         [SerializeField] private AudioClip enterGameplayAudio;
         [SerializeField] private AudioClip gameplayLoadCompleteAudio;
         [SerializeField] private AudioClip retryAudio;
         [SerializeField] private AudioClip generalTransitionAudio;
 
-        [Header("TriangleTile")]
-        [SerializeField] private Color preGreetingColor1;
+        [Header("TriangleTile")] [SerializeField]
+        private Color preGreetingColor1;
+
         [SerializeField] private Color preGreetingColor2;
         [SerializeField] private Color greetingSceneColor1;
         [SerializeField] private Color greetingSceneColor2;
@@ -35,8 +45,8 @@ namespace ArcCreate.SceneTransition
         [SerializeField] private ThemeColor color1;
         [SerializeField] private ThemeColor color2;
 
-        [Header("Animation")]
-        [SerializeField] private ScriptedAnimator playRetryAnimator;
+        [Header("Animation")] [SerializeField] private ScriptedAnimator playRetryAnimator;
+
         [SerializeField] private ScriptedAnimator infoAnimator;
         [SerializeField] private ScriptedAnimator decorationAnimator;
         [SerializeField] private float greetingTriangleScale;
@@ -50,21 +60,12 @@ namespace ArcCreate.SceneTransition
         [SerializeField] private Ease scaleAnimationEaseOut;
         private readonly int fromColor1ShaderId = Shader.PropertyToID("_FromColor1");
         private readonly int fromColor2ShaderId = Shader.PropertyToID("_FromColor2");
-        private readonly int toColor1ShaderId = Shader.PropertyToID("_ToColor1");
-        private readonly int toColor2ShaderId = Shader.PropertyToID("_ToColor2");
         private readonly int progressShaderId = Shader.PropertyToID("_Progress");
         private readonly int scaleShaderId = Shader.PropertyToID("_Scale");
+        private readonly int toColor1ShaderId = Shader.PropertyToID("_ToColor1");
+        private readonly int toColor2ShaderId = Shader.PropertyToID("_ToColor2");
         private Color lastColor1;
         private Color lastColor2;
-
-        public enum Sound
-        {
-            RenderStart,
-            EnterGameplay,
-            GameplayLoadComplete,
-            Retry,
-            General,
-        }
 
         public static TransitionScene Instance { get; private set; }
 
@@ -92,10 +93,49 @@ namespace ArcCreate.SceneTransition
 
         public int DecorationAnimationDurationMs => (int)(decorationAnimator.Length * 1000);
 
+        private void Awake()
+        {
+            Instance = this;
+            triangleTileImage.material = Instantiate(triangleTileImage.material);
+            themeGroup.OnValueChange.AddListener(OnThemeChange);
+            Settings.ForceTheme.OnValueChanged.AddListener(OnForceThemeSettings);
+
+            OnForceThemeSettings(Settings.ForceTheme.Value);
+
+            ExternalRenderStartAudio = new ExternalAudioClip(renderStartAudio, "AudioClips");
+            ExternalEnterGameplayAudio = new ExternalAudioClip(enterGameplayAudio, "AudioClips");
+            ExternalGameplayLoadCompleteAudio = new ExternalAudioClip(gameplayLoadCompleteAudio, "AudioClips");
+            ExternalGeneralTransitionAudio = new ExternalAudioClip(generalTransitionAudio, "AudioClips");
+            ExternalRetryAudio = new ExternalAudioClip(retryAudio, "AudioClips");
+
+            ExternalRenderStartAudio.Load().Forget();
+            ExternalEnterGameplayAudio.Load().Forget();
+            ExternalGameplayLoadCompleteAudio.Load().Forget();
+            ExternalGeneralTransitionAudio.Load().Forget();
+            ExternalRetryAudio.Load().Forget();
+            transitionCamera.fieldOfView = Mathf.Lerp(50, 65,
+                (transitionCamera.pixelHeight / (transitionCamera.pixelWidth / 16f) - 9) / 3f);
+        }
+
+        private void OnDestroy()
+        {
+            if (triangleTileImage != null && triangleTileImage.material != null) Destroy(triangleTileImage.material);
+
+            themeGroup.OnValueChange.RemoveListener(OnThemeChange);
+            Settings.ForceTheme.OnValueChanged.RemoveListener(OnForceThemeSettings);
+            ExternalRenderStartAudio.Unload();
+            ExternalEnterGameplayAudio.Unload();
+            ExternalGameplayLoadCompleteAudio.Unload();
+            ExternalGeneralTransitionAudio.Unload();
+            ExternalRetryAudio.Unload();
+        }
+
         public int TriangleTileAnimationDurationMs(bool inOutVariant)
-            => (int)Mathf.Max(
+        {
+            return (int)Mathf.Max(
                 colorAnimationDuration,
                 (inOutVariant ? scaleAnimationDurationInOut : scaleAnimationDurationOut) * 1000);
+        }
 
         public void UpdateCameraStatus()
         {
@@ -109,29 +149,31 @@ namespace ArcCreate.SceneTransition
         public void EnterGreetingScene()
         {
             StopAllAnimations();
-            AnimateTriangleTilesBetweenColors(preGreetingColor1, preGreetingColor2, greetingSceneColor1, greetingSceneColor2, true);
+            AnimateTriangleTilesBetweenColors(preGreetingColor1, preGreetingColor2, greetingSceneColor1,
+                greetingSceneColor2, true);
             triangleTileImage.material.SetFloat(scaleShaderId, greetingTriangleScale);
         }
 
         public void EnterSelectScene()
         {
-            Theme theme = themeGroup.LastSelectedTheme;
+            var theme = themeGroup.LastSelectedTheme;
             StopAllAnimations();
-            AnimateTriangleTilesBetweenColors(greetingSceneColor1, greetingSceneColor2, color1.GetColor(theme), color2.GetColor(theme), true);
+            AnimateTriangleTilesBetweenColors(greetingSceneColor1, greetingSceneColor2, color1.GetColor(theme),
+                color2.GetColor(theme), true);
             AnimateTriangleTileScale(greetingTriangleScale, defaultTriangleScale, true);
         }
 
         public void EnsureDefaultTriangleScale()
         {
-            float currentScale = triangleTileImage.material.GetFloat(scaleShaderId);
+            var currentScale = triangleTileImage.material.GetFloat(scaleShaderId);
             AnimateTriangleTileScale(currentScale, defaultTriangleScale, false);
         }
 
         public async UniTask ShowTriangleTile(bool inOutVariant)
         {
             StopAllAnimations();
-            Color curr1 = triangleTileImage.material.GetColor(toColor1ShaderId);
-            Color curr2 = triangleTileImage.material.GetColor(toColor2ShaderId);
+            var curr1 = triangleTileImage.material.GetColor(toColor1ShaderId);
+            var curr2 = triangleTileImage.material.GetColor(toColor2ShaderId);
             AnimateTriangleTilesBetweenColors(curr1, curr2, lastColor1, lastColor2, false);
             AnimateTriangleTileScale(defaultTriangleScale, zoomedTriangleScale, inOutVariant);
             await UniTask.Delay(TriangleTileAnimationDurationMs(inOutVariant));
@@ -139,8 +181,8 @@ namespace ArcCreate.SceneTransition
 
         public async UniTask HideTriangleTile(bool inOutVariant)
         {
-            Color to1 = lastColor1;
-            Color to2 = lastColor2;
+            var to1 = lastColor1;
+            var to2 = lastColor2;
             to1.a = 0;
             to2.a = 0;
             AnimateTriangleTilesBetweenColors(lastColor1, lastColor2, to1, to2, false);
@@ -148,17 +190,35 @@ namespace ArcCreate.SceneTransition
             await UniTask.Delay(TriangleTileAnimationDurationMs(inOutVariant));
         }
 
-        public UniTask ShowPlayRetryCount() => ShowAnimation(playRetryAnimator);
+        public UniTask ShowPlayRetryCount()
+        {
+            return ShowAnimation(playRetryAnimator);
+        }
 
-        public UniTask HidePlayRetryCount() => HideAnimation(playRetryAnimator);
+        public UniTask HidePlayRetryCount()
+        {
+            return HideAnimation(playRetryAnimator);
+        }
 
-        public UniTask ShowInfo() => ShowAnimation(infoAnimator);
+        public UniTask ShowInfo()
+        {
+            return ShowAnimation(infoAnimator);
+        }
 
-        public UniTask HideInfo() => HideAnimation(infoAnimator);
+        public UniTask HideInfo()
+        {
+            return HideAnimation(infoAnimator);
+        }
 
-        public UniTask ShowDecoration() => ShowAnimation(decorationAnimator);
+        public UniTask ShowDecoration()
+        {
+            return ShowAnimation(decorationAnimator);
+        }
 
-        public UniTask HideDecoration() => HideAnimation(decorationAnimator);
+        public UniTask HideDecoration()
+        {
+            return HideAnimation(decorationAnimator);
+        }
 
         public void PlaySoundEffect(Sound sound)
         {
@@ -185,7 +245,6 @@ namespace ArcCreate.SceneTransition
         public void SetTargetCamera(Camera camera, string layer = null, int order = 0)
         {
             foreach (var canvas in canvases)
-            {
                 if (camera == null)
                 {
                     canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -198,9 +257,8 @@ namespace ArcCreate.SceneTransition
                     canvas.sortingOrder = order;
 
                     // I don't care that this is duplicate code i just want to get out of this hell.
-                    camera.fieldOfView = Mathf.Lerp(50, 65, ((camera.pixelHeight / (camera.pixelWidth / 16f)) - 9) / 3f);
+                    camera.fieldOfView = Mathf.Lerp(50, 65, (camera.pixelHeight / (camera.pixelWidth / 16f) - 9) / 3f);
                 }
-            }
         }
 
         private async UniTask ShowAnimation(ScriptedAnimator animator)
@@ -215,49 +273,11 @@ namespace ArcCreate.SceneTransition
             await UniTask.Delay((int)(animator.Length * 1000));
         }
 
-        private void Awake()
-        {
-            Instance = this;
-            triangleTileImage.material = Instantiate(triangleTileImage.material);
-            themeGroup.OnValueChange.AddListener(OnThemeChange);
-            Settings.ForceTheme.OnValueChanged.AddListener(OnForceThemeSettings);
-
-            OnForceThemeSettings(Settings.ForceTheme.Value);
-
-            ExternalRenderStartAudio = new ExternalAudioClip(renderStartAudio, "AudioClips");
-            ExternalEnterGameplayAudio = new ExternalAudioClip(enterGameplayAudio, "AudioClips");
-            ExternalGameplayLoadCompleteAudio = new ExternalAudioClip(gameplayLoadCompleteAudio, "AudioClips");
-            ExternalGeneralTransitionAudio = new ExternalAudioClip(generalTransitionAudio, "AudioClips");
-            ExternalRetryAudio = new ExternalAudioClip(retryAudio, "AudioClips");
-
-            ExternalRenderStartAudio.Load().Forget();
-            ExternalEnterGameplayAudio.Load().Forget();
-            ExternalGameplayLoadCompleteAudio.Load().Forget();
-            ExternalGeneralTransitionAudio.Load().Forget();
-            ExternalRetryAudio.Load().Forget();
-            transitionCamera.fieldOfView = Mathf.Lerp(50, 65, ((transitionCamera.pixelHeight / (transitionCamera.pixelWidth / 16f)) - 9) / 3f);
-        }
-
-        private void OnDestroy()
-        {
-            if (triangleTileImage != null && triangleTileImage.material != null)
-            {
-                Destroy(triangleTileImage.material);
-            }
-
-            themeGroup.OnValueChange.RemoveListener(OnThemeChange);
-            Settings.ForceTheme.OnValueChanged.RemoveListener(OnForceThemeSettings);
-            ExternalRenderStartAudio.Unload();
-            ExternalEnterGameplayAudio.Unload();
-            ExternalGameplayLoadCompleteAudio.Unload();
-            ExternalGeneralTransitionAudio.Unload();
-            ExternalRetryAudio.Unload();
-        }
-
         private void OnThemeChange(Theme theme)
         {
             StopAllAnimations();
-            AnimateTriangleTilesBetweenColors(lastColor1, lastColor2, color1.GetColor(theme), color2.GetColor(theme), true);
+            AnimateTriangleTilesBetweenColors(lastColor1, lastColor2, color1.GetColor(theme), color2.GetColor(theme),
+                true);
         }
 
         private void OnForceThemeSettings(int value)

@@ -261,7 +261,6 @@ GameObject:
   - component: {fileID: 7322743506023329080}
   - component: {fileID: 7322743506023329083}
   - component: {fileID: 7322743506023329082}
-  - component: {fileID: 7322743506023329077}
   m_Layer: 11
   m_Name: MacroCell
   m_TagString: Untagged
@@ -369,27 +368,3 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &7322743506023329077
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7322743506023329079}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b23d820d88ce9281aba0419a319c28b7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rectTransform: {fileID: 7322743506023329076}
-  useTwoStagesLoad: 0
-  predictedLoadTime: 0
-  icon: {fileID: 7322743505634998786}
-  content: {fileID: 7322743505609917200}
-  rect: {fileID: 7322743504965231265}
-  text: {fileID: 7322743504965231271}
-  button: {fileID: 7322743506023329082}
-  folderIcon: e2c7
-  indentWidth: 15
-  offsetMinWithIcon: 27
-  offsetMinWithoutIcon: 7

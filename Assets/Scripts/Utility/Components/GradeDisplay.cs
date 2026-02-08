@@ -1,3 +1,4 @@
+using System;
 using ArcCreate.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,18 +12,16 @@ namespace ArcCreate.Selection.Interface
 
         public void Display(Grade grade)
         {
-            Image image = GetComponent<Image>();
+            var image = GetComponent<Image>();
             foreach (var spr in gradeSprites)
-            {
                 if (spr.Grade == grade)
                 {
                     image.sprite = spr.Sprite;
                     return;
                 }
-            }
         }
 
-        [System.Serializable]
+        [Serializable]
         private struct GradeSprite
         {
             public Grade Grade;

@@ -7,6 +7,8 @@ namespace ArcCreate.Utility.Animation
     {
         public abstract float AnimationLength { get; }
 
+        public abstract void Reset();
+
         public abstract Tween GetShowTween();
 
         public abstract Tween GetHideTween();
@@ -14,8 +16,6 @@ namespace ArcCreate.Utility.Animation
         public abstract void SetupComponents();
 
         public abstract void RegisterDefaultValues();
-
-        public abstract void Reset();
 
         public abstract void HideImmediate();
 

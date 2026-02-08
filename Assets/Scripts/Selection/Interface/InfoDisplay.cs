@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using ArcCreate.Data;
+using ArcCreate.Gameplay.Score;
 using ArcCreate.SceneTransition;
 using ArcCreate.Storage;
-using ArcCreate.Storage.Data;
 using ArcCreate.Utility;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -17,8 +17,8 @@ namespace ArcCreate.Selection.Interface
     {
         [SerializeField] private StorageData storage;
 
-        [Header("Info")]
-        [SerializeField] private TMP_Text title;
+        [Header("Info")] [SerializeField] private TMP_Text title;
+
         [SerializeField] private TMP_Text composer;
         [SerializeField] private TMP_Text bpm;
         [SerializeField] private TMP_Text charter;
@@ -26,24 +26,23 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private Button nextDiffButton;
         [SerializeField] private Button nextNextDiffButton;
         [SerializeField] private StarRating ratingDisplay;
-        [SerializeField] private Button openRatingDialog;
-        [SerializeField] private StarRatingDialog ratingDialog;
 
-        [Header("Difficulty")]
-        [SerializeField] private TMP_Text currDiffName;
+        [Header("Difficulty")] [SerializeField]
+        private TMP_Text currDiffName;
+
         [SerializeField] private TMP_Text[] diffNumbers;
         [SerializeField] private DifficultyCell[] diffColors;
         [SerializeField] private Color inactiveDiffColor;
 
-        [Header("Images")]
-        [SerializeField] private RawImage jacket;
+        [Header("Images")] [SerializeField] private RawImage jacket;
 
-        [Header("Score")]
-        [SerializeField] private TMP_Text score;
+        [Header("Score")] [SerializeField] private TMP_Text score;
+
         [SerializeField] private GradeDisplay gradeDisplay;
 
-        [Header("Transition")]
-        [SerializeField] private SpriteSO transitionJacketSprite;
+        [Header("Transition")] [SerializeField]
+        private SpriteSO transitionJacketSprite;
+
         [SerializeField] private StringSO transitionTitle;
         [SerializeField] private StringSO transitionComposer;
         [SerializeField] private StringSO transitionIllustrator;
@@ -53,49 +52,55 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private ColorSO transitionDifficultyColor;
         [SerializeField] private ThemeGroup themeGroup;
 
-        [Header("Exception")]
-        [SerializeField] private Dialog exceptionDialog;
+        [Header("Exception")] [SerializeField] private Dialog exceptionDialog;
+
         [SerializeField] private TMP_Text exceptionText;
+        private readonly CancellationTokenSource cts = new();
         private Sprite jacketSprite;
-        private readonly CancellationTokenSource cts = new CancellationTokenSource();
+
 
         private void Awake()
         {
             storage.SelectedChart.OnValueChange += OnChartChange;
             storage.OnStorageChange += OnStorageChange;
-            switchDiffButton.onClick.AddListener(SwitchDifficulty);
-            nextDiffButton.onClick.AddListener(SwitchDifficulty);
-            nextNextDiffButton.onClick.AddListener(SwitchNextDifficulty);
+            ScoreCache.OnUpdated += OnScoreCacheUpdated;
             storage.OnSwitchToGameplaySceneException += OnGameplayException;
-            openRatingDialog.onClick.AddListener(ratingDialog.Show);
+            if (switchDiffButton != null) switchDiffButton.onClick.AddListener(SwitchDifficulty);
 
-            if (storage.IsLoaded)
-            {
-                OnStorageChange();
-            }
+            if (nextDiffButton != null) nextDiffButton.onClick.AddListener(SwitchDifficulty);
+
+            if (nextNextDiffButton != null) nextNextDiffButton.onClick.AddListener(SwitchNextDifficulty);
+
+            if (storage.IsLoaded) OnStorageChange();
         }
 
         private void OnDestroy()
         {
             storage.SelectedChart.OnValueChange -= OnChartChange;
             storage.OnStorageChange -= OnStorageChange;
-            switchDiffButton.onClick.AddListener(SwitchDifficulty);
-            nextDiffButton.onClick.RemoveListener(SwitchDifficulty);
-            nextNextDiffButton.onClick.RemoveListener(SwitchNextDifficulty);
+            ScoreCache.OnUpdated -= OnScoreCacheUpdated;
+            if (switchDiffButton != null) switchDiffButton.onClick.RemoveListener(SwitchDifficulty);
+
+            if (nextDiffButton != null) nextDiffButton.onClick.RemoveListener(SwitchDifficulty);
+
+            if (nextNextDiffButton != null) nextNextDiffButton.onClick.RemoveListener(SwitchNextDifficulty);
             storage.OnSwitchToGameplaySceneException -= OnGameplayException;
-            openRatingDialog.onClick.RemoveListener(ratingDialog.Show);
             cts.Cancel();
         }
 
         private void OnGameplayException(Exception e)
         {
             exceptionDialog.Show();
-            exceptionText.text = I18n.S("Gameplay.Exception.Load", new Dictionary<string, object>()
+            exceptionText.text = I18n.S("Gameplay.Exception.Load", new Dictionary<string, object>
             {
-                { "Identifier", storage.SelectedChart.Value.level?.Identifier ?? "unknown" },
-                { "ChartPath", storage.SelectedChart.Value.chart?.ChartPath ?? "unknown" },
+                { "Identifier", storage.SelectedChart.Value.song?.id ?? "unknown" },
+                {
+                    "ChartPath", storage.SelectedChart.Value.difficulty == null
+                        ? "unknown"
+                        : SongDifficultyUtility.GetChartPath(storage.SelectedChart.Value.difficulty)
+                },
                 { "Message", e.Message },
-                { "StackTrace", e.StackTrace },
+                { "StackTrace", e.StackTrace }
             });
         }
 
@@ -104,53 +109,72 @@ namespace ArcCreate.Selection.Interface
             OnChartChange(storage.SelectedChart.Value);
         }
 
-        private void OnChartChange((LevelStorage level, ChartSettings chart) obj)
+        private void OnChartChange((SongList level, Difficulty difficulty) obj)
         {
             var (level, chart) = obj;
-            PlayHistory history = PlayHistory.GetHistoryForChart(level.Identifier, chart.ChartPath);
-            if (level == null || chart == null)
+            if (level == null) return;
+
+            var titleText = SongDifficultyUtility.GetTitle(level);
+            var composerText = SongDifficultyUtility.GetComposer(level);
+            var charterText = SongDifficultyUtility.GetCharter(chart);
+            if (title != null)
+                title.text = string.IsNullOrEmpty(titleText)
+                    ? I18n.S("Gameplay.Selection.Info.Undefined.Title")
+                    : titleText;
+
+            if (composer != null)
+                composer.text = string.IsNullOrEmpty(composerText)
+                    ? I18n.S("Gameplay.Selection.Info.Undefined.Composer")
+                    : composerText;
+
+            if (bpm != null)
+                bpm.text = string.IsNullOrEmpty(level.bpm) ? "BPM: " + level.bpm_base : "BPM: " + level.bpm;
+
+            if (charter != null)
+                charter.text = string.IsNullOrEmpty(charterText)
+                    ? I18n.S("Gameplay.Selection.Info.Undefined.Charter")
+                    : I18n.S("Gameplay.Selection.Info.Charter", charterText);
+
+            if (transitionTitle != null && title != null) transitionTitle.Value = title.text;
+
+            if (transitionComposer != null && composer != null) transitionComposer.Value = composer.text;
+
+            if (transitionIllustrator != null) transitionIllustrator.Value = string.Empty;
+
+            if (transitionCharter != null) transitionCharter.Value = charterText;
+
+            if (transitionAlias != null) transitionAlias.Value = string.Empty;
+
+            if (transitionDifficulty != null)
+                transitionDifficulty.Value = SongDifficultyUtility.GetDifficultyName(chart);
+
+            if (score != null) score.text = "--";
+
+            if (gradeDisplay != null)
             {
-                return;
+                gradeDisplay.Display(Grade.Unknown);
+                gradeDisplay.gameObject.SetActive(false);
             }
 
-            title.text = string.IsNullOrEmpty(chart.Title) ? I18n.S("Gameplay.Selection.Info.Undefined.Title") : chart.Title;
-            composer.text = string.IsNullOrEmpty(chart.Composer) ? I18n.S("Gameplay.Selection.Info.Undefined.Composer") : chart.Composer;
-            bpm.text = string.IsNullOrEmpty(chart.BpmText) ? "BPM: " + chart.BaseBpm.ToString() : "BPM: " + chart.BpmText;
-            charter.text = string.IsNullOrEmpty(chart.Charter) ? I18n.S("Gameplay.Selection.Info.Undefined.Charter") : I18n.S("Gameplay.Selection.Info.Charter", chart.Charter);
+            if (ratingDisplay != null) ratingDisplay.Value = 0;
 
-            transitionTitle.Value = title.text;
-            transitionComposer.Value = composer.text;
-            transitionIllustrator.Value = chart.Illustrator;
-            transitionCharter.Value = chart.Charter;
-            transitionAlias.Value = chart.Alias;
-            transitionDifficulty.Value = chart.Difficulty;
+            var sideString = SongDifficultyUtility.GetSkin(level).ToLower();
 
-            PlayResult playResult = history.BestScorePlayOrDefault;
-            score.text = "101.0000%";//playResult.FormattedScore;
-            gradeDisplay.Display(playResult.Grade);
-            gradeDisplay.gameObject.SetActive(history.PlayCount > 0);
-            ratingDisplay.Value = Mathf.FloorToInt(history.Rating);
-            ratingDialog.Attach(history);
-
-            string sideString = (chart.Skin?.Side ?? "").ToLower();
-
-            if (jacket.texture != null)
+            if (jacket != null)
             {
-                storage.ReleasePersistent(jacket.texture);
-            }
+                if (jacket.texture) storage.ReleasePersistent(jacket.texture);
 
-            storage.AssignTexture(jacket, level, chart.JacketPath).ContinueWith(() =>
-            {
-                if (jacketSprite != null)
+                StorageData.AssignSongJacket(jacket, level).ContinueWith(() =>
                 {
-                    Destroy(jacketSprite);
-                }
+                    if (jacketSprite) Destroy(jacketSprite);
 
-                Texture texture = jacket.texture;
-                storage.EnsurePersistent(texture);
-                jacketSprite = Sprite.Create(texture as Texture2D, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                transitionJacketSprite.Value = jacketSprite;
-            });
+                    var texture = jacket.texture;
+                    storage.EnsurePersistent(texture);
+                    jacketSprite = Sprite.Create(texture as Texture2D, new Rect(0, 0, texture.width, texture.height),
+                        new Vector2(0.5f, 0.5f));
+                    if (transitionJacketSprite != null) transitionJacketSprite.Value = jacketSprite;
+                });
+            }
 
             switch (sideString)
             {
@@ -164,91 +188,145 @@ namespace ArcCreate.Selection.Interface
                     break;
             }
 
-            (string currDiffName, string currDiffNum) = chart.ParseDifficultyName(maxNumberLength: 3);
-            this.currDiffName.text = currDiffName.ToUpper();
-            diffNumbers[0].text = InterfaceUtility.AlignedDiffNumber(currDiffNum);
+            var (currDiffName, currDiffNum) = SongDifficultyUtility.ParseDifficultyName(chart, 3);
+            if (this.currDiffName != null) this.currDiffName.text = currDiffName.ToUpper();
 
-            ColorUtility.TryParseHtmlString(chart.DifficultyColor, out Color currDiffColor);
-            diffColors[0].Color = currDiffColor;
-            transitionDifficultyColor.Value = currDiffColor;
+            if (diffNumbers != null && diffNumbers.Length > 0)
+                diffNumbers[0].text = InterfaceUtility.AlignedDiffNumber(currDiffNum);
 
-            int i = 1;
+            ColorUtility.TryParseHtmlString(SongDifficultyUtility.GetDifficultyColor(chart), out var currDiffColor);
+            if (diffColors != null && diffColors.Length > 0) diffColors[0].Color = currDiffColor;
 
-            int indexOfCurrentChart = 0;
-            for (int j = 0; j < level.Settings.Charts.Count; j++)
+            if (transitionDifficultyColor != null) transitionDifficultyColor.Value = currDiffColor;
+
+            var i = 1;
+
+            var charts = SongDifficultyUtility.GetPlayableDifficulties(level);
+            var indexOfCurrentChart = 0;
+            for (var j = 0; j < charts.Count; j++)
             {
-                ChartSettings otherChart = level.Settings.Charts[j];
-                if (otherChart.ChartPath == chart.ChartPath)
+                var otherChart = charts[j];
+                if (SongDifficultyUtility.IsSameDifficulty(otherChart, chart))
                 {
                     indexOfCurrentChart = j;
                     break;
                 }
             }
 
-            for (int j = 1; j < level.Settings.Charts.Count; j++)
+            UpdateScoreFromCache(level.id, SongDifficultyUtility.GetApiDifficulty(chart));
+
+            for (var j = 1; j < charts.Count; j++)
             {
-                ChartSettings otherChart = level.Settings.Charts[(j + indexOfCurrentChart) % level.Settings.Charts.Count];
-                if (otherChart.ChartPath == chart.ChartPath)
+                var otherChart = charts[(j + indexOfCurrentChart) % charts.Count];
+                if (SongDifficultyUtility.IsSameDifficulty(otherChart, chart)) break;
+
+                var (diffName, diffNum) = SongDifficultyUtility.ParseDifficultyName(otherChart, 3);
+                ColorUtility.TryParseHtmlString(SongDifficultyUtility.GetDifficultyColor(otherChart),
+                    out var diffColor);
+
+                if (diffNumbers != null && i < diffNumbers.Length)
                 {
-                    break;
+                    diffNumbers[i].gameObject.SetActive(true);
+                    diffNumbers[i].text = InterfaceUtility.AlignedDiffNumber(diffNum);
                 }
 
-                (string diffName, string diffNum) = otherChart.ParseDifficultyName(maxNumberLength: 3);
-                ColorUtility.TryParseHtmlString(otherChart.DifficultyColor, out Color diffColor);
-
-                diffNumbers[i].gameObject.SetActive(true);
-                diffNumbers[i].text = InterfaceUtility.AlignedDiffNumber(diffNum);
-                diffColors[i].Color = diffColor;
+                if (diffColors != null && i < diffColors.Length) diffColors[i].Color = diffColor;
 
                 i += 1;
-                if (i >= diffNumbers.Length)
-                {
-                    break;
-                }
+                if (diffNumbers == null || i >= diffNumbers.Length) break;
             }
 
-            for (; i < diffNumbers.Length; i++)
+            if (diffNumbers != null)
+                for (; i < diffNumbers.Length; i++)
+                {
+                    diffNumbers[i].gameObject.SetActive(false);
+                    if (diffColors != null && i < diffColors.Length) diffColors[i].Color = inactiveDiffColor;
+                }
+        }
+
+        private void OnScoreCacheUpdated()
+        {
+            var (level, chart) = storage.SelectedChart.Value;
+            if (level == null || chart == null) return;
+
+            UpdateScoreFromCache(level.id, SongDifficultyUtility.GetApiDifficulty(chart));
+        }
+
+        private void UpdateScoreFromCache(string songId, int difficulty)
+        {
+            if (ScoreCache.TryGetScore(songId, difficulty, out var cachedScore, out _))
             {
-                diffNumbers[i].gameObject.SetActive(false);
-                diffColors[i].Color = inactiveDiffColor;
+                if (score != null) score.text = FormatAccPercent(cachedScore);
+
+                if (ratingDisplay != null) ratingDisplay.Value = GetStarCount(cachedScore);
             }
+            else
+            {
+                if (score != null) score.text = "--";
+
+                if (ratingDisplay != null) ratingDisplay.Value = 0;
+            }
+        }
+
+        private static string FormatAccPercent(double accPercent)
+        {
+            return $"{accPercent:0.0000}%";
+        }
+
+        private static int GetStarCount(double accPercent)
+        {
+            if (accPercent > 99.5) return 5;
+
+            if (accPercent > 99) return 4;
+
+            if (accPercent > 98.5) return 3;
+
+            if (accPercent > 98) return 2;
+
+            if (accPercent > 97) return 1;
+
+            return 0;
         }
 
         private void SwitchDifficulty()
         {
-            ChangeDifficulty(distance: 1);
+            ChangeDifficulty(1);
         }
 
         private void SwitchNextDifficulty()
         {
-            ChangeDifficulty(distance: 2);
+            ChangeDifficulty(2);
         }
 
         private void ChangeDifficulty(int distance)
         {
             var (level, chart) = storage.SelectedChart.Value;
-            if (level == null)
-            {
-                return;
-            }
+            if (level == null) return;
 
             if (chart == null)
             {
-                storage.SelectedChart.Value = (level, level.Settings.Charts[0]);
+                var charts = SongDifficultyUtility.GetPlayableDifficulties(level);
+                if (charts.Count == 0) return;
+
+                storage.SelectedChart.Value = (level, charts[0]);
+                return;
             }
 
-            int indexOfCurrentChart = 0;
-            for (int i = 0; i < level.Settings.Charts.Count; i++)
+            var chartList = SongDifficultyUtility.GetPlayableDifficulties(level);
+            if (chartList.Count == 0) return;
+
+            var indexOfCurrentChart = 0;
+            for (var i = 0; i < chartList.Count; i++)
             {
-                ChartSettings otherChart = level.Settings.Charts[i];
-                if (otherChart == chart)
+                var otherChart = chartList[i];
+                if (SongDifficultyUtility.IsSameDifficulty(otherChart, chart))
                 {
                     indexOfCurrentChart = i;
                     break;
                 }
             }
 
-            ChartSettings next = level.Settings.Charts[(indexOfCurrentChart + distance) % level.Settings.Charts.Count];
+            var next = chartList[(indexOfCurrentChart + distance) % chartList.Count];
             storage.SelectedChart.Value = (level, next);
         }
     }

@@ -1,47 +1,41 @@
 using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public class ParticlePool<T>
     where T : Component
 {
-    private readonly GameObject prefab;
     private readonly Transform parent;
+    private readonly GameObject prefab;
+    private int index;
     private T[] pool;
-    private int index = 0;
 
     public ParticlePool(GameObject prefab, Transform parent, int poolSize)
     {
         this.prefab = prefab;
         this.parent = parent;
         pool = new T[poolSize];
-        for (int i = 0; i < poolSize; i++)
+        for (var i = 0; i < poolSize; i++)
         {
-            GameObject go = UnityEngine.Object.Instantiate(prefab, parent);
+            var go = Object.Instantiate(prefab, parent);
             pool[i] = go.GetComponent<T>();
         }
     }
 
     public T Get()
     {
-        T result = pool[index];
+        var result = pool[index];
         index += 1;
-        if (index >= pool.Length)
-        {
-            index = 0;
-        }
+        if (index >= pool.Length) index = 0;
 
         return result;
     }
 
     public void Destroy()
     {
-        for (int i = 0; i < pool.Length; i++)
-        {
+        for (var i = 0; i < pool.Length; i++)
             if (pool[i] != null)
-            {
-                UnityEngine.Object.Destroy(pool[i].gameObject);
-            }
-        }
+                Object.Destroy(pool[i].gameObject);
 
         pool = new T[0];
     }
@@ -50,11 +44,11 @@ public class ParticlePool<T>
     {
         if (newPoolSize > pool.Length)
         {
-            T[] newPool = new T[newPoolSize];
+            var newPool = new T[newPoolSize];
             Array.Copy(pool, newPool, pool.Length);
-            for (int i = pool.Length; i < newPoolSize; i++)
+            for (var i = pool.Length; i < newPoolSize; i++)
             {
-                GameObject go = UnityEngine.Object.Instantiate(prefab, parent);
+                var go = Object.Instantiate(prefab, parent);
                 newPool[i] = go.GetComponent<T>();
             }
 
@@ -62,12 +56,9 @@ public class ParticlePool<T>
         }
         else if (newPoolSize < pool.Length)
         {
-            T[] newPool = new T[newPoolSize];
+            var newPool = new T[newPoolSize];
             Array.Copy(pool, newPool, newPoolSize);
-            for (int i = newPoolSize; i < pool.Length; i++)
-            {
-                UnityEngine.Object.Destroy(pool[i].gameObject);
-            }
+            for (var i = newPoolSize; i < pool.Length; i++) Object.Destroy(pool[i].gameObject);
 
             pool = newPool;
         }

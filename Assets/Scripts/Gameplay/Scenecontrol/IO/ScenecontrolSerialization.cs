@@ -5,46 +5,41 @@ namespace ArcCreate.Gameplay.Scenecontrol
 {
     public class ScenecontrolSerialization
     {
-        private readonly List<ISerializableUnit> units = new List<ISerializableUnit>();
-        private readonly List<SerializedUnit> serializedUnits;
-        private readonly Dictionary<ISerializableUnit, int> idLookup = new Dictionary<ISerializableUnit, int>();
-
-        public List<SerializedUnit> Result => serializedUnits;
+        private readonly Dictionary<ISerializableUnit, int> idLookup = new();
+        private readonly List<ISerializableUnit> units = new();
 
         public ScenecontrolSerialization()
         {
             var versioning = new ScenecontrolVersioning(EnabledFeatures.All);
             units.Add(versioning);
             idLookup.Add(versioning, 0);
-            serializedUnits = new List<SerializedUnit> {
-                new SerializedUnit
+            Result = new List<SerializedUnit>
+            {
+                new()
                 {
                     Type = GetTypeFromUnit(versioning),
-                    Properties = versioning.SerializeProperties(this),
-                }};
+                    Properties = versioning.SerializeProperties(this)
+                }
+            };
         }
+
+        public List<SerializedUnit> Result { get; }
 
         public int? AddUnitAndGetId(ISerializableUnit unit)
         {
-            if (unit == null)
-            {
-                return null;
-            }
+            if (unit == null) return null;
 
-            if (idLookup.TryGetValue(unit, out int id))
-            {
-                return id;
-            }
+            if (idLookup.TryGetValue(unit, out var id)) return id;
 
             units.Add(unit);
             id = units.Count - 1;
             idLookup.Add(unit, id);
             SerializedUnit serialized = default;
-            serializedUnits.Add(serialized);
-            serializedUnits[id] = new SerializedUnit
+            Result.Add(serialized);
+            Result[id] = new SerializedUnit
             {
                 Type = GetTypeFromUnit(unit),
-                Properties = unit.SerializeProperties(this),
+                Properties = unit.SerializeProperties(this)
             };
 
             return id;
@@ -149,11 +144,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 default:
                     if (unit is ISceneController controller)
                     {
-                        string name = controller?.SerializedType;
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            return name;
-                        }
+                        var name = controller?.SerializedType;
+                        if (!string.IsNullOrEmpty(name)) return name;
                     }
 
                     throw new Exception($"Could not get type of object: {unit.GetType().Name}");

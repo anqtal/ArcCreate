@@ -8,7 +8,7 @@ namespace ArcCreate.Data
         FullCombo = 20,
         AllGood = 21,
         AllPerfect = 22,
-        Max = 23,
+        Max = 23
     }
 
     public enum Grade
@@ -20,7 +20,7 @@ namespace ArcCreate.Data
         B = 8_900_000,
         C = 8_600_000,
         D = 0,
-        Unknown = -1,
+        Unknown = -1
     }
 
 #pragma warning disable

@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1184252354983285234}
   - component: {fileID: 1184252354983285237}
-  - component: {fileID: 1184252354983285230}
   - component: {fileID: 1184252354983285231}
   m_Layer: 11
   m_Name: ColorInputField
@@ -50,21 +49,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1184252354983285233}
   m_CullTransparentMesh: 0
---- !u!114 &1184252354983285230
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1184252354983285233}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f3481c0e240463eda540062f9ae4cf6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  colorPreview: {fileID: 3014758101762927651}
-  colorWithAlphaPreview: {fileID: 3014758102453522599}
-  currentColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!114 &1184252354983285231
 MonoBehaviour:
   m_ObjectHideFlags: 0

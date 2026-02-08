@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace ArcCreate.Gameplay.Scenecontrol
 {
     public class StringKey
@@ -10,10 +12,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public void Deserialize(string str)
         {
-            int i = str.IndexOf(',');
-            string timingString = str.Substring(0, i);
-            string valueString = str.Substring(i + 1);
-            Timing = UnityEngine.Mathf.RoundToInt(float.Parse(timingString));
+            var i = str.IndexOf(',');
+            var timingString = str.Substring(0, i);
+            var valueString = str.Substring(i + 1);
+            Timing = Mathf.RoundToInt(float.Parse(timingString));
             Value = valueString;
         }
 

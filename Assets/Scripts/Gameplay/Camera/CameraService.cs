@@ -6,26 +6,25 @@ using UnityEngine;
 
 namespace ArcCreate.Gameplay.GameplayCamera
 {
-    public class CameraService : MonoBehaviour, ICameraService, ICameraControl
+    public class CameraService : MonoBehaviour
     {
         [SerializeField] private Camera backgroundCamera;
         [SerializeField] private Camera overlayCamera;
         [SerializeField] private RectTransform backgroundRect;
-        private float currentTilt;
         private float currentArcPos;
-        private bool isReset;
-        private List<CameraEvent> events = new List<CameraEvent>();
+        private float currentTilt;
 
         private float fieldOfViewExternal;
+        private bool isReset;
+        private Quaternion rotationExternal;
         private float tiltFactorExternal;
         private Vector3 translationExternal;
-        private Quaternion rotationExternal;
 
         public Camera GameplayCamera => backgroundCamera;
 
         public Camera UICamera => overlayCamera;
 
-        public List<CameraEvent> Events => events;
+        public List<CameraEvent> Events { get; private set; } = new();
 
         public bool IsEditorCamera { get; set; }
 
@@ -56,40 +55,47 @@ namespace ArcCreate.Gameplay.GameplayCamera
         public Camera[] RenderingCameras { get; private set; }
 
         /// <summary>
-        /// Gets 0 on 16:9, 1 on 4:3 (16:12), value is unclamped, use with Mathf.Clerp().
+        ///     Gets 0 on 16:9, 1 on 4:3 (16:12), value is unclamped, use with Mathf.Clerp().
         /// </summary>
         private float AspectAdjustment
         {
             get
             {
-                float height = backgroundCamera.pixelHeight / (backgroundCamera.pixelWidth / 16f);
+                var height = backgroundCamera.pixelHeight / (backgroundCamera.pixelWidth / 16f);
                 return (height - 9) / 3f;
             }
         }
 
         private Vector3 ResetPosition
-            => new Vector3(0f, Values.CameraY, Mathf.Lerp(Values.CameraZ, Values.CameraZTablet, AspectAdjustment));
+            => new(0f, Values.CameraY, Mathf.Lerp(Values.CameraZ, Values.CameraZTablet, AspectAdjustment));
 
         private Vector3 ResetRotation
-            => new Vector3(Mathf.Lerp(Values.CameraRotX, Values.CameraRotXTablet, AspectAdjustment), 180f, 0f);
+            => new(Mathf.Lerp(Values.CameraRotX, Values.CameraRotXTablet, AspectAdjustment), 180f, 0f);
 
         private float ResetFOV
             => Mathf.Lerp(50, 65, AspectAdjustment);
 
+        private void Awake()
+        {
+            currentArcPos = 0;
+            isReset = true;
+            RenderingCameras = new[] { backgroundCamera, overlayCamera };
+        }
+
         public void Load(List<CameraEvent> cameras)
         {
-            events = cameras;
+            Events = cameras;
             RebuildList();
         }
 
         public void Clear()
         {
-            events.Clear();
+            Events.Clear();
         }
 
         public void Add(IEnumerable<CameraEvent> events)
         {
-            this.events.AddRange(events);
+            this.Events.AddRange(events);
             RebuildList();
         }
 
@@ -100,66 +106,54 @@ namespace ArcCreate.Gameplay.GameplayCamera
 
         public void Remove(IEnumerable<CameraEvent> events)
         {
-            foreach (var cam in events)
-            {
-                this.events.Remove(cam);
-            }
+            foreach (var cam in events) this.Events.Remove(cam);
 
             RebuildList();
         }
 
         public void RemoveTimingGroup(TimingGroup group)
         {
-            events.RemoveAll(e => e.TimingGroup == group.GroupNumber);
+            Events.RemoveAll(e => e.TimingGroup == group.GroupNumber);
 
-            foreach (var cam in events)
-            {
+            foreach (var cam in Events)
                 if (cam.TimingGroup > group.GroupNumber)
                 {
                     cam.TimingGroup -= 1;
                     cam.ResetTimingGroupChangedFrom();
                 }
-            }
 
             RebuildList();
         }
 
         public void InsertTimingGroup(TimingGroup group)
         {
-            foreach (var cam in events)
-            {
+            foreach (var cam in Events)
                 if (cam.TimingGroup >= group.GroupNumber)
                 {
                     cam.TimingGroup += 1;
                     cam.ResetTimingGroupChangedFrom();
                 }
-            }
 
             RebuildList();
         }
 
         public IEnumerable<CameraEvent> FindByTiming(int from, int to)
         {
-            for (int i = 0; i < events.Count; i++)
+            for (var i = 0; i < Events.Count; i++)
             {
-                CameraEvent cam = events[i];
-                if (cam.Timing >= from && cam.Timing >= from && cam.Timing <= to)
-                {
-                    yield return cam;
-                }
+                var cam = Events[i];
+                if (cam.Timing >= from && cam.Timing >= from && cam.Timing <= to) yield return cam;
             }
         }
 
         public IEnumerable<CameraEvent> FindWithinRange(int from, int to, bool overlapCompletely)
         {
-            for (int i = 0; i < events.Count; i++)
+            for (var i = 0; i < Events.Count; i++)
             {
-                CameraEvent cam = events[i];
+                var cam = Events[i];
                 if ((overlapCompletely && cam.Timing >= from && cam.Timing + cam.Duration <= to)
-                 || (!overlapCompletely && (cam.Timing >= from || cam.Timing + cam.Duration <= to)))
-                {
+                    || (!overlapCompletely && (cam.Timing >= from || cam.Timing + cam.Duration <= to)))
                     yield return cam;
-                }
             }
         }
 
@@ -190,24 +184,21 @@ namespace ArcCreate.Gameplay.GameplayCamera
                 return;
             }
 
-            Vector3 prevPosition = backgroundCamera.transform.localPosition;
-            Vector3 position = ResetPosition + translationExternal;
-            Quaternion lookAtRotation = Quaternion.LookRotation(
+            var prevPosition = backgroundCamera.transform.localPosition;
+            var position = ResetPosition + translationExternal;
+            var lookAtRotation = Quaternion.LookRotation(
                 new Vector3(0, -5.5f, -20) - ResetPosition,
                 new Vector3(currentTilt, 1 - currentTilt, 0)) * Quaternion.Inverse(Quaternion.Euler(ResetRotation));
-            float fov = ResetFOV + fieldOfViewExternal;
-            Vector3 rotation = ResetRotation;
+            var fov = ResetFOV + fieldOfViewExternal;
+            var rotation = ResetRotation;
             backgroundCamera.fieldOfView = fov;
             overlayCamera.fieldOfView = fov;
 
             isReset = true;
-            for (int i = 0; i < events.Count; i++)
+            for (var i = 0; i < Events.Count; i++)
             {
-                CameraEvent cam = events[i];
-                if (cam.Timing > currentTiming)
-                {
-                    break;
-                }
+                var cam = Events[i];
+                if (cam.Timing > currentTiming) break;
 
                 isReset = cam.IsReset;
                 if (isReset)
@@ -216,7 +207,7 @@ namespace ArcCreate.Gameplay.GameplayCamera
                     rotation = ResetRotation;
                 }
 
-                float percent = cam.PercentAt(currentTiming);
+                var percent = cam.PercentAt(currentTiming);
                 position += new Vector3(-cam.Move.x, cam.Move.y, cam.Move.z) * percent / 100f;
                 rotation += new Vector3(-cam.Rotate.y, -cam.Rotate.x, cam.Rotate.z) * percent;
             }
@@ -228,7 +219,9 @@ namespace ArcCreate.Gameplay.GameplayCamera
             else
             {
                 backgroundCamera.transform.localPosition = position;
-                backgroundCamera.transform.localRotation = lookAtRotation * rotationExternal * Quaternion.Euler(0f, 0f, rotation.z) * Quaternion.Euler(rotation.x, rotation.y, 0f);
+                backgroundCamera.transform.localRotation = lookAtRotation * rotationExternal *
+                                                           Quaternion.Euler(0f, 0f, rotation.z) *
+                                                           Quaternion.Euler(rotation.x, rotation.y, 0f);
             }
 
             UpdateCameraTilt();
@@ -254,12 +247,12 @@ namespace ArcCreate.Gameplay.GameplayCamera
                 return;
             }
 
-            float pos = -Mathf.Clamp(currentArcPos / Values.LaneWidth, -1, 1) * Values.CameraArcPosScalar;
-            float delta = pos - currentTilt;
+            var pos = -Mathf.Clamp(currentArcPos / Values.LaneWidth, -1, 1) * Values.CameraArcPosScalar;
+            var delta = pos - currentTilt;
             if (Mathf.Abs(delta) >= 0.001f)
             {
-                float speed = Values.CameraTiltSpeed;
-                float deltaTime = Mathf.Min(Time.deltaTime, 0.1f);
+                var speed = Values.CameraTiltSpeed;
+                var deltaTime = Mathf.Min(Time.deltaTime, 0.1f);
                 currentTilt += speed * delta * deltaTime;
             }
             else
@@ -273,14 +266,7 @@ namespace ArcCreate.Gameplay.GameplayCamera
 
         private void RebuildList()
         {
-            events.Sort((a, b) => a.CompareTo(b));
-        }
-
-        private void Awake()
-        {
-            currentArcPos = 0;
-            isReset = true;
-            RenderingCameras = new Camera[] { backgroundCamera, overlayCamera };
+            Events.Sort((a, b) => a.CompareTo(b));
         }
     }
 }

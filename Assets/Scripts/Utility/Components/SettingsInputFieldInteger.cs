@@ -19,13 +19,6 @@ namespace ArcCreate
             }
         }
 
-        public void Setup(IntSetting setting)
-        {
-            this.setting = setting;
-            setting.OnValueChanged.AddListener(OnSettingChange);
-            OnSettingChange(setting.Value);
-        }
-
         private void Awake()
         {
             Input.onValueChanged.AddListener(OnUIChange);
@@ -37,6 +30,13 @@ namespace ArcCreate
             setting?.OnValueChanged.RemoveListener(OnSettingChange);
         }
 
+        public void Setup(IntSetting setting)
+        {
+            this.setting = setting;
+            setting.OnValueChanged.AddListener(OnSettingChange);
+            OnSettingChange(setting.Value);
+        }
+
         private void OnSettingChange(int value)
         {
             Input.SetTextWithoutNotify(value.ToString());
@@ -44,10 +44,7 @@ namespace ArcCreate
 
         private void OnUIChange(string value)
         {
-            if (Evaluator.TryInt(value, out int v))
-            {
-                setting.Value = v;
-            }
+            if (Evaluator.TryInt(value, out var v)) setting.Value = v;
 
             Input.SetTextWithoutNotify(setting.Value.ToString());
         }

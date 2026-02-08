@@ -8,17 +8,17 @@ namespace ArcCreate.Utility.Lua
 {
     public static class LuaRunner
     {
-        private static bool hasRegisteredAssembly = false;
+        private static bool hasRegisteredAssembly;
 
         /// <summary>
-        /// Runs a string of lua script.
+        ///     Runs a string of lua script.
         /// </summary>
         /// <param name="script">The script to run.</param>
         /// <param name="setup">The object to setup the script, for binding methods.</param>
         /// <param name="scriptLoader">The script loader instance for loading script from file system.</param>
         public static void RunScript(string script, IScriptSetup setup, FileSystemScriptLoader scriptLoader = null)
         {
-            Script scriptObject = new Script();
+            var scriptObject = new Script();
             Script.GlobalOptions.RethrowExceptionNested = true;
             scriptObject.Options.UseLuaErrorLocations = true;
 
@@ -28,10 +28,7 @@ namespace ArcCreate.Utility.Lua
                 hasRegisteredAssembly = true;
             }
 
-            if (scriptLoader != null)
-            {
-                scriptObject.Options.ScriptLoader = scriptLoader;
-            }
+            if (scriptLoader != null) scriptObject.Options.ScriptLoader = scriptLoader;
 
             RegisterCommon(scriptObject);
             setup.SetupScript(scriptObject);
@@ -52,45 +49,48 @@ namespace ArcCreate.Utility.Lua
         }
 
         [EmmyAlias("xy")]
-        public static XY XY(float x, float y) => new XY(x, y);
+        public static XY XY(float x, float y)
+        {
+            return new XY(x, y);
+        }
 
         [EmmyAlias("xyz")]
-        public static XYZ XYZ(float x, float y, float z) => new XYZ(x, y, z);
+        public static XYZ XYZ(float x, float y, float z)
+        {
+            return new XYZ(x, y, z);
+        }
 
         [EmmyAlias("hsva")]
-        public static HSVA HSVA(float h, float s, float v, float a) => new HSVA(h, s, v, a);
+        public static HSVA HSVA(float h, float s, float v, float a)
+        {
+            return new HSVA(h, s, v, a);
+        }
 
         [EmmyAlias("rgba")]
-        public static RGBA RGBA(float r, float g, float b, float a) => new RGBA(r, g, b, a);
+        public static RGBA RGBA(float r, float g, float b, float a)
+        {
+            return new RGBA(r, g, b, a);
+        }
 
-        public static void Log(object content) => Debug.Log(content.ToString());
+        public static void Log(object content)
+        {
+            Debug.Log(content.ToString());
+        }
 
         public static double ToNumber(DynValue value)
         {
-            if (value.Type == DataType.Number)
-            {
-                return value.Number;
-            }
+            if (value.Type == DataType.Number) return value.Number;
 
-            if (double.TryParse(value.String, out double result))
-            {
-                return result;
-            }
+            if (double.TryParse(value.String, out var result)) return result;
 
             return 0;
         }
 
         public static bool ToBool(DynValue value)
         {
-            if (value.Type == DataType.Boolean)
-            {
-                return value.Boolean;
-            }
+            if (value.Type == DataType.Boolean) return value.Boolean;
 
-            if (bool.TryParse(value.String.ToLower(), out bool result))
-            {
-                return result;
-            }
+            if (bool.TryParse(value.String.ToLower(), out var result)) return result;
 
             return false;
         }

@@ -7,16 +7,16 @@ namespace ArcCreate.Gameplay.Data
     {
         public RawTimingGroup Properties { get; set; }
 
-        public List<Tap> Taps { get; set; } = new List<Tap>();
+        public List<Tap> Taps { get; set; } = new();
 
-        public List<Hold> Holds { get; set; } = new List<Hold>();
+        public List<Hold> Holds { get; set; } = new();
 
-        public List<Arc> Arcs { get; set; } = new List<Arc>();
+        public List<Arc> Arcs { get; set; } = new();
 
-        public List<ArcTap> ArcTaps { get; set; } = new List<ArcTap>();
+        public List<ArcTap> ArcTaps { get; set; } = new();
 
-        public List<TimingEvent> Timings { get; set; } = new List<TimingEvent>();
+        public List<TimingEvent> Timings { get; set; } = new();
 
-        public List<ArcEvent> ReferenceEvents { get; set; } = new List<ArcEvent>();
+        public List<ArcEvent> ReferenceEvents { get; set; } = new();
     }
 }

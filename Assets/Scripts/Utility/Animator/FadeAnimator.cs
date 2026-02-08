@@ -7,12 +7,17 @@ namespace ArcCreate.Utility.Animation
     public class FadeAnimator : ScriptedAnimatorComponent
     {
         [SerializeField] private float animationDuration = 0.3f;
-        [SerializeField] private float delay = 0;
+        [SerializeField] private float delay;
         [SerializeField] private Ease animationEase = Ease.OutCubic;
         [SerializeField] private float defaultAlpha;
         private CanvasGroup canvasGroup;
 
         public override float AnimationLength => animationDuration + delay;
+
+        public override void Reset()
+        {
+            canvasGroup.alpha = defaultAlpha;
+        }
 
         public override Tween GetShowTween()
         {
@@ -34,11 +39,6 @@ namespace ArcCreate.Utility.Animation
         public override void RegisterDefaultValues()
         {
             defaultAlpha = canvasGroup.alpha;
-        }
-
-        public override void Reset()
-        {
-            canvasGroup.alpha = defaultAlpha;
         }
 
         public override void HideImmediate()

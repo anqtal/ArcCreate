@@ -15,6 +15,9 @@ namespace ArcCreate.Utility.Parser
             Length = length;
         }
 
-        public static implicit operator T(TextSpan<T> original) => original.Value;
+        public static implicit operator T(TextSpan<T> original)
+        {
+            return original.Value;
+        }
     }
 }

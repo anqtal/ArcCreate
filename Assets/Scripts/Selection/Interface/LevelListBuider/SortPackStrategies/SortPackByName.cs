@@ -9,13 +9,10 @@ namespace ArcCreate.Selection.Interface
 
         public List<PackCellData> Sort(List<PackCellData> cells)
         {
-            if (cells.Count == 0)
-            {
-                return cells;
-            }
+            if (cells.Count == 0) return cells;
 
             return cells
-                .OrderBy(cell => cell.PackStorage.PackName)
+                .OrderBy(cell => cell.Pack?.name)
                 .ToList();
         }
     }

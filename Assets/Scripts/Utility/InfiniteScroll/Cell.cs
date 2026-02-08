@@ -9,7 +9,7 @@ namespace ArcCreate.Utility.InfiniteScroll
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private bool useTwoStagesLoad;
         [SerializeField] private float predictedLoadTime;
-        private CancellationTokenSource cts = new CancellationTokenSource();
+        private CancellationTokenSource cts = new();
 
         public RectTransform RectTransform => rectTransform;
 
@@ -22,7 +22,7 @@ namespace ArcCreate.Utility.InfiniteScroll
         public float PredictedLoadTime => predictedLoadTime;
 
         /// <summary>
-        /// Toggle collapse of this cell.
+        ///     Toggle collapse of this cell.
         /// </summary>
         public void ToggleCollapse()
         {
@@ -30,7 +30,7 @@ namespace ArcCreate.Utility.InfiniteScroll
         }
 
         /// <summary>
-        /// Add data to cell. Called whenever cells enter the viewport.
+        ///     Add data to cell. Called whenever cells enter the viewport.
         /// </summary>
         /// <param name="cellData">The source data.</param>
         public abstract void SetCellData(CellData cellData);
@@ -46,8 +46,8 @@ namespace ArcCreate.Utility.InfiniteScroll
         }
 
         /// <summary>
-        /// Finalize cell loading. Called when player scrolls slower than a set threshold for a set duration of time
-        /// Intended for costly processes such as loading image texture.
+        ///     Finalize cell loading. Called when player scrolls slower than a set threshold for a set duration of time
+        ///     Intended for costly processes such as loading image texture.
         /// </summary>
         /// <param name="cellData">The source data.</param>
         /// <param name="cancellationToken">Cancellation token, invoked when cell exit the viewport.</param>

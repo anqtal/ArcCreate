@@ -4,8 +4,8 @@ namespace ArcCreate.Gameplay.Audio
 {
     public class DoubleClickPauseHandler : IPauseButtonHandler
     {
-        private readonly PauseButton parent;
         private readonly float maxDuration;
+        private readonly PauseButton parent;
         private float lastClickAt = float.MinValue;
 
         public DoubleClickPauseHandler(PauseButton parent, float maxDuration)
@@ -20,9 +20,9 @@ namespace ArcCreate.Gameplay.Audio
 
         public void OnRelease()
         {
-            float oldLast = lastClickAt;
+            var oldLast = lastClickAt;
             lastClickAt = Time.time;
-            bool result = oldLast + maxDuration >= lastClickAt;
+            var result = oldLast + maxDuration >= lastClickAt;
             if (result)
             {
                 lastClickAt = float.MinValue;

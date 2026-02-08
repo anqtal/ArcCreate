@@ -2,17 +2,14 @@ using System;
 using System.Collections.Generic;
 using ArcCreate.Data;
 using ArcCreate.Gameplay.Judgement;
-using ArcCreate.SceneTransition;
 using ArcCreate.Utility;
 using ArcCreate.Utility.Extension;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace ArcCreate.Gameplay.Score
 {
-    public class ScoreService : MonoBehaviour, IScoreService
+    public class ScoreService : MonoBehaviour
     {
         [SerializeField] private TMP_Text comboText;
         [SerializeField] private TMP_Text predictedGradeText;
@@ -26,33 +23,49 @@ namespace ArcCreate.Gameplay.Score
         [SerializeField] private GameObject maxIndicator;
         [SerializeField] private Transform indicatorsContainer;
         [SerializeField] private Transform[] indicatorParents;
-        private readonly char[] scoreCharArray = new char[64];
         private readonly char[] comboCharArray = new char[64];
 
         private readonly int[] judgeCounts = new int[10];
-        private int currentCombo = 0;
-        private int maxCombo = 0;
-        private int noteCount = 1;
-        private double currentScoreFull = 0;
-        private double currentScorePartial = 0;
-        private double currentCountFull = 0;
-        private double currentCountPartial = 0;
-        private float comboRedmix = 0;
-        private readonly StatisticCalculator offsetCalculator = new StatisticCalculator();
-        private readonly UnorderedList<ScoreEvent> pendingScoreEvents = new UnorderedList<ScoreEvent>(20);
-        private readonly List<JudgementResult> resultReceivedThisFrame = new List<JudgementResult>(20);
+        private readonly StatisticCalculator offsetCalculator = new();
+        private readonly UnorderedList<ScoreEvent> pendingScoreEvents = new(20);
+        private readonly List<JudgementResult> resultReceivedThisFrame = new(20);
+        private readonly char[] scoreCharArray = new char[64];
         private Grade[] cachedGradeOptions;
-        private bool isBegin = true;
+        private float comboRedmix;
+        private double currentCountFull;
+        private double currentCountPartial;
+        private double currentScoreFull;
+        private double currentScorePartial;
+        private int maxCombo;
+
+        // private bool isBegin = true;
 
         public int CurrentScore => (int)Math.Round(CurrentScoreTotal);
 
-        public int CurrentCombo => currentCombo;
+        public int CurrentCombo { get; private set; }
 
-        public int NoteCount => noteCount;
+        public int NoteCount { get; private set; } = 1;
 
         private double CurrentScoreTotal => currentScoreFull + currentScorePartial;
 
         private double CurrentCountTotal => currentCountFull + currentCountPartial;
+
+        private void Awake()
+        {
+            Settings.EnableMaxIndicator.OnValueChanged.AddListener(OnEnableMaxIndicatorSettings);
+            Settings.FrPmIndicatorPosition.OnValueChanged.AddListener(OnFrPmPositionSettings);
+
+            OnEnableMaxIndicatorSettings(Settings.EnableMaxIndicator.Value);
+            OnFrPmPositionSettings(Settings.FrPmIndicatorPosition.Value);
+
+            cachedGradeOptions = (Grade[])Enum.GetValues(typeof(Grade));
+        }
+
+        private void OnDestroy()
+        {
+            Settings.EnableMaxIndicator.OnValueChanged.RemoveListener(OnEnableMaxIndicatorSettings);
+            Settings.FrPmIndicatorPosition.OnValueChanged.RemoveListener(OnFrPmPositionSettings);
+        }
 
         public int GetJudgementCount(JudgementResult type)
         {
@@ -71,25 +84,22 @@ namespace ArcCreate.Gameplay.Score
 
             if (result.IsMiss())
             {
-                isBegin = false;
-                currentCombo = 0;
+                // isBegin = false;
+                CurrentCombo = 0;
                 //currentCombo--;
-                
+
                 // if (currentCombo == 0 && !isBegin)
                 // {
                 //     Services.Audio.Stop();
                 //     var result_ = Services.Score.GetPlayResult();
                 //     gameplayData.NotifyPlayComplete(result_);
                 // }
-                if (Mathf.Approximately(comboRedmix, 0))
-                {
-                    comboRedmix = 1;
-                }
+                if (Mathf.Approximately(comboRedmix, 0)) comboRedmix = 1;
 
-                pendingScoreEvents.Add(new ScoreEvent()
+                pendingScoreEvents.Add(new ScoreEvent
                 {
                     Timing = Services.Audio.ChartTiming,
-                    Score = 0,
+                    Score = 0
                 });
 
                 frIndicator.SetActive(false);
@@ -99,11 +109,11 @@ namespace ArcCreate.Gameplay.Score
             }
 
             comboRedmix = 0;
-            currentCombo++;
-            maxCombo = Mathf.Max(currentCombo, maxCombo);
+            CurrentCombo++;
+            maxCombo = Mathf.Max(CurrentCombo, maxCombo);
 
-            double scorePerNote =
-                noteCount != 0 ? (double)Constants.MaxScore / noteCount : 0;
+            var scorePerNote =
+                NoteCount != 0 ? (double)Constants.MaxScore / NoteCount : 0;
 
             double scoreToAdd = 0;
             if (result.IsGood())
@@ -122,16 +132,13 @@ namespace ArcCreate.Gameplay.Score
                 maxIndicator.SetActive(false);
             }
 
-            pendingScoreEvents.Add(new ScoreEvent()
+            pendingScoreEvents.Add(new ScoreEvent
             {
                 Timing = Services.Audio.ChartTiming,
-                Score = scoreToAdd,
+                Score = scoreToAdd
             });
 
-            if (offset.HasValue)
-            {
-                offsetCalculator.UpdateStatistics(offset.Value);
-            }
+            if (offset.HasValue) offsetCalculator.UpdateStatistics(offset.Value);
         }
 
         public void UpdateScore(int currentTiming)
@@ -142,16 +149,15 @@ namespace ArcCreate.Gameplay.Score
             // }
 
 
-
-            comboRedmix = comboRedmix - (Time.deltaTime / Values.ComboLostFlashDuration);
+            comboRedmix = comboRedmix - Time.deltaTime / Values.ComboLostFlashDuration;
             comboRedmix = Mathf.Max(comboRedmix, 0);
-            SetCombo(currentCombo);
+            SetCombo(CurrentCombo);
             currentScorePartial = 0;
             currentCountPartial = 0;
 
-            for (int i = pendingScoreEvents.Count - 1; i >= 0; i--)
+            for (var i = pendingScoreEvents.Count - 1; i >= 0; i--)
             {
-                ScoreEvent scoreEvent = pendingScoreEvents[i];
+                var scoreEvent = pendingScoreEvents[i];
 
                 if (currentTiming > scoreEvent.Timing + Values.ScoreModifyDelay)
                 {
@@ -161,11 +167,8 @@ namespace ArcCreate.Gameplay.Score
                 }
                 else
                 {
-                    double partial = (double)(currentTiming - scoreEvent.Timing) / Values.ScoreModifyDelay;
-                    if (partial < 0)
-                    {
-                        partial = 0;
-                    }
+                    var partial = (double)(currentTiming - scoreEvent.Timing) / Values.ScoreModifyDelay;
+                    if (partial < 0) partial = 0;
 
                     currentScorePartial += partial * scoreEvent.Score;
                     currentCountPartial += partial;
@@ -180,19 +183,16 @@ namespace ArcCreate.Gameplay.Score
 
         public void ResetScoreTo(int currentCombo, int noteCount)
         {
-            this.currentCombo = currentCombo;
-            this.maxCombo = currentCombo;
-            this.noteCount = noteCount;
+            this.CurrentCombo = currentCombo;
+            maxCombo = currentCombo;
+            this.NoteCount = noteCount;
             SetCombo(currentCombo);
 
             pendingScoreEvents.Clear();
             currentScorePartial = 0;
             currentCountPartial = 0;
 
-            for (int i = 0; i < judgeCounts.Length; i++)
-            {
-                judgeCounts[i] = 0;
-            }
+            for (var i = 0; i < judgeCounts.Length; i++) judgeCounts[i] = 0;
 
             if (noteCount == 0)
             {
@@ -201,7 +201,7 @@ namespace ArcCreate.Gameplay.Score
             }
             else
             {
-                double scorePerNote = (double)Constants.MaxScore / noteCount;
+                var scorePerNote = (double)Constants.MaxScore / noteCount;
                 currentScoreFull = (scorePerNote + 1) * currentCombo;
                 currentCountFull = currentCombo;
                 SetJudgementCount(JudgementResult.Max, currentCombo);
@@ -214,9 +214,15 @@ namespace ArcCreate.Gameplay.Score
             offsetCalculator.Reset();
         }
 
-        public List<JudgementResult> GetJudgementsThisFrame() => resultReceivedThisFrame;
+        public List<JudgementResult> GetJudgementsThisFrame()
+        {
+            return resultReceivedThisFrame;
+        }
 
-        public void ClearJudgementsThisFrame() => resultReceivedThisFrame.Clear();
+        public void ClearJudgementsThisFrame()
+        {
+            resultReceivedThisFrame.Clear();
+        }
 
         public PlayResult GetPlayResult()
         {
@@ -240,28 +246,28 @@ namespace ArcCreate.Gameplay.Score
                 GaugeValue = 100,
                 GaugeClearRequirement = 70,
                 GaugeMax = 100,
-                NoteCount = noteCount,
+                NoteCount = NoteCount
             };
         }
 
         public static double CalcAcc(int noteCount, int maxPure, int pure, int far)
         {
             var lost = noteCount - pure - far;
-            int totalNotes = pure + far + lost;
+            var totalNotes = pure + far + lost;
             if (totalNotes == 0) return 0.0; // 避免除零错误
 
-            double accScore = pure + far * 0.5 + maxPure * 0.01;
-            double acc = accScore / totalNotes;
+            var accScore = pure + far * 0.5 + maxPure * 0.01;
+            var acc = accScore / totalNotes;
             return acc * 100;
         }
 
         private void SetScore(double score, double count)
         {
             //int length = 0;
-            double scorePerNote = noteCount != 0 ? (double)Constants.MaxScore / noteCount : 0;
-            double theoreticalScore = count * (scorePerNote + 1);
-            double differenceToTheoretical = score - theoreticalScore;
-            var scoreDx = CalcAcc(noteCount,
+            var scorePerNote = NoteCount != 0 ? (double)Constants.MaxScore / NoteCount : 0;
+            var theoreticalScore = count * (scorePerNote + 1);
+            var differenceToTheoretical = score - theoreticalScore;
+            var scoreDx = CalcAcc(NoteCount,
                 GetJudgementCount(JudgementResult.Max),
                 GetJudgementCount(JudgementResult.Max) + GetJudgementCount(JudgementResult.PerfectEarly) +
                 GetJudgementCount(JudgementResult.PerfectLate),
@@ -375,45 +381,24 @@ namespace ArcCreate.Gameplay.Score
                 comboText.color = Services.Skin.ComboColor;
                 comboText.outlineColor = Services.Skin.ComboColor;
 
-                comboCharArray.SetNumberDigitsToArray(combo, out int length);
+                comboCharArray.SetNumberDigitsToArray(combo, out var length);
                 comboText.SetCharArray(comboCharArray, comboCharArray.Length - length, length);
             }
             else
             {
-                Color comboColor = comboLostColor;
+                var comboColor = comboLostColor;
                 comboColor.a = comboRedmix;
                 comboText.color = comboColor;
                 comboText.outlineColor = comboColor;
             }
         }
 
-        private void Awake()
-        {
-            Settings.EnableMaxIndicator.OnValueChanged.AddListener(OnEnableMaxIndicatorSettings);
-            Settings.FrPmIndicatorPosition.OnValueChanged.AddListener(OnFrPmPositionSettings);
-
-            OnEnableMaxIndicatorSettings(Settings.EnableMaxIndicator.Value);
-            OnFrPmPositionSettings(Settings.FrPmIndicatorPosition.Value);
-
-            cachedGradeOptions = (Grade[])Enum.GetValues(typeof(Grade));
-        }
-
-        private void OnDestroy()
-        {
-            Settings.EnableMaxIndicator.OnValueChanged.RemoveListener(OnEnableMaxIndicatorSettings);
-            Settings.FrPmIndicatorPosition.OnValueChanged.RemoveListener(OnFrPmPositionSettings);
-        }
-
         private void OnEnableMaxIndicatorSettings(bool enable)
         {
-            bool maxing = true;
-            for (int i = 0; i < judgeCounts.Length; i++)
-            {
+            var maxing = true;
+            for (var i = 0; i < judgeCounts.Length; i++)
                 if ((JudgementResult)i != JudgementResult.Max && judgeCounts[i] > 0)
-                {
                     maxing = false;
-                }
-            }
 
             maxIndicator.SetActive(enable && maxing);
         }
@@ -422,13 +407,9 @@ namespace ArcCreate.Gameplay.Score
         {
             var position = (FrPmPosition)pos;
             if (position == FrPmPosition.Off)
-            {
                 indicatorsContainer.gameObject.SetActive(false);
-            }
             else
-            {
                 indicatorsContainer.gameObject.SetActive(true);
-            }
         }
     }
 }

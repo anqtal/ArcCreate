@@ -14,6 +14,6 @@ namespace ArcCreate.ChartFormat
         TimingGroup,
         TimingGroupEnd,
         Include,
-        Fragment,
+        Fragment
     }
 }

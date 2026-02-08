@@ -11,15 +11,19 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public abstract int MaxLength { get; }
 
         [MoonSharpHidden]
+        public abstract List<object> SerializeProperties(ScenecontrolSerialization serialization);
+
+        void ISerializableUnit.DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
+        {
+            DeserializeProperties(properties, deserialization);
+        }
+
+        [MoonSharpHidden]
         public abstract char[] ValueAt(int timing, out int length, out bool hasChanged);
 
         [MoonSharpHidden]
-        public abstract List<object> SerializeProperties(ScenecontrolSerialization serialization);
-
-        [MoonSharpHidden]
-        public abstract void DeserializeProperties(List<object> properties, ScenecontrolDeserialization deserialization);
-
-        void ISerializableUnit.DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
-            => DeserializeProperties(properties, deserialization);
+        public abstract void DeserializeProperties(List<object> properties,
+            ScenecontrolDeserialization deserialization);
     }
 }

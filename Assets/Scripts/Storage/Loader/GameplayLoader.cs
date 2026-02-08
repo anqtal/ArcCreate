@@ -1,139 +1,119 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ArcCreate.ChartFormat;
-using ArcCreate.Data;
 using ArcCreate.Gameplay;
 using ArcCreate.Gameplay.Audio;
-using ArcCreate.Storage.Data;
 using ArcCreate.Utility.Extension;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace ArcCreate.Storage
 {
     public class GameplayLoader
     {
-        private readonly IGameplayControl gameplayControl;
+        private readonly GameplayManager gameplayControl;
         private readonly GameplayData gameplayData;
 
-        public GameplayLoader(IGameplayControl gameplayControl, GameplayData gameplayData)
+        public GameplayLoader(GameplayManager gameplayControl, GameplayData gameplayData)
         {
             this.gameplayControl = gameplayControl;
             this.gameplayData = gameplayData;
         }
 
-        public async UniTask Load(LevelStorage level, ChartSettings chart)
+        public async UniTask Load(SongList level, Difficulty difficulty)
         {
             await UniTask.DelayFrame(5);
-            LoadMetadata(level, chart);
-            LoadChart(level, chart);
-            LoadScenecontrol(level, chart);
+            await SongDownloadService.EnsureDownloaded(level, difficulty);
+            LoadMetadata(level, difficulty);
+            LoadChart(level, difficulty);
+            LoadScenecontrol(level, difficulty);
 
             // Avoid jacket flickering after reload
-            var audioTask = LoadAudio(level, chart);
-            var bgTask = LoadBackground(level, chart);
+            var audioTask = LoadAudio(level, difficulty);
+            var bgTask = LoadBackground(level, difficulty);
 
             await UniTask.WhenAll(audioTask, bgTask);
             await UniTask.WaitUntil(() => gameplayControl.IsLoaded);
         }
 
-        private static async UniTask LoadAudio(LevelStorage level, ChartSettings chart)
+        private static async UniTask LoadAudio(SongList level, Difficulty difficulty)
         {
-            var fileName = $"{level.Identifier}.ogg";
-            var localDir = Path.Combine(Application.persistentDataPath, "dl");
-            var localPath = Path.Combine(localDir, fileName);
-            if (!Directory.Exists(localDir))
-                Directory.CreateDirectory(localDir);
-            
-            if (!File.Exists(localPath))
-            {
-                var url = $"https://erc.osiom.cc/dl/song/{level.Identifier}/base.ogg";
+            var localPath = SongDownloadService.GetAudioPath(level.id);
+            if (!File.Exists(localPath)) throw new Exception("Audio file is missing after download.");
 
-                using var request = UnityWebRequest.Get(url);
-                request.downloadHandler = new DownloadHandlerBuffer();
-                await request.SendWebRequest();
-
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    throw new Exception($"下载音频失败: {request.error}");
-                }
-
-                await File.WriteAllBytesAsync(localPath, request.downloadHandler.data);
-            }
             await BassAudioService.Instance.LoadAudioAsync(localPath);
         }
 
-        private async UniTask LoadBackground(LevelStorage level, ChartSettings chart)
+        private async UniTask LoadBackground(SongList level, Difficulty difficulty)
         {
-            var bgPath = Path.Combine(Application.streamingAssetsPath, "bg", chart.BackgroundPath+".jpg");
-            var uri = new Uri(bgPath);
-            await gameplayData.LoadBackgroundFromHttp(uri);
+            var bgId = SongDifficultyUtility.GetBackgroundPath(level);
+            var localBgPath = DxResource.GetLocalPath(bgId, DxResource.FileType.BackgroundImage);
+            if (!string.IsNullOrWhiteSpace(localBgPath) && File.Exists(localBgPath))
+            {
+                await gameplayData.LoadBackgroundFromHttp(new Uri(localBgPath));
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(bgId)) return;
+
+            var bgPath = Path.Combine(Application.streamingAssetsPath, "bg", bgId + ".jpg");
+            if (File.Exists(bgPath)) await gameplayData.LoadBackgroundFromHttp(new Uri(bgPath));
         }
 
-        private void LoadScenecontrol(LevelStorage level, ChartSettings chart)
+        private void LoadScenecontrol(SongList level, Difficulty difficulty)
         {
             // change to touch
             Settings.InputMode.Value = (int)InputMode.Touch;
-            StorageFileAccessWrapper fileAccess = new StorageFileAccessWrapper(level);
-            Option<string> scJsonRealPath = level.GetRealPath(Path.ChangeExtension(chart.ChartPath, ".sc.json"));
-            if (scJsonRealPath.HasValue)
-            {
-                string json = File.ReadAllText(scJsonRealPath.Value);
-                gameplayControl.Scenecontrol.Import(json, fileAccess);
-            }
+            var fileAccess = new SongFileAccessWrapper(level.id);
 
             gameplayControl.Scenecontrol.WaitForSceneLoad();
         }
 
-        private void LoadChart(LevelStorage level, ChartSettings chart)
+        private void LoadChart(SongList level, Difficulty difficulty)
         {
-            var fileAccess = new StorageFileAccessWrapper(level);
-            var path = level.Identifier+chart.ChartPath;
-            var reader = ChartReaderFactory.GetReader(fileAccess, path);
+            var fileAccess = new SongFileAccessWrapper(level.id);
+            var reader = ChartReaderFactory.GetReader(fileAccess, SongDifficultyUtility.GetChartPath(difficulty));
             reader.Parse();
+            BassAudioService.Instance.ChartEndTiming = reader.Events.Max(e => e.Timing + e.Length);
+            BassAudioService.Instance.MyAnswerSoundPlayer = new AnswerSoundPlayer(reader.GuideSoundTiming);
             gameplayData.LoadChart(reader, "", fileAccess);
         }
 
-        private void LoadMetadata(LevelStorage level, ChartSettings chart)
+        private void LoadMetadata(SongList level, Difficulty difficulty)
         {
-            gameplayData.BaseBpm.Value = chart.BaseBpm;
-            gameplayControl.Skin.AlignmentSkin = chart.Skin?.Side ?? string.Empty;
-            gameplayControl.Skin.AccentSkin = chart.Skin?.Accent ?? string.Empty;
-            gameplayControl.Skin.NoteSkin = chart.Skin?.Note ?? string.Empty;
-            gameplayControl.Skin.ParticleSkin = chart.Skin?.Particle ?? string.Empty;
-            gameplayControl.Skin.SingleLineSkin = chart.Skin?.SingleLine ?? string.Empty;
-            gameplayControl.Skin.TrackSkin = chart.Skin?.Track ?? string.Empty;
+            gameplayData.BaseBpm.Value = level.bpm_base;
+            var skin = SongDifficultyUtility.GetSkin(level);
+            gameplayControl.Skin.AlignmentSkin = skin;
+            gameplayControl.Skin.AccentSkin = skin;
+            gameplayControl.Skin.NoteSkin = skin;
+            gameplayControl.Skin.ParticleSkin = skin;
+            gameplayControl.Skin.SingleLineSkin = skin;
+            gameplayControl.Skin.TrackSkin = skin;
 
-            List<string> arcColor = new List<string>();
-            List<string> arcColorLow = new List<string>();
-            List<Color> finalColor = new List<Color>();
-            List<Color> finalColorLow = new List<Color>();
+            var arcColor = new List<string>();
+            var arcColorLow = new List<string>();
+            var finalColor = new List<Color>();
+            var finalColorLow = new List<Color>();
 
-            List<Color> defaultArc = gameplayControl.Skin.DefaultArcColors;
-            List<Color> defaultArcLow = gameplayControl.Skin.DefaultArcLowColors;
-            Color trace = gameplayControl.Skin.DefaultTraceColor;
-            Color shadow = gameplayControl.Skin.DefaultShadowColor;
+            var defaultArc = gameplayControl.Skin.DefaultArcColors;
+            var defaultArcLow = gameplayControl.Skin.DefaultArcLowColors;
+            var trace = gameplayControl.Skin.DefaultTraceColor;
+            var shadow = gameplayControl.Skin.DefaultShadowColor;
 
-            if (chart.Colors != null)
+            // Keep default colors when playing remote songs.
+
+            var definedColorCount = Mathf.Min(arcColor.Count, arcColorLow.Count);
+            for (var i = 0; i < definedColorCount; i++)
             {
-                arcColor = chart.Colors.Arc;
-                arcColorLow = chart.Colors.ArcLow;
-                chart.Colors.Trace.ConvertHexToColor(out trace);
-                chart.Colors.Shadow.ConvertHexToColor(out shadow);
-            }
-
-            int definedColorCount = Mathf.Min(arcColor.Count, arcColorLow.Count);
-            for (int i = 0; i < definedColorCount; i++)
-            {
-                arcColor[i].ConvertHexToColor(out Color high);
-                arcColorLow[i].ConvertHexToColor(out Color low);
+                arcColor[i].ConvertHexToColor(out var high);
+                arcColorLow[i].ConvertHexToColor(out var low);
                 finalColor.Add(high);
                 finalColorLow.Add(low);
             }
 
-            for (int i = definedColorCount; i < defaultArc.Count; i++)
+            for (var i = definedColorCount; i < defaultArc.Count; i++)
             {
                 finalColor.Add(defaultArc[i]);
                 finalColorLow.Add(defaultArcLow[i]);
@@ -143,19 +123,10 @@ namespace ArcCreate.Storage
             gameplayControl.Skin.SetArcColors(finalColor, finalColorLow);
             gameplayControl.Skin.SetShadowColor(shadow);
 
-            ColorUtility.TryParseHtmlString(chart.DifficultyColor, out Color c);
+            ColorUtility.TryParseHtmlString(SongDifficultyUtility.GetDifficultyColor(difficulty), out var c);
             gameplayData.DifficultyColor.Value = c;
 
-            bool enableVideoBackground = !string.IsNullOrEmpty(chart.VideoPath);
-            Option<string> videoPath = chart.VideoPath == null ? null : level.GetRealPath(chart.VideoPath);
-            if (enableVideoBackground && videoPath.HasValue)
-            {
-                gameplayData.LoadVideoBackground(videoPath.Value.Replace("\\", "/"), false);
-            }
-            else
-            {
-                gameplayData.LoadVideoBackground(null, false);
-            }
+            gameplayData.LoadVideoBackground(null, false);
         }
     }
 }

@@ -4,12 +4,12 @@ using System.IO;
 namespace ArcCreate.Utility.Base62
 {
     /// <summary>
-    /// Utility that read and write bits in byte array.
+    ///     Utility that read and write bits in byte array.
     /// </summary>
     public class BitStream : Stream
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="BitStream"/> class.
+        ///     Initializes a new instance of the <see cref="BitStream" /> class.
         /// </summary>
         /// <param name="capacity">Capacity of the stream.</param>
         public BitStream(int capacity)
@@ -18,7 +18,7 @@ namespace ArcCreate.Utility.Base62
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BitStream"/> class.
+        ///     Initializes a new instance of the <see cref="BitStream" /> class.
         /// </summary>
         /// <param name="source">Source array for the stream.</param>
         public BitStream(byte[] source)
@@ -26,35 +26,23 @@ namespace ArcCreate.Utility.Base62
             Source = source;
         }
 
-        public override bool CanRead
-        {
-            get { return true; }
-        }
+        public override bool CanRead => true;
 
-        public override bool CanSeek
-        {
-            get { return true; }
-        }
+        public override bool CanSeek => true;
 
-        public override bool CanWrite
-        {
-            get { return true; }
-        }
+        public override bool CanWrite => true;
 
         /// <summary>
-        /// Gets bit length of the stream.
+        ///     Gets bit length of the stream.
         /// </summary>
-        public override long Length
-        {
-            get { return Source.Length * 8; }
-        }
+        public override long Length => Source.Length * 8;
 
         /// <summary>
-        /// Gets or sets bit position of the stream.
+        ///     Gets or sets bit position of the stream.
         /// </summary>
         public override long Position { get; set; }
 
-        private byte[] Source { get; set; }
+        private byte[] Source { get; }
 
         public override void Flush()
         {
@@ -62,7 +50,7 @@ namespace ArcCreate.Utility.Base62
         }
 
         /// <summary>
-        /// Read the stream to the buffer.
+        ///     Read the stream to the buffer.
         /// </summary>
         /// <param name="buffer">Buffer.</param>
         /// <param name="offset">Offset bit start position of the stream.</param>
@@ -71,27 +59,23 @@ namespace ArcCreate.Utility.Base62
         public override int Read(byte[] buffer, int offset, int count)
         {
             // Temporary position cursor
-            long tempPos = Position;
+            var tempPos = Position;
             tempPos += offset;
 
             // Buffer byte position and in-byte position
             int readPosCount = 0, readPosMod = 0;
 
             // Stream byte position and in-byte position
-            long posCount = tempPos >> 3;
-            int posMod = (int)(tempPos - ((tempPos >> 3) << 3));
+            var posCount = tempPos >> 3;
+            var posMod = (int)(tempPos - ((tempPos >> 3) << 3));
 
             while (tempPos < Position + offset + count && tempPos < Length)
             {
                 // Copy the bit from the stream to buffer
                 if ((Source[posCount] & (0x1 << (7 - posMod))) != 0)
-                {
                     buffer[readPosCount] = (byte)(buffer[readPosCount] | (0x1 << (7 - readPosMod)));
-                }
                 else
-                {
                     buffer[readPosCount] = (byte)(buffer[readPosCount] & (0xffffffff - (0x1 << (7 - readPosMod))));
-                }
 
                 // Increment position cursors
                 tempPos++;
@@ -116,13 +100,13 @@ namespace ArcCreate.Utility.Base62
                 }
             }
 
-            int bits = (int)(tempPos - Position - offset);
+            var bits = (int)(tempPos - Position - offset);
             Position = tempPos;
             return bits;
         }
 
         /// <summary>
-        /// Set up the stream position.
+        ///     Set up the stream position.
         /// </summary>
         /// <param name="offset">Position.</param>
         /// <param name="origin">Position origin.</param>
@@ -151,7 +135,7 @@ namespace ArcCreate.Utility.Base62
         }
 
         /// <summary>
-        /// Write from buffer to the stream.
+        ///     Write from buffer to the stream.
         /// </summary>
         /// <param name="buffer">Buffer to write.</param>
         /// <param name="offset">Offset start bit position of buffer.</param>
@@ -159,26 +143,22 @@ namespace ArcCreate.Utility.Base62
         public override void Write(byte[] buffer, int offset, int count)
         {
             // Temporary position cursor
-            long tempPos = Position;
+            var tempPos = Position;
 
             // Buffer byte position and in-byte position
             int readPosCount = offset >> 3, readPosMod = offset - ((offset >> 3) << 3);
 
             // Stream byte position and in-byte position
-            long posCount = tempPos >> 3;
-            int posMod = (int)(tempPos - ((tempPos >> 3) << 3));
+            var posCount = tempPos >> 3;
+            var posMod = (int)(tempPos - ((tempPos >> 3) << 3));
 
             while (tempPos < Position + count && tempPos < Length)
             {
                 // Copy the bit from buffer to the stream
                 if ((buffer[readPosCount] & (0x1 << (7 - readPosMod))) != 0)
-                {
                     Source[posCount] = (byte)(Source[posCount] | (0x1 << (7 - posMod)));
-                }
                 else
-                {
                     Source[posCount] = (byte)(Source[posCount] & (0xffffffff - (0x1 << (7 - posMod))));
-                }
 
                 // Increment position cursors
                 tempPos++;

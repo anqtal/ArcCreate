@@ -196,7 +196,6 @@ GameObject:
   - component: {fileID: 8093142612810567501}
   - component: {fileID: 8093142612810567539}
   - component: {fileID: 8093142612810567538}
-  - component: {fileID: 7702237067200418683}
   m_Layer: 11
   m_Name: ScenecontrolField
   m_TagString: Untagged
@@ -329,15 +328,3 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &7702237067200418683
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8093142612810567500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

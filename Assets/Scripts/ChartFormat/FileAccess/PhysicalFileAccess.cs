@@ -12,10 +12,7 @@ namespace ArcCreate.ChartFormat
 
         public Option<string[]> ReadFileByLines(string path)
         {
-            if (!File.Exists(path))
-            {
-                return Option<string[]>.None();
-            }
+            if (!File.Exists(path)) return Option<string[]>.None();
 
             return File.ReadAllLines(path);
         }

@@ -1,13 +1,12 @@
 using System;
 using System.Threading;
 using ArcCreate.Data;
+using ArcCreate.Gameplay.Score;
 using ArcCreate.SceneTransition;
 using ArcCreate.Storage;
-using ArcCreate.Storage.Data;
 using ArcCreate.Utility.Animation;
 using ArcCreate.Utility.Extension;
 using Cysharp.Threading.Tasks;
-using Cysharp.Threading.Tasks.Triggers;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -58,27 +57,28 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private GameObject autoNotifParent;
         [SerializeField] private float switchSceneAudioFadeDuration = 1;
         [SerializeField] private float characterImageHeight = 2048;
-        private LevelStorage currentLevel;
-        private ChartSettings currentChart;
-        private CancellationTokenSource cts = new CancellationTokenSource();
+        private CancellationTokenSource cts = new();
+        private Difficulty currentChart;
+        private SongList currentSong;
 
-        public void Display(LevelStorage level, ChartSettings chart, PlayResult play, bool isAuto)
+        public void Display(SongList level, Difficulty chart, PlayResult play, bool isAuto)
         {
             StartDisplay(level, chart, play, isAuto).Forget();
         }
 
-        private async UniTask StartDisplay(LevelStorage level, ChartSettings chart, PlayResult play, bool isAuto)
+        private async UniTask StartDisplay(SongList level, Difficulty chart, PlayResult play, bool isAuto)
         {
             await DisplayCharacter();
-            currentLevel = level;
+            currentSong = level;
             currentChart = chart;
-            title.text = chart.Title;
-            composer.text = chart.Composer;
-            ColorUtility.TryParseHtmlString(chart.DifficultyColor, out Color c);
+            title.text = SongDifficultyUtility.GetTitle(level);
+            composer.text = SongDifficultyUtility.GetComposer(level);
+            ColorUtility.TryParseHtmlString(SongDifficultyUtility.GetDifficultyColor(chart), out var c);
             difficulty.color = c;
-            difficultyText.text = chart.Difficulty;
+            difficultyText.text = SongDifficultyUtility.GetDifficultyName(chart);
             storage.ReleasePersistent(jacket.texture);
-            storage.AssignTexture(jacket, level, chart.JacketPath).Forget();
+            //storage.AssignTexture(jacket, level, chart.JacketPath).Forget();
+            StorageData.AssignSongJacket(jacket, level).Forget();
             storage.EnsurePersistent(jacket.texture);
             perfectEarly.text = play.EarlyPerfectCount.ToString();
             perfectTotal.text = play.PerfectCount.ToString();
@@ -98,27 +98,66 @@ namespace ArcCreate.Selection.Interface
             playCountParent.SetActive(!isAuto);
             autoNotifParent.SetActive(isAuto);
 
-            double best = play.BestScore;
-            double current = play.Score;
-            bestScore.text = PlayResult.FormatScore(best);
-            scoreIncrease.text = (current >= best ? "+" : "") + PlayResult.FormatScore(current - best);
-            score.text = PlayResult.FormatScore(current);
+            var currentAcc = ComputeAccPercent(play);
+            score.text = FormatAccPercent(currentAcc);
+            UpdateBestScoreFromCache(level.id, chart, currentAcc);
             offsetInfo.gameObject.SetActive(Settings.DisplayMsDifference.Value);
             offsetInfo.text = $"AVG: {play.OffsetMean:f2}ms  SD: {play.OffsetStd:f2}ms";
 
-            charterFrame.SetActive(!string.IsNullOrEmpty(chart.Charter));
-            aliasFrame.SetActive(!string.IsNullOrEmpty(chart.Alias));
-            charterName.text = chart.Charter ?? string.Empty;
-            aliasName.text = chart.Alias ?? string.Empty;
+            var charterText = SongDifficultyUtility.GetCharter(chart);
+            charterFrame.SetActive(!string.IsNullOrEmpty(charterText));
+            aliasFrame.SetActive(false);
+            charterName.text = charterText;
+            aliasName.text = string.Empty;
             aliasRect.offsetMax = new Vector2(aliasRect.offsetMax.x, -charterName.preferredHeight);
 
             audioSource.Play();
             animator.Show();
         }
 
+        private static string FormatAccPercent(double accPercent)
+        {
+            return $"{accPercent:0.0000}%";
+        }
+
+        private static string FormatAccPercentDelta(double delta)
+        {
+            var sign = delta >= 0 ? "+" : string.Empty;
+            return $"{sign}{delta:0.0000}%";
+        }
+
+        private void UpdateBestScoreFromCache(string songId, Difficulty chart, double currentAcc)
+        {
+            if (ScoreCache.TryGetScore(songId, SongDifficultyUtility.GetApiDifficulty(chart), out var bestScoreValue,
+                    out _))
+            {
+                var best = bestScoreValue;
+                bestScore.text = FormatAccPercent(best);
+                scoreIncrease.text = FormatAccPercentDelta(currentAcc - best);
+            }
+            else
+            {
+                bestScore.text = "--";
+                scoreIncrease.text = "--";
+            }
+        }
+
+        private static double ComputeAccPercent(PlayResult play)
+        {
+            var perfect = play.PerfectCount;
+            var shinyPerfect = play.MappedPerfectCount;
+            var near = play.GoodCount;
+            var miss = play.MissCount;
+            var totalNotes = perfect + near + miss;
+            if (totalNotes <= 0) return 0;
+
+            var accScore = perfect + near * 0.5 + shinyPerfect * 0.01;
+            return accScore / totalNotes * 100.0;
+        }
+
         private async UniTask DisplayCharacter()
         {
-            CharacterStorage character = storage.GetSelectedCharacter();
+            var character = storage.GetSelectedCharacter();
             if (character == null || string.IsNullOrEmpty(character.ImagePath))
             {
                 characterImage.sprite = null;
@@ -126,7 +165,7 @@ namespace ArcCreate.Selection.Interface
                 return;
             }
 
-            Option<string> imagePath = character.GetRealPath(character.ImagePath);
+            var imagePath = character.GetRealPath(character.ImagePath);
             if (!imagePath.HasValue)
             {
                 characterImage.sprite = null;
@@ -134,8 +173,8 @@ namespace ArcCreate.Selection.Interface
                 return;
             }
 
-            using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(
-                Uri.EscapeUriString("file:///" + imagePath.Value.Replace("\\", "/"))))
+            using (var req = UnityWebRequestTexture.GetTexture(
+                       Uri.EscapeUriString("file:///" + imagePath.Value.Replace("\\", "/"))))
             {
                 await req.SendWebRequest();
                 if (!string.IsNullOrWhiteSpace(req.error))
@@ -146,31 +185,30 @@ namespace ArcCreate.Selection.Interface
                 }
 
                 var t = DownloadHandlerTexture.GetContent(req);
-                t.wrapMode = TextureWrapMode.Clamp ;
-                Sprite sprite = Sprite.Create(
-                    texture: t,
-                    rect: new Rect(0, 0, t.width, t.height),
-                    pivot: new Vector2(0.5f, 0.5f));
+                t.wrapMode = TextureWrapMode.Clamp;
+                var sprite = Sprite.Create(
+                    t,
+                    new Rect(0, 0, t.width, t.height),
+                    new Vector2(0.5f, 0.5f));
 
                 characterImage.sprite = sprite;
                 characterImage.gameObject.SetActive(true);
                 var rect = characterImage.GetComponent<RectTransform>();
                 rect.anchoredPosition = new Vector2(character.X, character.Y);
                 rect.localScale = new Vector3(character.Scale, character.Scale, 1);
-                
-                float ratio = (float)t.width / t.height;
+
+                var ratio = (float)t.width / t.height;
                 rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, characterImageHeight);
                 rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, characterImageHeight * ratio);
-                return;
             }
         }
 
         public override void PassData(params object[] args)
         {
-            LevelStorage level = args[0] as LevelStorage;
-            ChartSettings chart = args[1] as ChartSettings;
-            PlayResult result = (PlayResult)args[2];
-            bool isAuto = (bool)args[3];
+            var level = args[0] as SongList;
+            var chart = args[1] as Difficulty;
+            var result = (PlayResult)args[2];
+            var isAuto = (bool)args[3];
             Display(level, chart, result, isAuto);
         }
 
@@ -193,9 +231,9 @@ namespace ArcCreate.Selection.Interface
         private void ReturnToPreviousScene()
         {
             audioSource.DOFade(0, switchSceneAudioFadeDuration).OnComplete(audioSource.Stop);
-            animator.GetHideTween(out float _).Play().OnComplete(() =>
+            animator.GetHideTween(out var _).Play().OnComplete(() =>
             {
-                TransitionSequence transition = new TransitionSequence();
+                var transition = new TransitionSequence();
                 SceneTransitionManager.Instance.SetTransition(transition);
                 SceneTransitionManager.Instance.SwitchScene(SceneNames.SelectScene).Forget();
             });
@@ -203,14 +241,13 @@ namespace ArcCreate.Selection.Interface
 
         private void RetryChart()
         {
-            if (currentLevel != null && currentChart != null)
+            if (currentSong != null && currentChart != null)
             {
-                PlayHistory history = PlayHistory.GetHistoryForChart(currentLevel.Identifier, currentChart.ChartPath);
-                transitionPlayCount.Value = TextFormat.FormatPlayCount(history.PlayCount + 1);
+                transitionPlayCount.Value = TextFormat.FormatPlayCount(1);
                 transitionRetryCount.Value = TextFormat.FormatRetryCount(1);
 
                 animator.Hide();
-                storage.SwitchToPlayScene((currentLevel, currentChart));
+                storage.SwitchToPlayScene((currentSong, currentChart));
             }
         }
     }

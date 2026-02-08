@@ -11,7 +11,9 @@ namespace ArcCreate.SceneTransition
             this.inOutVariant = inOutVariant;
         }
 
-        public int DurationMs => TransitionScene.Instance == null ? 0 : TransitionScene.Instance.TriangleTileAnimationDurationMs(inOutVariant);
+        public int DurationMs => TransitionScene.Instance == null
+            ? 0
+            : TransitionScene.Instance.TriangleTileAnimationDurationMs(inOutVariant);
 
         public void DisableGameObject()
         {
@@ -33,18 +35,12 @@ namespace ArcCreate.SceneTransition
 
         public async UniTask EndTransition()
         {
-            if (TransitionScene.Instance != null)
-            {
-                await TransitionScene.Instance.HideTriangleTile(inOutVariant);
-            }
+            if (TransitionScene.Instance != null) await TransitionScene.Instance.HideTriangleTile(inOutVariant);
         }
 
         public async UniTask StartTransition()
         {
-            if (TransitionScene.Instance != null)
-            {
-                await TransitionScene.Instance.ShowTriangleTile(inOutVariant);
-            }
+            if (TransitionScene.Instance != null) await TransitionScene.Instance.ShowTriangleTile(inOutVariant);
         }
     }
 }

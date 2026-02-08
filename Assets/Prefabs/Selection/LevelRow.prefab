@@ -612,7 +612,6 @@ GameObject:
   - component: {fileID: 1810354637953141843}
   - component: {fileID: 1810354637953141841}
   - component: {fileID: 1810354637953141855}
-  - component: {fileID: 1810354637953141852}
   m_Layer: 5
   m_Name: LevelRow
   m_TagString: Untagged
@@ -665,7 +664,7 @@ MonoBehaviour:
   useTwoStagesLoad: 1
   predictedLoadTime: 0.2
   storage: {fileID: 11400000, guid: 799db18f533da7c0ba7f0c6f431e7706, type: 2}
-  selectable: {fileID: 1810354637953141852}
+  selectable: {fileID: 0}
   border: {fileID: 343984740680062417}
   title: {fileID: 1810354639284955875}
   composer: {fileID: 1810354637747040947}
@@ -686,23 +685,6 @@ MonoBehaviour:
   selectedSizeDelta: {x: 1052, y: 170}
   animationDuration: 0.3
   animationEase: 18
---- !u!114 &1810354637953141852
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1810354637953141842}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a25288fd1b534e7db320debd213522b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  selectedIndicator: {fileID: 1810354638017431196}
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
-  holdDurationMs: 1000
-  blockClickDurationMs: 200
-  dragCancelThreshold: 200
 --- !u!1 &1810354638017431198
 GameObject:
   m_ObjectHideFlags: 0

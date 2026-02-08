@@ -12,7 +12,7 @@ namespace ArcCreate.Utility.InfiniteScroll
 
         public int IndexFlat { get; private set; }
 
-        public float Size { get; private set; }
+        public float Size { get; }
 
         public int IndentDepth { get; private set; }
 
@@ -28,6 +28,6 @@ namespace ArcCreate.Utility.InfiniteScroll
 
         public bool IsFullyLoaded { get; set; }
 
-        public float ValueToCenterCell => PositionInRect + (Size / 2);
+        public float ValueToCenterCell => PositionInRect + Size / 2;
     }
 }

@@ -6,7 +6,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class SettingTriggerChannel : TriggerChannel
     {
-        private float currentValue = 0;
+        private float currentValue;
 
         public SettingTriggerChannel()
             : base(new Trigger[0])

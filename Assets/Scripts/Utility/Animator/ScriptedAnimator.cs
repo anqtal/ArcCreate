@@ -1,4 +1,3 @@
-using System;
 using DG.Tweening;
 using UnityEngine;
 
@@ -7,111 +6,79 @@ namespace ArcCreate.Utility.Animation
     public class ScriptedAnimator : MonoBehaviour
     {
         [SerializeField] private ScriptedAnimatorComponent[] components = new ScriptedAnimatorComponent[0];
-        [SerializeField] private bool disableGameObject = false;
-        private float length = 0;
-        private bool isSetup = false;
+        [SerializeField] private bool disableGameObject;
+        private bool isSetup;
 
-        public float Length => length;
+        public float Length { get; private set; }
 
         public bool IsShown { get; private set; }
 
+        private void Awake()
+        {
+            SetupComponents();
+        }
+
+        public void Reset()
+        {
+            if (!isSetup) SetupComponents();
+
+            foreach (var c in components) c.Reset();
+        }
+
         public void ShowImmediate()
         {
-            foreach (var c in components)
-            {
-                c.ShowImmediate();
-            }
+            foreach (var c in components) c.ShowImmediate();
         }
 
         public void HideImmediate()
         {
-            foreach (var c in components)
-            {
-                c.HideImmediate();
-            }
+            foreach (var c in components) c.HideImmediate();
         }
 
         public void Show()
         {
-            if (disableGameObject)
-            {
-                gameObject.SetActive(true);
-            }
+            if (disableGameObject) gameObject.SetActive(true);
 
             IsShown = true;
-            GetShowTween(out float _).Play();
+            GetShowTween(out var _).Play();
         }
 
         public void Hide()
         {
-            GetHideTween(out float _).Play().OnComplete(() =>
+            GetHideTween(out var _).Play().OnComplete(() =>
             {
-                if (disableGameObject)
-                {
-                    gameObject.SetActive(false);
-                }
+                if (disableGameObject) gameObject.SetActive(false);
 
                 IsShown = false;
             });
         }
 
-        public void Reset()
-        {
-            if (!isSetup)
-            {
-                SetupComponents();
-            }
-
-            foreach (var c in components)
-            {
-                c.Reset();
-            }
-        }
-
         public void RegisterDefaultValues()
         {
-            if (!isSetup)
-            {
-                SetupComponents();
-            }
+            if (!isSetup) SetupComponents();
 
-            foreach (var c in components)
-            {
-                c.RegisterDefaultValues();
-            }
+            foreach (var c in components) c.RegisterDefaultValues();
         }
 
         public Tween GetShowTween(out float duration)
         {
-            if (!isSetup)
-            {
-                SetupComponents();
-            }
+            if (!isSetup) SetupComponents();
 
-            Sequence sequence = DOTween.Sequence();
-            foreach (var c in components)
-            {
-                sequence = sequence.Insert(0, c.GetShowTween());
-            }
+            var sequence = DOTween.Sequence();
+            foreach (var c in components) sequence = sequence.Insert(0, c.GetShowTween());
 
-            duration = length;
+            duration = Length;
             return sequence;
         }
 
         public Tween GetHideTween(out float duration)
         {
-            if (!isSetup)
-            {
-                SetupComponents();
-            }
+            if (!isSetup) SetupComponents();
 
-            Sequence sequence = DOTween.Sequence();
-            foreach (var c in components)
-            {
-                sequence = sequence.Insert(0, c.GetHideTween());
-            }
+            var sequence = DOTween.Sequence();
+            foreach (var c in components) sequence = sequence.Insert(0, c.GetHideTween());
 
-            duration = length;
+            duration = Length;
             return sequence;
         }
 
@@ -120,15 +87,10 @@ namespace ArcCreate.Utility.Animation
             foreach (var c in components)
             {
                 c.SetupComponents();
-                length = Mathf.Max(length, c.AnimationLength);
+                Length = Mathf.Max(Length, c.AnimationLength);
             }
 
             isSetup = true;
-        }
-
-        private void Awake()
-        {
-            SetupComponents();
         }
     }
 }

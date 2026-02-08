@@ -7,13 +7,18 @@ namespace ArcCreate.Utility.Animation
     [RequireComponent(typeof(RectTransform))]
     public class ScaleAnimator : ScriptedAnimatorComponent
     {
-        [SerializeField] private Vector3 animationScaleMultiplier = new Vector3(1.3f, 1.3f, 1);
-        [SerializeField] private float delay = 0;
+        [SerializeField] private Vector3 animationScaleMultiplier = new(1.3f, 1.3f, 1);
+        [SerializeField] private float delay;
         [SerializeField] private float animationDuration = 0.3f;
         [SerializeField] private Ease animationEase = Ease.OutCubic;
         [SerializeField] private Vector3 defaultScale;
 
         public override float AnimationLength => animationDuration + delay;
+
+        public override void Reset()
+        {
+            transform.localScale = defaultScale;
+        }
 
         public override Tween GetShowTween()
         {
@@ -24,17 +29,13 @@ namespace ArcCreate.Utility.Animation
         public override Tween GetHideTween()
         {
             transform.localScale = defaultScale;
-            return transform.DOScale(defaultScale.Multiply(animationScaleMultiplier), animationDuration).SetEase(animationEase).SetDelay(delay);
+            return transform.DOScale(defaultScale.Multiply(animationScaleMultiplier), animationDuration)
+                .SetEase(animationEase).SetDelay(delay);
         }
 
         public override void RegisterDefaultValues()
         {
             defaultScale = transform.localScale;
-        }
-
-        public override void Reset()
-        {
-            transform.localScale = defaultScale;
         }
 
         public override void SetupComponents()

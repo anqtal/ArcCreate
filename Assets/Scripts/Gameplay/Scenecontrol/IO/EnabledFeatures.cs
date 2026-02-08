@@ -7,6 +7,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
     {
         None = 0,
         JudgeManipulation = 1,
-        All = None | JudgeManipulation,
+        All = None | JudgeManipulation
     }
 }

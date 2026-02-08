@@ -20,20 +20,11 @@ namespace ArcCreate.Utility
             dropdown.onValueChanged.AddListener(OnDropdown);
             I18n.OnLocaleChanged += Reload;
 
-            if (reloadButton != null)
-            {
-                reloadButton.onClick.AddListener(Reload);
-            }
+            if (reloadButton != null) reloadButton.onClick.AddListener(Reload);
 
-            if (openFolderButton != null)
-            {
-                openFolderButton.onClick.AddListener(OpenFolder);
-            }
+            if (openFolderButton != null) openFolderButton.onClick.AddListener(OpenFolder);
 
-            if (reportMissingButton != null)
-            {
-                reportMissingButton.onClick.AddListener(ReportMissing);
-            }
+            if (reportMissingButton != null) reportMissingButton.onClick.AddListener(ReportMissing);
 
             Reload();
         }
@@ -43,20 +34,11 @@ namespace ArcCreate.Utility
             dropdown.onValueChanged.RemoveListener(OnDropdown);
             I18n.OnLocaleChanged -= Reload;
 
-            if (reloadButton != null)
-            {
-                reloadButton.onClick.RemoveListener(Reload);
-            }
+            if (reloadButton != null) reloadButton.onClick.RemoveListener(Reload);
 
-            if (openFolderButton != null)
-            {
-                openFolderButton.onClick.RemoveListener(OpenFolder);
-            }
+            if (openFolderButton != null) openFolderButton.onClick.RemoveListener(OpenFolder);
 
-            if (reportMissingButton != null)
-            {
-                reportMissingButton.onClick.RemoveListener(ReportMissing);
-            }
+            if (reportMissingButton != null) reportMissingButton.onClick.RemoveListener(ReportMissing);
         }
 
         private void ReportMissing()
@@ -75,10 +57,10 @@ namespace ArcCreate.Utility
             options = I18n.LocaleList;
             dropdown.options = options.Select(s => new TMP_Dropdown.OptionData(s.LocalName)).ToList();
 
-            bool found = false;
-            for (int i = 0; i < options.Count; i++)
+            var found = false;
+            for (var i = 0; i < options.Count; i++)
             {
-                string s = options[i].Id;
+                var s = options[i].Id;
                 if (s == I18n.CurrentLocale)
                 {
                     dropdown.SetValueWithoutNotify(i);
@@ -88,12 +70,8 @@ namespace ArcCreate.Utility
             }
 
             if (found)
-            {
                 if (reportMissingButton != null)
-                {
                     reportMissingButton.interactable = I18n.CurrentLocale != I18n.DefaultLocale;
-                }
-            }
         }
 
         private void OpenFolder()

@@ -53,7 +53,7 @@ Shader "UI/PatternOverlay"
         Pass
         {
             Name "Default"
-        CGPROGRAM
+            CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 2.0
@@ -67,26 +67,26 @@ Shader "UI/PatternOverlay"
 
             struct appdata_t
             {
-                float4 vertex   : POSITION;
-                float4 color    : COLOR;
+                float4 vertex : POSITION;
+                float4 color : COLOR;
                 float2 texcoord : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
             {
-                float4 vertex   : SV_POSITION;
-                fixed4 color    : COLOR;
-                float2 texcoord  : TEXCOORD0;
-				float4 screenPos  : TEXCOORD2;
+                float4 vertex : SV_POSITION;
+                fixed4 color : COLOR;
+                float2 texcoord : TEXCOORD0;
+                float4 screenPos : TEXCOORD2;
                 float4 worldPosition : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
             sampler2D _MainTex;
-			float4 _MainTex_TexelSize;
-			sampler2D _OverlayTex;
-			float4 _OverlayTex_TexelSize;
+            float4 _MainTex_TexelSize;
+            sampler2D _OverlayTex;
+            float4 _OverlayTex_TexelSize;
 
             fixed4 _Color;
             float _Scale;
@@ -115,17 +115,19 @@ Shader "UI/PatternOverlay"
             {
                 layer = layer + 1;
                 screenPos.y = -screenPos.y - layer * 0.2;
-				float2 screenCoord = (screenPos.xy / screenPos.w + _PatternOffset * layer * _Time.x / 100) / _Scale * layer;
-				screenCoord.y = frac(screenCoord.y * 720 / _OverlayTex_TexelSize.w / 2);
-				screenCoord.x = frac(screenCoord.x * 720 * _ScreenParams.x / _ScreenParams.y / _OverlayTex_TexelSize.z / 2);
-				return tex2D(_OverlayTex, screenCoord);
+                float2 screenCoord = (screenPos.xy / screenPos.w + _PatternOffset * layer * _Time.x / 100) / _Scale *
+                    layer;
+                screenCoord.y = frac(screenCoord.y * 720 / _OverlayTex_TexelSize.w / 2);
+                screenCoord.x = frac(
+                    screenCoord.x * 720 * _ScreenParams.x / _ScreenParams.y / _OverlayTex_TexelSize.z / 2);
+                return tex2D(_OverlayTex, screenCoord);
             }
 
             fixed4 frag(v2f IN) : SV_Target
             {
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
-				half4 pattern0 = grabPattern(IN.screenPos, 0);
-				half4 pattern1 = grabPattern(IN.screenPos, 0.7);
+                half4 pattern0 = grabPattern(IN.screenPos, 0);
+                half4 pattern1 = grabPattern(IN.screenPos, 0.7);
                 half pattern = clamp(pattern0 + pattern1, 0, 1);
 
                 fixed3 hsv = rgb2hsv(color.rgb);
@@ -139,12 +141,12 @@ Shader "UI/PatternOverlay"
                 #endif
 
                 #ifdef UNITY_UI_ALPHACLIP
-                clip (color.a - 0.001);
+                clip(color.a - 0.001);
                 #endif
 
                 return color;
             }
-        ENDCG
+            ENDCG
         }
     }
 }

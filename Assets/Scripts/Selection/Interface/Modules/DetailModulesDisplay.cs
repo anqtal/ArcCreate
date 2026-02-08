@@ -24,10 +24,7 @@ namespace ArcCreate.Selection.Interface
 
         private void OnDestroy()
         {
-            foreach (var module in modules)
-            {
-                module.Teardown();
-            }
+            foreach (var module in modules) module.Teardown();
         }
 
         private void ShowJacket()
@@ -45,12 +42,8 @@ namespace ArcCreate.Selection.Interface
             }
 
             foreach (var m in modules)
-            {
                 if (m.Animator != module.Animator)
-                {
                     m.Hide();
-                }
-            }
         }
 
         [Serializable]
@@ -58,9 +51,9 @@ namespace ArcCreate.Selection.Interface
         {
             [SerializeField] private ScriptedAnimator animator;
             [SerializeField] private Button button;
+            private bool isShown;
 
             private DetailModulesDisplay parent;
-            private bool isShown;
 
             public ScriptedAnimator Animator => animator;
 

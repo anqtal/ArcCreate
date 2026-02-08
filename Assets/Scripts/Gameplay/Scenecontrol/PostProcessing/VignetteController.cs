@@ -59,11 +59,33 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public bool DefaultRounded { get; set; }
 
+        protected override void Reset()
+        {
+            ColorR = new ConstantChannel(DefaultColorR);
+            ColorG = new ConstantChannel(DefaultColorG);
+            ColorB = new ConstantChannel(DefaultColorB);
+            ColorA = new ConstantChannel(DefaultColorA);
+            ColorH = new ConstantChannel(DefaultColorH);
+            ColorS = new ConstantChannel(DefaultColorS);
+            ColorV = new ConstantChannel(DefaultColorV);
+            CenterX = new ConstantChannel(DefaultCenterX);
+            CenterY = new ConstantChannel(DefaultCenterY);
+            Intensity = new ConstantChannel(DefaultIntensity);
+            Smoothness = new ConstantChannel(DefaultSmoothness);
+            Roundness = new ConstantChannel(DefaultRoundness);
+            TargetEffect.color.overrideState = false;
+            TargetEffect.center.overrideState = false;
+            TargetEffect.intensity.overrideState = false;
+            TargetEffect.smoothness.overrideState = false;
+            TargetEffect.roundness.overrideState = false;
+            TargetEffect.rounded.overrideState = false;
+            TargetEffect.rounded.value = DefaultRounded;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "color": TargetEffect.color.overrideState = true; break;
@@ -72,7 +94,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
                     case "smoothness": TargetEffect.smoothness.overrideState = true; break;
                     case "roundness": TargetEffect.roundness.overrideState = true; break;
                 }
-            }
         }
 
         public void SetRounded(bool rounded)
@@ -82,13 +103,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override void UpdateController(int timing)
         {
-            RGBA c = new RGBA(ColorR.ValueAt(timing), ColorG.ValueAt(timing), ColorB.ValueAt(timing), ColorA.ValueAt(timing));
-            HSVA modify = new HSVA(ColorH.ValueAt(timing), ColorS.ValueAt(timing), ColorV.ValueAt(timing), 1);
+            var c = new RGBA(ColorR.ValueAt(timing), ColorG.ValueAt(timing), ColorB.ValueAt(timing),
+                ColorA.ValueAt(timing));
+            var modify = new HSVA(ColorH.ValueAt(timing), ColorS.ValueAt(timing), ColorV.ValueAt(timing), 1);
 
-            HSVA hsva = Convert.RGBAToHSVA(c);
+            var hsva = Convert.RGBAToHSVA(c);
             hsva.H = (hsva.H + modify.H) % 360;
-            hsva.S = UnityEngine.Mathf.Clamp(hsva.S + modify.S, 0, 1);
-            hsva.V = UnityEngine.Mathf.Clamp(hsva.V + modify.V, 0, 1);
+            hsva.S = Mathf.Clamp(hsva.S + modify.S, 0, 1);
+            hsva.V = Mathf.Clamp(hsva.V + modify.V, 0, 1);
             TargetEffect.color.value = Convert.HSVAToRGBA(hsva).ToColor();
 
             TargetEffect.center.value = new Vector2(CenterX.ValueAt(timing), CenterY.ValueAt(timing));
@@ -119,13 +141,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(Intensity),
                 serialization.AddUnitAndGetId(Smoothness),
                 serialization.AddUnitAndGetId(Roundness),
-                TargetEffect.rounded.value,
+                TargetEffect.rounded.value
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.color.overrideState = (bool)properties[offset++];
             TargetEffect.center.overrideState = (bool)properties[offset++];
@@ -162,29 +185,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             DefaultSmoothness = TargetEffect.smoothness.value;
             DefaultRoundness = TargetEffect.roundness.value;
             DefaultRounded = TargetEffect.rounded.value;
-        }
-
-        protected override void Reset()
-        {
-            ColorR = new ConstantChannel(DefaultColorR);
-            ColorG = new ConstantChannel(DefaultColorG);
-            ColorB = new ConstantChannel(DefaultColorB);
-            ColorA = new ConstantChannel(DefaultColorA);
-            ColorH = new ConstantChannel(DefaultColorH);
-            ColorS = new ConstantChannel(DefaultColorS);
-            ColorV = new ConstantChannel(DefaultColorV);
-            CenterX = new ConstantChannel(DefaultCenterX);
-            CenterY = new ConstantChannel(DefaultCenterY);
-            Intensity = new ConstantChannel(DefaultIntensity);
-            Smoothness = new ConstantChannel(DefaultSmoothness);
-            Roundness = new ConstantChannel(DefaultRoundness);
-            TargetEffect.color.overrideState = false;
-            TargetEffect.center.overrideState = false;
-            TargetEffect.intensity.overrideState = false;
-            TargetEffect.smoothness.overrideState = false;
-            TargetEffect.roundness.overrideState = false;
-            TargetEffect.rounded.overrideState = false;
-            TargetEffect.rounded.value = DefaultRounded;
         }
     }
 }

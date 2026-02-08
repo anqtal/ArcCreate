@@ -13,9 +13,9 @@ namespace ArcCreate.Gameplay.Judgement.Input
             UnorderedList<LaneTapJudgementRequest> laneTapRequests,
             UnorderedList<ArcTapJudgementRequest> arcTapRequests)
         {
-            for (int i = laneTapRequests.Count - 1; i >= 0; i--)
+            for (var i = laneTapRequests.Count - 1; i >= 0; i--)
             {
-                LaneTapJudgementRequest req = laneTapRequests[i];
+                var req = laneTapRequests[i];
                 if (currentTiming >= req.AutoAtTiming)
                 {
                     req.Receiver.ProcessLaneTapJudgement(0, req.Properties);
@@ -23,9 +23,9 @@ namespace ArcCreate.Gameplay.Judgement.Input
                 }
             }
 
-            for (int i = arcTapRequests.Count - 1; i >= 0; i--)
+            for (var i = arcTapRequests.Count - 1; i >= 0; i--)
             {
-                ArcTapJudgementRequest req = arcTapRequests[i];
+                var req = arcTapRequests[i];
                 if (currentTiming >= req.AutoAtTiming)
                 {
                     req.Receiver.ProcessArcTapJudgement(0, req.Properties);
@@ -36,9 +36,9 @@ namespace ArcCreate.Gameplay.Judgement.Input
 
         public void HandleLaneHoldRequests(int currentTiming, UnorderedList<LaneHoldJudgementRequest> requests)
         {
-            for (int i = requests.Count - 1; i >= 0; i--)
+            for (var i = requests.Count - 1; i >= 0; i--)
             {
-                LaneHoldJudgementRequest req = requests[i];
+                var req = requests[i];
                 if (currentTiming >= req.AutoAtTiming)
                 {
                     req.Receiver.ProcessLaneHoldJudgement(false, req.IsJudgement, req.Properties);
@@ -49,9 +49,9 @@ namespace ArcCreate.Gameplay.Judgement.Input
 
         public void HandleArcRequests(int currentTiming, UnorderedList<ArcJudgementRequest> requests)
         {
-            for (int i = requests.Count - 1; i >= 0; i--)
+            for (var i = requests.Count - 1; i >= 0; i--)
             {
-                ArcJudgementRequest req = requests[i];
+                var req = requests[i];
                 if (currentTiming >= req.AutoAtTiming)
                 {
                     req.Receiver.ProcessArcJudgement(false, req.IsJudgement, req.Properties);

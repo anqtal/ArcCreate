@@ -5,14 +5,14 @@ using UnityEngine;
 namespace ArcCreate.EditorScripts
 {
     [CustomEditor(typeof(AudioService))]
-    public class AudioServiceEditor : Editor
+    public class AudioServiceEditor : UnityEditor.Editor
     {
-        private int targetTiming = 0;
         private int delay = 2000;
+        private int targetTiming;
 
         public override void OnInspectorGUI()
         {
-            AudioService audio = (AudioService)target;
+            var audio = (AudioService)target;
             DrawDefaultInspector();
 
             /////
@@ -24,49 +24,28 @@ namespace ArcCreate.EditorScripts
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Pause"))
-            {
-                audio.Pause();
-            }
+            if (GUILayout.Button("Pause")) audio.Pause();
 
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("PlayImmediate"))
-            {
-                audio.PlayImmediately(targetTiming);
-            }
+            if (GUILayout.Button("PlayImmediate")) audio.PlayImmediately(targetTiming);
 
-            if (GUILayout.Button("PlayDelay"))
-            {
-                audio.PlayWithDelay(targetTiming, delay);
-            }
+            if (GUILayout.Button("PlayDelay")) audio.PlayWithDelay(targetTiming, delay);
 
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("ResumeImmediate"))
-            {
-                audio.ResumeImmediately();
-            }
+            if (GUILayout.Button("ResumeImmediate")) audio.ResumeImmediately();
 
-            if (GUILayout.Button("ResumeDelay"))
-            {
-                audio.ResumeWithDelay(delay);
-            }
+            if (GUILayout.Button("ResumeDelay")) audio.ResumeWithDelay(delay);
 
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("ResumeReturnImmediate"))
-            {
-                audio.ResumeReturnableImmediately();
-            }
+            if (GUILayout.Button("ResumeReturnImmediate")) audio.ResumeReturnableImmediately();
 
-            if (GUILayout.Button("ResumeReturnDelay"))
-            {
-                audio.ResumeReturnableWithDelay(delay);
-            }
+            if (GUILayout.Button("ResumeReturnDelay")) audio.ResumeReturnableWithDelay(delay);
 
             GUILayout.EndHorizontal();
         }

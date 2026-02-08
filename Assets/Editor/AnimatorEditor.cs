@@ -7,7 +7,7 @@ using UnityEngine;
 namespace ArcCreate.EditorScripts
 {
     [CustomEditor(typeof(ScriptedAnimator), true)]
-    public class AnimatorEditor : Editor
+    public class AnimatorEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
@@ -18,13 +18,13 @@ namespace ArcCreate.EditorScripts
             if (GUILayout.Button("Show animation"))
             {
                 animator.SetupComponents();
-                RunTween(animator.GetShowTween(out float duration));
+                RunTween(animator.GetShowTween(out var duration));
             }
 
             if (GUILayout.Button("Hide animation"))
             {
                 animator.SetupComponents();
-                RunTween(animator.GetHideTween(out float duration));
+                RunTween(animator.GetHideTween(out var duration));
             }
 
             GUILayout.EndHorizontal();

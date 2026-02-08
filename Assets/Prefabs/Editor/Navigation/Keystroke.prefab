@@ -219,7 +219,6 @@ GameObject:
   - component: {fileID: 2975438318904304671}
   - component: {fileID: 2975438318904304669}
   - component: {fileID: 2975438318904304670}
-  - component: {fileID: 2975438318904304668}
   m_Layer: 11
   m_Name: Keystroke
   m_TagString: Untagged
@@ -285,20 +284,3 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &2975438318904304668
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2975438318904304656}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c94aa14a8acbe5740850fb61144df8f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  container: {fileID: 2975438318904304670}
-  mouseHint: {fileID: 2975438317136077735}
-  keyText: {fileID: 2975438318416100753}
-  sprites: {fileID: 11400000, guid: c6aee03e6c96fb44b91f81b07c33982a, type: 2}
-  rectTransform: {fileID: 2975438318904304671}

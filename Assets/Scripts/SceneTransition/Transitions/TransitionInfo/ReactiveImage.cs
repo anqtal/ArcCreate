@@ -21,10 +21,7 @@ namespace ArcCreate.SceneTransition
 
         private void OnDestroy()
         {
-            if (spriteSO != null)
-            {
-                spriteSO.OnValueChange.RemoveListener(OnSpriteChange);
-            }
+            if (spriteSO != null) spriteSO.OnValueChange.RemoveListener(OnSpriteChange);
         }
 
         private void OnSpriteChange(Sprite sprite)

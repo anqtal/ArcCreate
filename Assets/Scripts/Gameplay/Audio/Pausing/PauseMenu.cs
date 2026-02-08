@@ -9,6 +9,7 @@ namespace ArcCreate.Gameplay.Audio
 {
     public class PauseMenu : MonoBehaviour
     {
+        public static bool IsPausing;
         [SerializeField] private StringSO retryCount;
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private PauseButton pauseButton;
@@ -29,20 +30,11 @@ namespace ArcCreate.Gameplay.Audio
         private void Awake()
         {
             pauseButton.OnActivation.AddListener(OnPauseButton);
-            foreach (var playButton in playButtons)
-            {
-                playButton.onClick.AddListener(OnPlayButton);
-            }
+            foreach (var playButton in playButtons) playButton.onClick.AddListener(OnPlayButton);
 
-            foreach (var retryButton in retryButtons)
-            {
-                retryButton.onClick.AddListener(OnRetryButton);
-            }
+            foreach (var retryButton in retryButtons) retryButton.onClick.AddListener(OnRetryButton);
 
-            foreach (var returnButton in returnButtons)
-            {
-                returnButton.onClick.AddListener(OnReturnButton);
-            }
+            foreach (var returnButton in returnButtons) returnButton.onClick.AddListener(OnReturnButton);
 
             Application.focusChanged += OnFocusChange;
             gameplayData.EnablePracticeMode.OnValueChange += SetPracticeMode;
@@ -60,10 +52,25 @@ namespace ArcCreate.Gameplay.Audio
                 .AddTransition(new DecorationTransition());
 
             if (Application.platform == RuntimePlatform.IPhonePlayer
-             || Application.platform == RuntimePlatform.Android)
-            {
+                || Application.platform == RuntimePlatform.Android)
                 AudioSettings.OnAudioConfigurationChanged += OnAudioConfig;
-            }
+        }
+
+        private void OnDestroy()
+        {
+            pauseButton.OnActivation.RemoveListener(OnPauseButton);
+            foreach (var playButton in playButtons) playButton.onClick.RemoveListener(OnPlayButton);
+
+            foreach (var retryButton in retryButtons) retryButton.onClick.RemoveListener(OnRetryButton);
+
+            foreach (var returnButton in returnButtons) returnButton.onClick.RemoveListener(OnReturnButton);
+
+            Application.focusChanged -= OnFocusChange;
+            gameplayData.EnablePracticeMode.OnValueChange -= SetPracticeMode;
+
+            if (Application.platform == RuntimePlatform.IPhonePlayer
+                || Application.platform == RuntimePlatform.Android)
+                AudioSettings.OnAudioConfigurationChanged -= OnAudioConfig;
         }
 
         private void OnSwitchLayoutSettings(bool reversed)
@@ -72,41 +79,11 @@ namespace ArcCreate.Gameplay.Audio
             reversedLayout.SetActive(reversed);
         }
 
-        private void OnDestroy()
-        {
-            pauseButton.OnActivation.RemoveListener(OnPauseButton);
-            foreach (var playButton in playButtons)
-            {
-                playButton.onClick.RemoveListener(OnPlayButton);
-            }
-
-            foreach (var retryButton in retryButtons)
-            {
-                retryButton.onClick.RemoveListener(OnRetryButton);
-            }
-
-            foreach (var returnButton in returnButtons)
-            {
-                returnButton.onClick.RemoveListener(OnReturnButton);
-            }
-
-            Application.focusChanged -= OnFocusChange;
-            gameplayData.EnablePracticeMode.OnValueChange -= SetPracticeMode;
-
-            if (Application.platform == RuntimePlatform.IPhonePlayer
-             || Application.platform == RuntimePlatform.Android)
-            {
-                AudioSettings.OnAudioConfigurationChanged -= OnAudioConfig;
-            }
-        }
-
         private void OnAudioConfig(bool deviceWasChanged)
         {
             if (deviceWasChanged)
-            {
                 //Services.Audio.Pause();
                 promptAudioConfigChange.SetActive(true);
-            }
         }
 
         private void OnFocusChange(bool focused)
@@ -130,11 +107,10 @@ namespace ArcCreate.Gameplay.Audio
             //         }
             //     }
 
-                pauseScreen.SetActive(true);
-                Debug.Log("Pause button pressed");
-                //Services.Hitsound.MyBassPlayer.ResetScheduledTimes();
-                //Services.Audio.Pause();
-                BassAudioService.Instance.AudioStream?.Pause();
+            pauseScreen.SetActive(true);
+            BassAudioService.Instance.AudioStream.Pause();
+            BassAudioService.Instance.MyChartTimer.StopTiming();
+            IsPausing = true;
             // }
         }
 
@@ -143,31 +119,32 @@ namespace ArcCreate.Gameplay.Audio
             pauseScreen.SetActive(false);
             //Services.Audio.ResumeWithDelay(Values.DelayBeforeAudioResume, false);
             BassAudioService.Instance.AudioStream?.Resume();
+            BassAudioService.Instance.MyChartTimer.StartTiming();
             Services.Judgement.RefreshInputHandler();
             DisablePauseButton().Forget();
+            IsPausing = false;
         }
 
         private void OnRetryButton()
         {
+            BassAudioService.Instance.MyChartTimer.StopTiming().ResetTiming();
             Values.RetryCount += 1;
             retryCount.Value = TextFormat.FormatRetryCount(Values.RetryCount + 1);
             pauseScreen.SetActive(false);
             Services.Judgement.RefreshInputHandler();
             StartRetry().Forget();
+            IsPausing = false;
         }
 
         private async UniTask StartRetry()
         {
             await retryTransition.Show();
-            BassAudioService.Instance.AudioStream.Position = 0;
             //Services.Audio.AudioTiming = -Values.DelayBeforeAudioStart;
             await retryTransition.Hide();
-            if (!pauseScreen.activeInHierarchy)
-            {
-                Services.Audio.PlayWithDelay(0, Values.DelayBeforeAudioStart);
-            }
+            if (!pauseScreen.activeInHierarchy) Services.Audio.PlayWithDelay(0, Values.DelayBeforeAudioStart);
 
             await DisablePauseButton();
+            IsPausing = false;
         }
 
         private async UniTask DisablePauseButton()
@@ -180,7 +157,8 @@ namespace ArcCreate.Gameplay.Audio
         private void OnReturnButton()
         {
             BassAudioService.Instance.AudioStream?.Dispose();
-            TransitionSequence transition = new TransitionSequence()
+            BassAudioService.Instance.MyChartTimer.StopTiming().ResetTiming();
+            var transition = new TransitionSequence()
                 .OnShow()
                 .AddTransition(new TriangleTileTransition())
                 .OnBoth()

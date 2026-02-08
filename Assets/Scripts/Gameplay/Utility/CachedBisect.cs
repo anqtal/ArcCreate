@@ -6,80 +6,78 @@ using UnityEngine;
 namespace ArcCreate.Gameplay
 {
     /// <summary>
-    /// Class for managing bisection with index caching.
-    /// Optimized for accessing a list repeatedly while the returned index rarely changes.
-    /// Unlike <see cref="CachedBinarySearch{T, R}"/> which returns the index of the largest element smaller than the search value,
-    /// this returns the smallest element larger than the search value.
+    ///     Class for managing bisection with index caching.
+    ///     Optimized for accessing a list repeatedly while the returned index rarely changes.
+    ///     Unlike <see cref="CachedBinarySearch{T, R}" /> which returns the index of the largest element smaller than the
+    ///     search value,
+    ///     this returns the smallest element larger than the search value.
     /// </summary>
     /// <typeparam name="T">The type of the list.</typeparam>
     /// <typeparam name="R">The type of the property to search by.</typeparam>
     public class CachedBisect<T, R>
         where R : IComparable<R>
     {
-        private R nextRebisect;
-        private R nextIncrement;
-        private R prevDecrement;
-        private R prevRebisect;
-        private int cachedIndex;
-        private bool nextRebisectAvailable;
-        private bool nextIncrementAvailable;
-        private bool prevDecrementAvailable;
-        private bool prevRebisectAvailable;
-        private bool hasResetted = true;
-        private readonly List<T> list;
-        private int count;
-        private readonly Func<T, R> property;
         private readonly IComparer<T> comparer;
+        private readonly Func<T, R> property;
+        private int cachedIndex;
+        private int count;
+        private bool hasResetted = true;
+        private R nextIncrement;
+        private bool nextIncrementAvailable;
+        private R nextRebisect;
+        private bool nextRebisectAvailable;
+        private R prevDecrement;
+        private bool prevDecrementAvailable;
+        private R prevRebisect;
+        private bool prevRebisectAvailable;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CachedBisect{T, R}"/> class.
+        ///     Initializes a new instance of the <see cref="CachedBisect{T, R}" /> class.
         /// </summary>
-        /// <param name="list">The items to search with. A new sorted copy of the list will be made and stored,
-        /// and the original enumerable will remain unchanged.</param>
-        /// <param name="property">Function that extracts the property <see cref="{R}"/> from items.</param>
+        /// <param name="list">
+        ///     The items to search with. A new sorted copy of the list will be made and stored,
+        ///     and the original enumerable will remain unchanged.
+        /// </param>
+        /// <param name="property">Function that extracts the property <see cref="{R}" /> from items.</param>
         /// <param name="comparison">Comparison function for sorting items.</param>
         /// <param name="comparer">Optionally, provide a ccomparer for list items.</param>
         public CachedBisect(IEnumerable<T> list, Func<T, R> property, IComparer<T> comparer = null)
         {
-            this.list = new List<T>(list);
-            count = this.list.Count;
+            this.List = new List<T>(list);
+            count = this.List.Count;
             this.property = property;
             this.comparer = comparer;
             Sort();
         }
 
-        public List<T> List => list;
+        public List<T> List { get; }
 
         public void Sort()
         {
             if (comparer == null)
-            {
-                list.Sort((a, b) => property(a).CompareTo(property(b)));
-            }
+                List.Sort((a, b) => property(a).CompareTo(property(b)));
             else
-            {
-                list.Sort(comparer);
-            }
+                List.Sort(comparer);
 
-            count = list.Count;
+            count = List.Count;
             Reset();
         }
 
         /// <summary>
-        /// Bisect the list. See <see cref="CollectionExtension.BisectLeft{T, R}(IList{T}, R, Func{T, R})"/>.
+        ///     Bisect the list. See <see cref="CollectionExtension.BisectLeft{T, R}(IList{T}, R, Func{T, R})" />.
         /// </summary>
         /// <param name="value">The value to bisect with.</param>
         /// <returns>The bisected index.</returns>
         public int Bisect(R value)
         {
-            int previousCachedIndex = cachedIndex;
+            var previousCachedIndex = cachedIndex;
 
             if (hasResetted
-             || (prevRebisectAvailable && value.CompareTo(prevRebisect) <= 0)
-             || (nextRebisectAvailable && value.CompareTo(nextRebisect) >= 0))
+                || (prevRebisectAvailable && value.CompareTo(prevRebisect) <= 0)
+                || (nextRebisectAvailable && value.CompareTo(nextRebisect) >= 0))
             {
                 hasResetted = false;
-                cachedIndex = list.BisectLeft(value, property);
+                cachedIndex = List.BisectLeft(value, property);
                 cachedIndex = Mathf.Clamp(cachedIndex, 0, count - 1);
                 RecalculateCheckpoints();
                 previousCachedIndex = cachedIndex;
@@ -97,16 +95,13 @@ namespace ArcCreate.Gameplay
                 cachedIndex = Mathf.Max(cachedIndex, 0);
             }
 
-            if (previousCachedIndex != cachedIndex)
-            {
-                RecalculateCheckpoints();
-            }
+            if (previousCachedIndex != cachedIndex) RecalculateCheckpoints();
 
             return cachedIndex;
         }
 
         /// <summary>
-        /// Reset the internal state.
+        ///     Reset the internal state.
         /// </summary>
         public void Reset()
         {
@@ -121,7 +116,7 @@ namespace ArcCreate.Gameplay
         {
             if (cachedIndex >= 1)
             {
-                prevDecrement = property(list[cachedIndex - 1]);
+                prevDecrement = property(List[cachedIndex - 1]);
                 prevDecrementAvailable = true;
             }
             else
@@ -131,7 +126,7 @@ namespace ArcCreate.Gameplay
 
             if (cachedIndex >= 2)
             {
-                prevRebisect = property(list[cachedIndex - 2]);
+                prevRebisect = property(List[cachedIndex - 2]);
                 prevRebisectAvailable = true;
             }
             else
@@ -141,7 +136,7 @@ namespace ArcCreate.Gameplay
 
             if (cachedIndex < count)
             {
-                nextIncrement = property(list[cachedIndex]);
+                nextIncrement = property(List[cachedIndex]);
                 nextIncrementAvailable = true;
             }
             else
@@ -151,7 +146,7 @@ namespace ArcCreate.Gameplay
 
             if (cachedIndex < count - 1)
             {
-                nextRebisect = property(list[cachedIndex + 1]);
+                nextRebisect = property(List[cachedIndex + 1]);
                 nextRebisectAvailable = true;
             }
             else

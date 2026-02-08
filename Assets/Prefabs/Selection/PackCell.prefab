@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 1483191254805943648}
   - component: {fileID: 1483191254805943655}
   - component: {fileID: 1483191254805943650}
-  - component: {fileID: 1483191254805943651}
   m_Layer: 0
   m_Name: PackCell
   m_TagString: Untagged
@@ -142,27 +141,9 @@ MonoBehaviour:
   useTwoStagesLoad: 1
   predictedLoadTime: 0.2
   storage: {fileID: 11400000, guid: 799db18f533da7c0ba7f0c6f431e7706, type: 2}
-  selectable: {fileID: 1483191254805943651}
   button: {fileID: 1483191254805943655}
   title: {fileID: 1483191255150241303}
   image: {fileID: 1483191256378207455}
---- !u!114 &1483191254805943651
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1483191254805943653}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a25288fd1b534e7db320debd213522b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  selectedIndicator: {fileID: 1483191255413702988}
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
-  holdDurationMs: 1000
-  blockClickDurationMs: 200
-  dragCancelThreshold: 200
 --- !u!1 &1483191255150241301
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,7 +312,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1483191255413702979
 RectTransform:
   m_ObjectHideFlags: 0

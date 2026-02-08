@@ -9,8 +9,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [EmmyDoc("Text channel that's combined from multiple other text channel")]
     public class ConcatTextChannel : TextChannel
     {
-        private List<TextChannel> components;
         private char[] charArray = new char[0];
+        private List<TextChannel> components;
 
         public ConcatTextChannel()
         {
@@ -18,7 +18,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public ConcatTextChannel(TextChannel a, TextChannel b)
         {
-            components = new List<TextChannel>() { a, b };
+            components = new List<TextChannel> { a, b };
             EnsureArraySize();
         }
 
@@ -34,26 +34,22 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         [MoonSharpUserDataMetamethod("__concat")]
         public static ConcatTextChannel Concat(TextChannel channel, ConcatTextChannel concat)
-            => Concat(concat, channel);
+        {
+            return Concat(concat, channel);
+        }
 
         public override void DeserializeProperties(List<object> properties, ScenecontrolDeserialization deserialization)
         {
             components = new List<TextChannel>();
-            foreach (var prop in properties)
-            {
-                components.Add(deserialization.GetUnitFromId<TextChannel>(prop));
-            }
+            foreach (var prop in properties) components.Add(deserialization.GetUnitFromId<TextChannel>(prop));
 
             EnsureArraySize();
         }
 
         public override List<object> SerializeProperties(ScenecontrolSerialization serialization)
         {
-            List<object> result = new List<object>();
-            foreach (var comp in components)
-            {
-                result.Add(serialization.AddUnitAndGetId(comp));
-            }
+            var result = new List<object>();
+            foreach (var comp in components) result.Add(serialization.AddUnitAndGetId(comp));
 
             return result;
         }
@@ -63,10 +59,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
             length = 0;
             EnsureArraySize();
             hasChanged = false;
-            for (int i = 0; i < components.Count; i++)
+            for (var i = 0; i < components.Count; i++)
             {
-                TextChannel c = components[i];
-                char[] partial = c.ValueAt(timing, out int partialLength, out bool partialHasChanged);
+                var c = components[i];
+                var partial = c.ValueAt(timing, out var partialLength, out var partialHasChanged);
                 Array.Copy(partial, 0, charArray, length, partialLength);
                 length += partialLength;
                 hasChanged = hasChanged || partialHasChanged;
@@ -77,11 +73,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         private void EnsureArraySize()
         {
-            int length = 0;
-            foreach (var c in components)
-            {
-                length += c.MaxLength;
-            }
+            var length = 0;
+            foreach (var c in components) length += c.MaxLength;
 
             if (charArray == null)
             {
@@ -89,10 +82,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return;
             }
 
-            if (length > charArray.Length)
-            {
-                Array.Resize(ref charArray, length);
-            }
+            if (length > charArray.Length) Array.Resize(ref charArray, length);
         }
     }
 }

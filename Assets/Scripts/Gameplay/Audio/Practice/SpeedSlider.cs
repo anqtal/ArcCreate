@@ -19,56 +19,15 @@ namespace ArcCreate.Gameplay.Audio.Practice
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private Button incrementButtton;
         [SerializeField] private Button decrementButtton;
-
-        private float value = DefaultValue;
         private float lastDown = float.MinValue;
         private RectTransform rect;
 
-        public event Action<float> OnValueChanged;
+        private float value = DefaultValue;
 
         public float Value
         {
             get => value;
-            set { SetValue(value); }
-        }
-
-        public void OnDrag(PointerEventData ev)
-        {
-            if (Time.realtimeSinceStartup < lastDown + ClickDuration)
-            {
-                return;
-            }
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, ev.position, gameplayCamera, out Vector2 local);
-            float pivot = Mathf.Clamp(local.x / rect.rect.width, -0.5f, 0.5f) + 0.5f;
-            bool cursorOnRect = Mathf.Abs(local.y) <= rect.rect.height * 1.5f;
-            float increment = cursorOnRect ? IncrementLarge : Increment;
-            float realSpeed = Mathf.Lerp(MinValue, MaxValue, pivot);
-            float snapped = Mathf.Round(realSpeed / increment) * increment;
-            snapped = Mathf.Clamp(snapped, AbsoluteMin, MaxValue);
-
-            SetValue(snapped);
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            lastDown = Time.realtimeSinceStartup;
-        }
-
-        public void SetValue(float value)
-        {
-            SetValueWithoutNotify(value);
-            OnValueChanged.Invoke(value);
-        }
-
-        public void SetValueWithoutNotify(float value)
-        {
-            this.value = value;
-            UpdateUI();
+            set => SetValue(value);
         }
 
         private void Awake()
@@ -84,20 +43,55 @@ namespace ArcCreate.Gameplay.Audio.Practice
             decrementButtton.onClick.RemoveListener(DecrementSpeed);
         }
 
+        public void OnDrag(PointerEventData ev)
+        {
+            if (Time.realtimeSinceStartup < lastDown + ClickDuration) return;
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, ev.position, gameplayCamera, out var local);
+            var pivot = Mathf.Clamp(local.x / rect.rect.width, -0.5f, 0.5f) + 0.5f;
+            var cursorOnRect = Mathf.Abs(local.y) <= rect.rect.height * 1.5f;
+            var increment = cursorOnRect ? IncrementLarge : Increment;
+            var realSpeed = Mathf.Lerp(MinValue, MaxValue, pivot);
+            var snapped = Mathf.Round(realSpeed / increment) * increment;
+            snapped = Mathf.Clamp(snapped, AbsoluteMin, MaxValue);
+
+            SetValue(snapped);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            lastDown = Time.realtimeSinceStartup;
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+        }
+
+        public event Action<float> OnValueChanged;
+
+        public void SetValue(float value)
+        {
+            SetValueWithoutNotify(value);
+            OnValueChanged.Invoke(value);
+        }
+
+        public void SetValueWithoutNotify(float value)
+        {
+            this.value = value;
+            UpdateUI();
+        }
+
         private void IncrementSpeed()
         {
-            if (Value <= AbsoluteMin)
-            {
-                SetValue(Increment);
-            }
+            if (Value <= AbsoluteMin) SetValue(Increment);
 
-            float newValue = Mathf.Round(Value / Increment + 1) * Increment;
+            var newValue = Mathf.Round(Value / Increment + 1) * Increment;
             SetValue(Mathf.Clamp(newValue, AbsoluteMin, MaxValue));
         }
 
         private void DecrementSpeed()
         {
-            float newValue = Mathf.Round(Value / Increment - 1) * Increment;
+            var newValue = Mathf.Round(Value / Increment - 1) * Increment;
             SetValue(Mathf.Clamp(newValue, AbsoluteMin, MaxValue));
         }
 

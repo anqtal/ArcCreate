@@ -20,22 +20,16 @@ namespace ArcCreate.Selection.Interface
 #if UNITY_EDITOR
         private void Update()
         {
-            if (!Application.isPlaying)
-            {
-                TestLocation();
-            }
+            if (!Application.isPlaying) TestLocation();
         }
 #endif
 
         private void TestLocation()
         {
-            foreach (Rect r in locations)
+            foreach (var r in locations)
             {
                 SetPosition(r);
-                if (IsValidPosition())
-                {
-                    return;
-                }
+                if (IsValidPosition()) return;
             }
 
             SetPosition(locations[0]);
@@ -49,21 +43,14 @@ namespace ArcCreate.Selection.Interface
 
         private bool IsValidPosition()
         {
-            Rect visibleRect = new Rect(0, 0, Screen.width, Screen.height);
+            var visibleRect = new Rect(0, 0, Screen.width, Screen.height);
 
             rect.GetWorldCorners(Corners);
-            for (var i = 0; i < Corners.Length; i++)
-            {
-                Corners[i] = renderingCamera.WorldToScreenPoint(Corners[i]);
-            }
+            for (var i = 0; i < Corners.Length; i++) Corners[i] = renderingCamera.WorldToScreenPoint(Corners[i]);
 
             foreach (var corner in Corners)
-            {
                 if (!visibleRect.Contains(corner))
-                {
                     return false;
-                }
-            }
 
             return true;
         }

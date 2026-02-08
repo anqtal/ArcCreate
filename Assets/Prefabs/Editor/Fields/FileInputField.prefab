@@ -780,7 +780,6 @@ GameObject:
   - component: {fileID: 8702318924406431459}
   - component: {fileID: 8702318924406431458}
   - component: {fileID: 8702318924406431461}
-  - component: {fileID: 8702318924406431456}
   m_Layer: 11
   m_Name: FileInputField
   m_TagString: Untagged
@@ -892,30 +891,3 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &8702318924406431456
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8702318924406431463}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c25e97ff56616a84ad1d6eb02d57351, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  contentText: {fileID: 8702318922680402061}
-  placeholderText: {fileID: 8702318923358678760}
-  openButton: {fileID: 8702318924406431461}
-  clearButton: {fileID: 8104699114826426889}
-  invalidIndicator: {fileID: 8104699116010835838}
-  required: 1
-  isSaveFile: 0
-  isLocalFileSelector: 0
-  title: Select file
-  initPathPrefKey: 
-  modifyPref: 1
-  extensionFilterName: Any
-  acceptedExtensions:
-  - '*'
-  defaultSaveFileName: 

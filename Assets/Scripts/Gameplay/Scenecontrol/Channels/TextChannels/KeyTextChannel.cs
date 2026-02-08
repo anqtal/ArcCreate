@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using EmmySharp;
 using MoonSharp.Interpreter;
+using UnityEngine;
 
 namespace ArcCreate.Gameplay.Scenecontrol
 {
@@ -11,13 +12,13 @@ namespace ArcCreate.Gameplay.Scenecontrol
     {
         private readonly List<TextKey> keys;
         private readonly CachedBinarySearch<TextKey, int> keySearch;
+        private char[] charArray;
         private Func<float, float, float, float> defaultEasing;
         private string defaultEasingString;
-        private bool transitionFromFirstDifference = true;
-        private char[] charArray;
         private int prevIndex = int.MinValue;
         private int prevStringBlend;
         private bool readOnce;
+        private bool transitionFromFirstDifference = true;
 
         public KeyTextChannel()
         {
@@ -29,13 +30,22 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override int MaxLength => charArray?.Length ?? 0;
 
+        [MoonSharpHidden]
+        public int Compare(TextKey x, TextKey y)
+        {
+            if (x.Timing == y.Timing) return x.OverrideIndex.CompareTo(y.OverrideIndex);
+
+            return x.Timing.CompareTo(y.Timing);
+        }
+
         [MoonSharpUserDataMetamethod("__concat")]
         public static ConcatTextChannel Concat(KeyTextChannel a, TextChannel b)
         {
             return new ConcatTextChannel(a, b);
         }
 
-        [EmmyDoc("Sets the default easing to assign to keyframe for any subsequent keys added to this channel that does not have any easing defined")]
+        [EmmyDoc(
+            "Sets the default easing to assign to keyframe for any subsequent keys added to this channel that does not have any easing defined")]
 #pragma warning disable
         public KeyTextChannel SetDefaultEasing(
             [EmmyChoice(
@@ -107,15 +117,15 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return keys[keys.Count - 1].Value;
             }
 
-            int index = keySearch.Search(timing);
-            int timing1 = keys[index].Timing;
-            int timing2 = keys[index + 1].Timing;
-            TextKey key1 = keys[index];
-            TextKey key2 = keys[index + 1];
+            var index = keySearch.Search(timing);
+            var timing1 = keys[index].Timing;
+            var timing2 = keys[index + 1].Timing;
+            var key1 = keys[index];
+            var key2 = keys[index + 1];
 
             if (timing1 == timing2)
             {
-                TextKey outp = key1.OverrideIndex > key2.OverrideIndex ? key1 : key2;
+                var outp = key1.OverrideIndex > key2.OverrideIndex ? key1 : key2;
                 length = outp.Value.Length;
                 hasChanged = prevIndex == keys.Count - 1 && prevStringBlend == 0;
                 prevIndex = keys.Count - 1;
@@ -123,10 +133,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return outp.Value;
             }
 
-            float p = (float)(timing - timing1) / (timing2 - timing1);
-            int key1Factor = key1.Value.Length - key2.TransitionFrom;
-            int key2Factor = key2.Value.Length - key2.TransitionFrom;
-            int stringBlend = UnityEngine.Mathf.RoundToInt(key1.Easing(key1Factor, -key2Factor, p));
+            var p = (float)(timing - timing1) / (timing2 - timing1);
+            var key1Factor = key1.Value.Length - key2.TransitionFrom;
+            var key2Factor = key2.Value.Length - key2.TransitionFrom;
+            var stringBlend = Mathf.RoundToInt(key1.Easing(key1Factor, -key2Factor, p));
 
             Array.Copy(key1.Value, 0, charArray, 0, key2.TransitionFrom);
             if (stringBlend > 0)
@@ -186,21 +196,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 estr = easing;
             }
 
-            int overrideIndex = 0;
-            if (keys.Count > 0 && keys[keySearch.Search(timing)].Timing == timing)
-            {
-                overrideIndex += 1;
-            }
+            var overrideIndex = 0;
+            if (keys.Count > 0 && keys[keySearch.Search(timing)].Timing == timing) overrideIndex += 1;
 
-            int transitionFrom = 0;
+            var transitionFrom = 0;
             if (transitionFromFirstDifference && keys.Count > 0)
             {
-                char[] prev = keys[keys.Count - 1].Value;
+                var prev = keys[keys.Count - 1].Value;
                 while (transitionFrom < value.Length && transitionFrom < prev.Length
-                    && value[transitionFrom] == prev[transitionFrom])
-                {
+                                                     && value[transitionFrom] == prev[transitionFrom])
                     transitionFrom += 1;
-                }
             }
 
             keys.Add(new TextKey
@@ -210,7 +215,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 EasingString = estr,
                 Easing = e,
                 OverrideIndex = overrideIndex,
-                TransitionFrom = transitionFrom,
+                TransitionFrom = transitionFrom
             });
 
             keySearch.Sort();
@@ -221,36 +226,19 @@ namespace ArcCreate.Gameplay.Scenecontrol
         [EmmyDoc("Remove the first key that has matching timing value")]
         public KeyTextChannel RemoveKeyAtTiming(int timing)
         {
-            int index = keySearch.Search(timing);
-            if (keys[index].Timing == timing)
-            {
-                keys.RemoveAt(index);
-            }
+            var index = keySearch.Search(timing);
+            if (keys[index].Timing == timing) keys.RemoveAt(index);
 
             keySearch.Sort();
 
             return this;
         }
 
-        [MoonSharpHidden]
-        public int Compare(TextKey x, TextKey y)
-        {
-            if (x.Timing == y.Timing)
-            {
-                return x.OverrideIndex.CompareTo(y.OverrideIndex);
-            }
-
-            return x.Timing.CompareTo(y.Timing);
-        }
-
         public override List<object> SerializeProperties(ScenecontrolSerialization serialization)
         {
-            List<object> result = new List<object>(keys.Count);
+            var result = new List<object>(keys.Count);
 
-            foreach (var key in keys)
-            {
-                result.Add(key.Serialize());
-            }
+            foreach (var key in keys) result.Add(key.Serialize());
 
             return result;
         }
@@ -258,11 +246,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public override void DeserializeProperties(List<object> properties, ScenecontrolDeserialization deserialization)
         {
             keys.Clear();
-            for (int i = 0; i < properties.Count; i++)
+            for (var i = 0; i < properties.Count; i++)
             {
-                object obj = properties[i];
-                string str = obj as string;
-                TextKey key = new TextKey();
+                var obj = properties[i];
+                var str = obj as string;
+                var key = new TextKey();
                 key.Deserialize(str);
                 key.Easing = Easing.FromString(key.EasingString);
                 keys.Add(key);
@@ -280,10 +268,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return;
             }
 
-            if (length > charArray.Length)
-            {
-                Array.Resize(ref charArray, length);
-            }
+            if (length > charArray.Length) Array.Resize(ref charArray, length);
         }
     }
 }

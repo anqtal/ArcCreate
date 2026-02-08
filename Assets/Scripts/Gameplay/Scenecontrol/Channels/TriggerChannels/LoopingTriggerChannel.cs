@@ -6,8 +6,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class LoopingTriggerChannel : TriggerChannel
     {
+        private float currentValue;
         private TriggerValueDispatchEvent dispatching;
-        private float currentValue = 0;
         private bool isDispatchComplete = true;
 
         public LoopingTriggerChannel()
@@ -40,16 +40,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 currentValue = dispatching.Value;
             }
 
-            if (isDispatchComplete)
-            {
-                return BaseValue.ValueAt(timing) + currentValue;
-            }
-            else
-            {
-                float t = (float)(timing - dispatching.StartTiming) / dispatching.Duration;
-                float dispatchingVal = dispatching.Easing.Invoke(0, dispatching.Value, t);
-                return BaseValue.ValueAt(timing) + dispatchingVal;
-            }
+            if (isDispatchComplete) return BaseValue.ValueAt(timing) + currentValue;
+
+            var t = (float)(timing - dispatching.StartTiming) / dispatching.Duration;
+            var dispatchingVal = dispatching.Easing.Invoke(0, dispatching.Value, t);
+            return BaseValue.ValueAt(timing) + dispatchingVal;
         }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()

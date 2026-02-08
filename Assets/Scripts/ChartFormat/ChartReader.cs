@@ -1,21 +1,24 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
-using UnityEngine.Networking;
 
 namespace ArcCreate.ChartFormat
 {
     public abstract class ChartReader
     {
+        public HashSet<int> GuideSoundTiming;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChartReader"/> class.
+        ///     Initializes a new instance of the <see cref="ChartReader" /> class.
         /// </summary>
-        /// <param name="fileAccess">The implementation of <see cref="IFileAccessWrapper"/> interface.</param>
-        /// <param name="relativeDirectory">The directory relative to the base directory of the chart file.
-        /// Should be an empty string for the base chart file.</param>
+        /// <param name="fileAccess">The implementation of <see cref="IFileAccessWrapper" /> interface.</param>
+        /// <param name="relativeDirectory">
+        ///     The directory relative to the base directory of the chart file.
+        ///     Should be an empty string for the base chart file.
+        /// </param>
         /// <param name="fullPath">The absolute path to the chart file.</param>
-        /// <param name="filename">The file name of the chart file, should be the same as written in include or fragment aff command.</param>
+        /// <param name="filename">
+        ///     The file name of the chart file, should be the same as written in include or fragment aff
+        ///     command.
+        /// </param>
         public ChartReader(IFileAccessWrapper fileAccess, string relativeDirectory, string fullPath, string filename)
         {
             FileAccess = fileAccess;
@@ -29,9 +32,9 @@ namespace ArcCreate.ChartFormat
 
         public float TimingPointDensity { get; protected set; } = 1;
 
-        public List<RawEvent> Events { get; private set; } = new List<RawEvent>();
+        public List<RawEvent> Events { get; } = new();
 
-        public List<RawTimingGroup> TimingGroups { get; private set; } = new List<RawTimingGroup>();
+        public List<RawTimingGroup> TimingGroups { get; } = new();
 
         protected string RelativeDirectory { get; set; }
 
@@ -41,166 +44,107 @@ namespace ArcCreate.ChartFormat
 
         protected IFileAccessWrapper FileAccess { get; set; }
 
-        protected HashSet<string> AllIncludes { get; private set; } = new HashSet<string>();
+        protected HashSet<string> AllIncludes { get; } = new();
 
-        protected HashSet<string> AllFragments { get; private set; } = new HashSet<string>();
+        protected HashSet<string> AllFragments { get; } = new();
 
         protected int TotalTimingGroup { get; set; } = 1;
 
-        protected int CurrentTimingGroup { get; set; } = 0;
+        protected int CurrentTimingGroup { get; set; }
 
-        protected List<ChartReader> References { get; } = new List<ChartReader>();
+        protected List<ChartReader> References { get; } = new();
 
         /// <summary>
-        /// Start parsing with the provided <see cref="FullPath"/> and <see cref="Filename"/>.
+        ///     Start parsing with the provided <see cref="FullPath" /> and <see cref="Filename" />.
         /// </summary>
         /// <returns>Result containing any errors found within the chart file.</returns>
         public Result<ChartFileErrors> Parse()
         {
-            List<ChartError> errors = new List<ChartError>();
+            GuideSoundTiming = new HashSet<int>();
+            var errors = new List<ChartError>();
             TotalTimingGroup = 1;
             CurrentTimingGroup = 0;
-            TimingGroups.Add(new RawTimingGroup() { File = Filename });
+            TimingGroups.Add(new RawTimingGroup { File = Filename });
             AllIncludes.Add(Filename);
-            var songID = Filename[..^1];
-            var diffID = Filename[^1];
-            var localDir = Path.Combine(Application.persistentDataPath, "dl");
-            var localPath = Path.Combine(localDir, Filename);
-            Debug.Log(localPath);
-            if (!Directory.Exists(localDir))
-                Directory.CreateDirectory(localDir);
-            string content;
-            if (File.Exists(localPath))
-            {
-                content = File.ReadAllText(localPath);
-            }
-            else
-            {
-                var fileUrl = $"https://erc.osiom.cc/dl/song/{songID}/{diffID}.aff";
-                using var request = UnityWebRequest.Get(fileUrl);
-                request.SendWebRequest();
-                while (!request.isDone)
-                {
-                }
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogError($"请求失败: {request.error}");
-                }
-                File.WriteAllBytes(localPath, request.downloadHandler.data);
-                content = System.Text.Encoding.UTF8.GetString(request.downloadHandler.data);
-            }
-            
-            Option<string[]> lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            var lines = FileAccess.ReadFileByLines(Filename);
             if (!lines.HasValue)
             {
                 errors.Add(ChartError.Format(RawEventType.Unknown, ChartError.Kind.FileDoesNotExist));
                 return new ChartFileErrors(Filename, errors);
             }
 
-            bool atHeader = true;
-            for (int i = 0; i < lines.Value.Length; i++)
+            var atHeader = true;
+            for (var i = 0; i < lines.Value.Length; i++)
             {
-                string line = lines.Value[i].Trim();
+                var line = lines.Value[i].Trim();
                 if (atHeader)
                 {
-                    Result<ChartError> result = ParseHeaderLine(line, i, FullPath, out bool endOfHeader);
-                    if (result.IsError)
-                    {
-                        errors.Add(result.Error);
-                    }
+                    var result = ParseHeaderLine(line, i, FullPath, out var endOfHeader);
+                    if (result.IsError) errors.Add(result.Error);
 
-                    if (endOfHeader)
-                    {
-                        atHeader = false;
-                    }
+                    if (endOfHeader) atHeader = false;
                 }
                 else
                 {
                     var result = ParseLine(line, FullPath, i);
-                    if (result.IsError)
-                    {
-                        errors.Add(result.Error);
-                    }
+                    if (result.IsError) errors.Add(result.Error);
                 }
             }
 
-            foreach (ChartReader reference in References)
+            foreach (var reference in References)
             {
-                int referenceBaseGroupCount = 0;
-                int removedBaseGroup = 0;
-                foreach (RawEvent e in reference.Events)
-                {
+                var referenceBaseGroupCount = 0;
+                var removedBaseGroup = 0;
+                foreach (var e in reference.Events)
                     if (e.TimingGroup == 0)
-                    {
                         referenceBaseGroupCount += 1;
-                    }
-                }
 
                 if (referenceBaseGroupCount <= 1)
                 {
                     reference.TimingGroups.RemoveAt(0);
                     removedBaseGroup = 1;
-                    for (int i = reference.Events.Count - 1; i >= 0; i--)
-                    {
+                    for (var i = reference.Events.Count - 1; i >= 0; i--)
                         if (reference.Events[i].TimingGroup == 0)
-                        {
                             reference.Events.RemoveAt(i);
-                        }
-                    }
                 }
 
-                foreach (RawEvent e in reference.Events)
-                {
-                    e.TimingGroup += TimingGroups.Count - removedBaseGroup;
-                }
+                foreach (var e in reference.Events) e.TimingGroup += TimingGroups.Count - removedBaseGroup;
 
                 Events.AddRange(reference.Events);
                 TimingGroups.AddRange(reference.TimingGroups);
             }
 
             var r = FinalValidity();
-            if (r.IsError)
-            {
-                errors.Add(r.Error);
-            }
+            if (r.IsError) errors.Add(r.Error);
 
-            Events.Sort((RawEvent a, RawEvent b) => { return a.Timing.CompareTo(b.Timing); });
-            if (errors.Count > 0)
-            {
-                return new ChartFileErrors(Filename, errors);
-            }
-            else
-            {
-                return Result<ChartFileErrors>.Ok();
-            }
+            Events.Sort((a, b) => { return a.Timing.CompareTo(b.Timing); });
+            if (errors.Count > 0) return new ChartFileErrors(Filename, errors);
+
+            return Result<ChartFileErrors>.Ok();
         }
 
         public abstract Result<ChartError> ParseLine(string line, string path, int lineNumber);
 
-        public abstract Result<ChartError> ParseHeaderLine(string line, int lineNumber, string path, out bool endOfHeader);
+        public abstract Result<ChartError> ParseHeaderLine(string line, int lineNumber, string path,
+            out bool endOfHeader);
 
         public virtual Result<ChartError> FinalValidity()
         {
-            bool foundBaseTiming = false;
+            var foundBaseTiming = false;
             foreach (var ev in Events)
-            {
                 if (ev is RawTiming && ev.TimingGroup == 0 && ev.Timing == 0)
                 {
                     foundBaseTiming = true;
                     break;
                 }
-            }
 
-            if (!foundBaseTiming)
-            {
-                return ChartError.Format(RawEventType.Timing, ChartError.Kind.BaseTimingInvalid);
-            }
+            if (!foundBaseTiming) return ChartError.Format(RawEventType.Timing, ChartError.Kind.BaseTimingInvalid);
 
             return Result<ChartError>.Ok();
         }
 
         /// <summary>
-        /// Inject include and fragment references to this reader's blocklist.
+        ///     Inject include and fragment references to this reader's blocklist.
         /// </summary>
         /// <param name="includes">List of include references.</param>
         /// <param name="fragments">List of fragment references.</param>
@@ -212,30 +156,19 @@ namespace ArcCreate.ChartFormat
 
         public IEnumerable<string> GetReferencedFiles()
         {
-            HashSet<string> files = new HashSet<string>();
-            foreach (var tg in TimingGroups)
-            {
-                files.Add(tg.File);
-            }
+            var files = new HashSet<string>();
+            foreach (var tg in TimingGroups) files.Add(tg.File);
 
             foreach (var ev in Events)
-            {
                 if (ev is RawArc a && !string.IsNullOrWhiteSpace(a.Sfx) && a.Sfx != "none")
                 {
-                    string sfx = a.Sfx;
-                    if (sfx.EndsWith("_wav"))
-                    {
-                        sfx = sfx.Substring(0, sfx.Length - "_wav".Length) + ".wav";
-                    }
+                    var sfx = a.Sfx;
+                    if (sfx.EndsWith("_wav")) sfx = sfx.Substring(0, sfx.Length - "_wav".Length) + ".wav";
 
-                    if (!sfx.EndsWith(".wav"))
-                    {
-                        sfx = sfx + ".wav";
-                    }
+                    if (!sfx.EndsWith(".wav")) sfx = sfx + ".wav";
 
                     files.Add(sfx);
                 }
-            }
 
             return files;
         }

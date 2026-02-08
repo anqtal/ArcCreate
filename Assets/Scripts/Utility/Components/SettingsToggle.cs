@@ -6,8 +6,8 @@ namespace ArcCreate
     [RequireComponent(typeof(Toggle))]
     public class SettingsToggle : MonoBehaviour
     {
-        private Toggle toggle;
         private BoolSetting setting;
+        private Toggle toggle;
 
         private Toggle Toggle
         {
@@ -16,13 +16,6 @@ namespace ArcCreate
                 toggle = toggle == null ? GetComponent<Toggle>() : toggle;
                 return toggle;
             }
-        }
-
-        public void Setup(BoolSetting setting)
-        {
-            this.setting = setting;
-            setting.OnValueChanged.AddListener(OnSettingChange);
-            OnSettingChange(setting.Value);
         }
 
         private void Awake()
@@ -34,6 +27,13 @@ namespace ArcCreate
         {
             Toggle.onValueChanged.RemoveListener(OnUIChange);
             setting?.OnValueChanged.RemoveListener(OnSettingChange);
+        }
+
+        public void Setup(BoolSetting setting)
+        {
+            this.setting = setting;
+            setting.OnValueChanged.AddListener(OnSettingChange);
+            OnSettingChange(setting.Value);
         }
 
         private void OnSettingChange(bool value)

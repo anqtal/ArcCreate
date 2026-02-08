@@ -9,50 +9,120 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [EmmyDoc("Controller for an image")]
     public class ImageController : Controller, IPositionController, IColorController, IRectController
     {
-        private ValueChannel translationX;
-        private ValueChannel translationY;
-        private ValueChannel translationZ;
+        [SerializeField] private RectTransform rectTransform;
+        [SerializeField] private Image image;
+        private ValueChannel anchorMaxX;
+        private ValueChannel anchorMaxY;
+        private ValueChannel anchorMinX;
+        private ValueChannel anchorMinY;
+        private ValueChannel colorA;
+        private ValueChannel colorB;
+        private ValueChannel colorG;
+        private ValueChannel colorH;
+        private ValueChannel colorR;
+        private ValueChannel colorS;
+        private ValueChannel colorV;
+        private ValueChannel pivotX;
+        private ValueChannel pivotY;
+        private ValueChannel rectH;
+        private ValueChannel rectW;
         private ValueChannel rotationX;
         private ValueChannel rotationY;
         private ValueChannel rotationZ;
         private ValueChannel scaleX;
         private ValueChannel scaleY;
         private ValueChannel scaleZ;
-        private ValueChannel colorR;
-        private ValueChannel colorG;
-        private ValueChannel colorB;
-        private ValueChannel colorH;
-        private ValueChannel colorV;
-        private ValueChannel colorA;
-        private ValueChannel colorS;
-        private ValueChannel rectW;
-        private ValueChannel rectH;
-        private ValueChannel anchorMinX;
-        private ValueChannel anchorMinY;
-        private ValueChannel anchorMaxX;
-        private ValueChannel anchorMaxY;
-        private ValueChannel pivotX;
-        private ValueChannel pivotY;
-        [SerializeField] private RectTransform rectTransform;
-        [SerializeField] private Image image;
+        private ValueChannel translationX;
+        private ValueChannel translationY;
+        private ValueChannel translationZ;
+
+        [MoonSharpHidden] public Image Image => image;
 
         [MoonSharpHidden] public Color DefaultColor { get; set; }
+
+        public ValueChannel ColorR
+        {
+            get => colorR;
+            set
+            {
+                colorR = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorG
+        {
+            get => colorG;
+            set
+            {
+                colorG = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorB
+        {
+            get => colorB;
+            set
+            {
+                colorB = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorH
+        {
+            get => colorH;
+            set
+            {
+                colorH = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorS
+        {
+            get => colorS;
+            set
+            {
+                colorS = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorV
+        {
+            get => colorV;
+            set
+            {
+                colorV = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public ValueChannel ColorA
+        {
+            get => colorA;
+            set
+            {
+                colorA = value;
+                EnableColorModule = true;
+            }
+        }
+
+        public bool EnableColorModule { get; set; }
+
+        [MoonSharpHidden]
+        public void UpdateColor(Color color)
+        {
+            image.color = color;
+        }
 
         [MoonSharpHidden] public Vector3 DefaultTranslation { get; private set; } = Vector3.zero;
 
         [MoonSharpHidden] public Quaternion DefaultRotation { get; private set; } = Quaternion.identity;
 
         [MoonSharpHidden] public Vector3 DefaultScale { get; private set; } = Vector3.one;
-
-        [MoonSharpHidden] public float DefaultRectW { get; private set; }
-
-        [MoonSharpHidden] public float DefaultRectH { get; private set; }
-
-        [MoonSharpHidden] public Vector2 DefaultAnchorMin { get; private set; }
-
-        [MoonSharpHidden] public Vector2 DefaultAnchorMax { get; private set; }
-
-        [MoonSharpHidden] public Vector2 DefaultPivot { get; private set; }
 
         public ValueChannel TranslationX
         {
@@ -144,75 +214,25 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
-        public ValueChannel ColorR
+        public bool EnablePositionModule { get; set; }
+
+        [MoonSharpHidden]
+        public virtual void UpdatePosition(Vector3 translation, Quaternion rotation, Vector3 scale)
         {
-            get => colorR;
-            set
-            {
-                colorR = value;
-                EnableColorModule = true;
-            }
+            rectTransform.anchoredPosition3D = translation;
+            rectTransform.localScale = scale;
+            rectTransform.localRotation = rotation;
         }
 
-        public ValueChannel ColorG
-        {
-            get => colorG;
-            set
-            {
-                colorG = value;
-                EnableColorModule = true;
-            }
-        }
+        [MoonSharpHidden] public float DefaultRectW { get; private set; }
 
-        public ValueChannel ColorB
-        {
-            get => colorB;
-            set
-            {
-                colorB = value;
-                EnableColorModule = true;
-            }
-        }
+        [MoonSharpHidden] public float DefaultRectH { get; private set; }
 
-        public ValueChannel ColorH
-        {
-            get => colorH;
-            set
-            {
-                colorH = value;
-                EnableColorModule = true;
-            }
-        }
+        [MoonSharpHidden] public Vector2 DefaultAnchorMin { get; private set; }
 
-        public ValueChannel ColorS
-        {
-            get => colorS;
-            set
-            {
-                colorS = value;
-                EnableColorModule = true;
-            }
-        }
+        [MoonSharpHidden] public Vector2 DefaultAnchorMax { get; private set; }
 
-        public ValueChannel ColorV
-        {
-            get => colorV;
-            set
-            {
-                colorV = value;
-                EnableColorModule = true;
-            }
-        }
-
-        public ValueChannel ColorA
-        {
-            get => colorA;
-            set
-            {
-                colorA = value;
-                EnableColorModule = true;
-            }
-        }
+        [MoonSharpHidden] public Vector2 DefaultPivot { get; private set; }
 
         public ValueChannel RectW
         {
@@ -294,13 +314,17 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
-        [MoonSharpHidden] public Image Image => image;
-
-        public bool EnablePositionModule { get; set; }
-
-        public bool EnableColorModule { get; set; }
-
         public bool EnableRectModule { get; set; }
+
+        [MoonSharpHidden]
+        public void UpdateRect(float w, float h, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
+        {
+            rectTransform.anchorMin = anchorMin;
+            rectTransform.anchorMax = anchorMax;
+            rectTransform.pivot = pivot;
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
+        }
 
         [MoonSharpHidden]
         public override void SetupDefault()
@@ -322,9 +346,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
             var c = Instantiate(gameObject, transform.parent).GetComponent<ImageController>();
             c.image.material = Instantiate(c.image.material);
             c.IsPersistent = false;
-            Controller[] children = GetChildren();
-            int i = 0;
-            foreach (Controller child in c.GetChildren())
+            var children = GetChildren();
+            var i = 0;
+            foreach (var child in c.GetChildren())
             {
                 child.IsPersistent = false;
                 child.Start();
@@ -336,30 +360,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             c.CopyAllChannelsFrom(this);
             Services.Scenecontrol.AddReferencedController(c);
             return c;
-        }
-
-        [MoonSharpHidden]
-        public void UpdateColor(Color color)
-        {
-            image.color = color;
-        }
-
-        [MoonSharpHidden]
-        public virtual void UpdatePosition(Vector3 translation, Quaternion rotation, Vector3 scale)
-        {
-            rectTransform.anchoredPosition3D = translation;
-            rectTransform.localScale = scale;
-            rectTransform.localRotation = rotation;
-        }
-
-        [MoonSharpHidden]
-        public void UpdateRect(float w, float h, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
-        {
-            rectTransform.anchorMin = anchorMin;
-            rectTransform.anchorMax = anchorMax;
-            rectTransform.pivot = pivot;
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
         }
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using Google.MaterialDesign.Icons;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 
 namespace ArcCreate.Selection.Interface
 {
@@ -12,8 +11,6 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private string emptyIconCode;
 
         private int value;
-
-        public event Action<int> OnValueChanged;
 
         public int Value
         {
@@ -26,12 +23,11 @@ namespace ArcCreate.Selection.Interface
             }
         }
 
+        public event Action<int> OnValueChanged;
+
         private void UpdateDisplay()
         {
-            for (int i = 0; i < icons.Length; i++)
-            {
-                icons[i].iconUnicode = i < value ? filledIconCode : emptyIconCode;
-            }
+            for (var i = 0; i < icons.Length; i++) icons[i].iconUnicode = i < value ? filledIconCode : emptyIconCode;
         }
     }
 }

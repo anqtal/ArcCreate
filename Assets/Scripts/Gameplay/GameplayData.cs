@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using ArcCreate.ChartFormat;
 using ArcCreate.Data;
-using ArcCreate.Gameplay.Audio;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,7 +10,7 @@ using UnityEngine.Networking;
 namespace ArcCreate.Gameplay
 {
     /// <summary>
-    /// Scriptable object acting as data channel for scenes linking to gameplay scene.
+    ///     Scriptable object acting as data channel for scenes linking to gameplay scene.
     /// </summary>
     [CreateAssetMenu(fileName = "GameplayData", menuName = "ScriptableObject/GameplayData")]
     public class GameplayData : ScriptableObject
@@ -36,114 +35,19 @@ namespace ArcCreate.Gameplay
 
         public event Action<PlayResult> OnPlayComplete;
 
-#pragma warning disable
         /// <summary>
-        /// The background sprite.
-        /// </summary>
-        public State<Sprite> Background { get; } = new State<Sprite>();
-
-        /// <summary>
-        /// The jacket art sprite.
-        /// </summary>
-        public State<Sprite> Jacket { get; } = new State<Sprite>();
-
-        /// <summary>
-        /// The song's title.
-        /// </summary>
-        public State<string> Title { get; } = new State<string>();
-
-        /// <summary>
-        /// The composer's name.
-        /// </summary>
-        public State<string> Composer { get; } = new State<string>();
-
-        /// <summary>
-        /// The illustrator's name.
-        /// </summary>
-        public State<string> Illustrator { get; } = new State<string>();
-
-        /// <summary>
-        /// The charter's name.
-        /// </summary>
-        public State<string> Charter { get; } = new State<string>();
-
-        /// <summary>
-        /// The charter's alias.
-        /// </summary>
-        public State<string> Alias { get; } = new State<string>();
-
-        /// <summary>
-        /// The text of the difficulty display.
-        /// </summary>
-        public State<string> DifficultyName { get; } = new State<string>();
-
-        /// <summary>
-        /// The color of the difficulty text's background image.
-        /// </summary>
-        public State<Color> DifficultyColor { get; } = new State<Color>();
-
-        /// <summary>
-        /// The audio clip to play.
-        /// </summary>
-        public State<AudioClip> AudioClip { get; } = new State<AudioClip>();
-
-        /// <summary>
-        /// The audio offset value per chart.
-        /// Use <see cref="Settings.GlobalAudioOffset"/> for global audio offset.
-        /// Setting this value will cause a score reset.
-        /// </summary>
-        public State<int> AudioOffset { get; } = new State<int>();
-
-        /// <summary>
-        /// The base bpm value.
-        /// Setting this value will cause a score reset.
-        /// </summary>
-        public State<float> BaseBpm { get; } = new State<float>();
-
-        /// <summary>
-        /// The timing point density factor value.
-        /// Setting this value will cause a score reset.
-        /// </summary>
-        public State<float> TimingPointDensityFactor { get; } = new State<float>();
-
-        /// <summary>
-        /// The url to be played by video background renderer.
-        /// Setting it to null or empty string will disable the renderer.
-        /// </summary>
-        public State<string> VideoBackgroundUrl { get; } = new State<string>();
-
-        /// <summary>
-        /// Whether or not to enable practice mode for gameplay scene.
-        /// </summary>
-        public State<bool> EnablePracticeMode { get; } = new State<bool>(false);
-
-        /// <summary>
-        /// Whether or not to force enable autoplay mode for gameplay scene.
-        /// </summary>
-        public State<bool> EnableAutoplayMode { get; } = new State<bool>(false);
-
-        /// <summary>
-        /// The audio playback speed.
-        /// </summary>
-        public State<float> PlaybackSpeed { get; } = new State<float>(1);
-#pragma warning restore
-
-        /// <summary>
-        /// Load the audio clip from the specified path.
+        ///     Load the audio clip from the specified path.
         /// </summary>
         /// <param name="path">The path to load.</param>
         public void LoadAudio(string path)
         {
-            if (AudioClip.Value != null)
-            {
-                Destroy(AudioClip.Value);
-            }
+            if (AudioClip.Value != null) Destroy(AudioClip.Value);
 
             StartLoadingAudio(path).Forget();
         }
 
         /// <summary>
-        /// Load the background from specified file path.
+        ///     Load the background from specified file path.
         /// </summary>
         /// <param name="path">The path to load.</param>
         public void LoadBackground(string path)
@@ -161,18 +65,18 @@ namespace ArcCreate.Gameplay
                 Destroy(Background.Value);
             }
 
-            path = Path.Combine(Application.streamingAssetsPath, "bg", path+".jpg");
+            path = Path.Combine(Application.streamingAssetsPath, "bg", path + ".jpg");
             Debug.Log(path);
             var t = new Texture2D(1, 1);
             t.wrapMode = TextureWrapMode.Clamp;
             t.LoadImage(File.ReadAllBytes(path), true);
-            Sprite sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+            var sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
             Background.Value = sprite;
             isUsingDefaultBackground = false;
         }
 
         /// <summary>
-        /// Load the jacket art from specified file path.
+        ///     Load the jacket art from specified file path.
         /// </summary>
         /// <param name="path">The path to load.</param>
         public void LoadJacket(string path)
@@ -190,16 +94,16 @@ namespace ArcCreate.Gameplay
                 Destroy(Jacket.Value);
             }
 
-            Texture2D t = new Texture2D(1, 1);
+            var t = new Texture2D(1, 1);
             t.wrapMode = TextureWrapMode.Clamp;
             t.LoadImage(File.ReadAllBytes(path), true);
-            Sprite sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+            var sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
             Jacket.Value = sprite;
             isUsingDefaultJacket = false;
         }
 
         /// <summary>
-        /// Set the chart file for this system.
+        ///     Set the chart file for this system.
         /// </summary>
         /// <param name="reader">The chart reader defining the chart.</param>
         /// <param name="sfxParentFolder">The parent folder for loading custom SFX files.</param>
@@ -225,27 +129,22 @@ namespace ArcCreate.Gameplay
 
         public async UniTask LoadAudioFromHttp(Uri uri, string ext)
         {
-            if (AudioClip.Value != null)
-            {
-                Destroy(AudioClip.Value);
-            }
-            
+            if (AudioClip.Value != null) Destroy(AudioClip.Value);
 
-            using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(
-                uri,
-                ext == ".ogg" ? AudioType.OGGVORBIS : AudioType.WAV))
+
+            using (var req = UnityWebRequestMultimedia.GetAudioClip(
+                       uri,
+                       ext == ".ogg" ? AudioType.OGGVORBIS : AudioType.WAV))
             {
                 Debug.Log(uri);
                 await req.SendWebRequest();
                 if (!string.IsNullOrWhiteSpace(req.error))
-                {
-                    throw new IOException(I18n.S("Gameplay.Exception.LoadAudio", new Dictionary<string, object>()
+                    throw new IOException(I18n.S("Gameplay.Exception.LoadAudio", new Dictionary<string, object>
                     {
                         { "Path", uri },
-                        { "Error", req.error },
+                        { "Error", req.error }
                     }));
-                }
-                
+
                 AudioClip.Value = DownloadHandlerAudioClip.GetContent(req);
             }
         }
@@ -258,7 +157,7 @@ namespace ArcCreate.Gameplay
                 Destroy(Jacket.Value);
             }
 
-            using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(uri))
+            using (var req = UnityWebRequestTexture.GetTexture(uri))
             {
                 await req.SendWebRequest();
                 if (!string.IsNullOrWhiteSpace(req.error))
@@ -266,16 +165,16 @@ namespace ArcCreate.Gameplay
                     Jacket.Value = defaultJacket;
                     isUsingDefaultJacket = true;
 
-                    Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>()
+                    Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>
                     {
                         { "Path", uri },
-                        { "Error", req.error },
+                        { "Error", req.error }
                     }));
                     return;
                 }
 
-                Texture2D t = DownloadHandlerTexture.GetContent(req);
-                Sprite sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+                var t = DownloadHandlerTexture.GetContent(req);
+                var sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
                 Jacket.Value = sprite;
                 isUsingDefaultJacket = false;
             }
@@ -296,16 +195,16 @@ namespace ArcCreate.Gameplay
                 Background.Value = Services.Skin.DefaultBackground;
                 isUsingDefaultBackground = true;
 
-                Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>()
+                Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>
                 {
                     { "Path", uri },
-                    { "Error", req.error },
+                    { "Error", req.error }
                 }));
                 return;
             }
 
-            Texture2D t = DownloadHandlerTexture.GetContent(req);
-            Sprite sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+            var t = DownloadHandlerTexture.GetContent(req);
+            var sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
             Background.Value = sprite;
             isUsingDefaultBackground = false;
         }
@@ -317,19 +216,17 @@ namespace ArcCreate.Gameplay
 
         internal async UniTask StartLoadingAudio(string path)
         {
-            using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(
-                new Uri(path),
-                path.EndsWith("wav") ? AudioType.WAV : AudioType.OGGVORBIS))
+            using (var req = UnityWebRequestMultimedia.GetAudioClip(
+                       new Uri(path),
+                       path.EndsWith("wav") ? AudioType.WAV : AudioType.OGGVORBIS))
             {
                 await req.SendWebRequest();
                 if (!string.IsNullOrWhiteSpace(req.error))
-                {
-                    throw new IOException(I18n.S("Gameplay.Exception.LoadAudio", new Dictionary<string, object>()
+                    throw new IOException(I18n.S("Gameplay.Exception.LoadAudio", new Dictionary<string, object>
                     {
                         { "Path", path },
-                        { "Error", req.error },
+                        { "Error", req.error }
                     }));
-                }
 
                 AudioClip.Value = DownloadHandlerAudioClip.GetContent(req);
             }
@@ -337,10 +234,7 @@ namespace ArcCreate.Gameplay
 
         internal void NotifySkinValuesChange()
         {
-            if (isUsingDefaultBackground)
-            {
-                SetDefaultBackground();
-            }
+            if (isUsingDefaultBackground) SetDefaultBackground();
 
             OnSkinValuesChange?.Invoke();
         }
@@ -374,5 +268,97 @@ namespace ArcCreate.Gameplay
         {
             OnPlayComplete?.Invoke(result);
         }
+
+#pragma warning disable
+        /// <summary>
+        ///     The background sprite.
+        /// </summary>
+        public State<Sprite> Background { get; } = new();
+
+        /// <summary>
+        ///     The jacket art sprite.
+        /// </summary>
+        public State<Sprite> Jacket { get; } = new();
+
+        /// <summary>
+        ///     The song's title.
+        /// </summary>
+        public State<string> Title { get; } = new();
+
+        /// <summary>
+        ///     The composer's name.
+        /// </summary>
+        public State<string> Composer { get; } = new();
+
+        /// <summary>
+        ///     The illustrator's name.
+        /// </summary>
+        public State<string> Illustrator { get; } = new();
+
+        /// <summary>
+        ///     The charter's name.
+        /// </summary>
+        public State<string> Charter { get; } = new();
+
+        /// <summary>
+        ///     The charter's alias.
+        /// </summary>
+        public State<string> Alias { get; } = new();
+
+        /// <summary>
+        ///     The text of the difficulty display.
+        /// </summary>
+        public State<string> DifficultyName { get; } = new();
+
+        /// <summary>
+        ///     The color of the difficulty text's background image.
+        /// </summary>
+        public State<Color> DifficultyColor { get; } = new();
+
+        /// <summary>
+        ///     The audio clip to play.
+        /// </summary>
+        public State<AudioClip> AudioClip { get; } = new();
+
+        /// <summary>
+        ///     The audio offset value per chart.
+        ///     Use <see cref="Settings.GlobalAudioOffset" /> for global audio offset.
+        ///     Setting this value will cause a score reset.
+        /// </summary>
+        public State<int> AudioOffset { get; } = new();
+
+        /// <summary>
+        ///     The base bpm value.
+        ///     Setting this value will cause a score reset.
+        /// </summary>
+        public State<float> BaseBpm { get; } = new();
+
+        /// <summary>
+        ///     The timing point density factor value.
+        ///     Setting this value will cause a score reset.
+        /// </summary>
+        public State<float> TimingPointDensityFactor { get; } = new();
+
+        /// <summary>
+        ///     The url to be played by video background renderer.
+        ///     Setting it to null or empty string will disable the renderer.
+        /// </summary>
+        public State<string> VideoBackgroundUrl { get; } = new();
+
+        /// <summary>
+        ///     Whether or not to enable practice mode for gameplay scene.
+        /// </summary>
+        public State<bool> EnablePracticeMode { get; } = new(false);
+
+        /// <summary>
+        ///     Whether or not to force enable autoplay mode for gameplay scene.
+        /// </summary>
+        public State<bool> EnableAutoplayMode { get; } = new(false);
+
+        /// <summary>
+        ///     The audio playback speed.
+        /// </summary>
+        public State<float> PlaybackSpeed { get; } = new(1);
+#pragma warning restore
     }
 }

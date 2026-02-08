@@ -9,18 +9,6 @@ namespace ArcCreate.Utility.InfiniteScroll
 {
     public class InfiniteScroll : MonoBehaviour, IDragHandler
     {
-        /// <summary>
-        /// User defined cell data.
-        /// </summary>
-        private readonly List<CellData> data = new List<CellData>();
-
-        /// <summary>
-        /// Store hierarchy data necessary for rendering. Should be a 1-1 correspondance with dataSource.
-        /// </summary>
-        private readonly List<HierarchyData> hierarchy = new List<HierarchyData>();
-
-        private readonly List<Cell> visibleCells = new List<Cell>();
-
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private float marginTop;
         [SerializeField] private float marginBottom;
@@ -30,36 +18,31 @@ namespace ArcCreate.Utility.InfiniteScroll
         [SerializeField] private RectTransform.Axis axis;
         [SerializeField] private bool useTwoStageLoading;
         [SerializeField] private float maxVelocityForSecondStage;
-        private RectTransform contentRect;
-        private RectTransform containerRect;
-        private bool setup;
-        private Vector2 previousContentRectPosition;
 
-        public event Action OnPointerEvent;
+        private readonly List<Cell> visibleCells = new();
+        private RectTransform containerRect;
+        private RectTransform contentRect;
+        private Vector2 previousContentRectPosition;
+        private bool setup;
 
         public float Value
         {
-            get
-            {
-                return IsVertical ?
-                       contentRect.anchoredPosition.y + (containerRect.rect.height / 2) :
-                       -contentRect.anchoredPosition.x + (containerRect.rect.width / 2);
-            }
+            get =>
+                IsVertical
+                    ? contentRect.anchoredPosition.y + containerRect.rect.height / 2
+                    : -contentRect.anchoredPosition.x + containerRect.rect.width / 2;
 
             set
             {
-                if (hierarchy.Count == 0)
-                {
-                    return;
-                }
+                if (Hierarchy.Count == 0) return;
 
                 if (IsVertical)
                 {
-                    float halfContainerHeight = containerRect.rect.height / 2;
-                    float contentHeight = contentRect.rect.height;
-                    float max = contentHeight < containerRect.rect.height ?
-                        halfContainerHeight :
-                        contentHeight - halfContainerHeight;
+                    var halfContainerHeight = containerRect.rect.height / 2;
+                    var contentHeight = contentRect.rect.height;
+                    var max = contentHeight < containerRect.rect.height
+                        ? halfContainerHeight
+                        : contentHeight - halfContainerHeight;
                     value = Mathf.Clamp(value, halfContainerHeight, max);
                     contentRect.anchoredPosition = new Vector2(
                         contentRect.anchoredPosition.x,
@@ -67,100 +50,30 @@ namespace ArcCreate.Utility.InfiniteScroll
                 }
                 else
                 {
-                    float halfContainerWidth = containerRect.rect.width / 2;
-                    float contentWidth = contentRect.rect.width;
-                    float max = contentWidth < containerRect.rect.width ?
-                        halfContainerWidth :
-                        contentWidth - halfContainerWidth;
+                    var halfContainerWidth = containerRect.rect.width / 2;
+                    var contentWidth = contentRect.rect.width;
+                    var max = contentWidth < containerRect.rect.width
+                        ? halfContainerWidth
+                        : contentWidth - halfContainerWidth;
                     value = Mathf.Clamp(value, halfContainerWidth, max);
                     contentRect.anchoredPosition = new Vector2(
-                        -value + (containerRect.rect.width / 2),
+                        -value + containerRect.rect.width / 2,
                         contentRect.anchoredPosition.y);
                 }
             }
         }
 
-        public List<CellData> Data => data;
+        /// <summary>
+        ///     User defined cell data.
+        /// </summary>
+        public List<CellData> Data { get; } = new();
 
-        public List<HierarchyData> Hierarchy => hierarchy;
+        /// <summary>
+        ///     Store hierarchy data necessary for rendering. Should be a 1-1 correspondance with dataSource.
+        /// </summary>
+        public List<HierarchyData> Hierarchy { get; } = new();
 
         private bool IsVertical => axis == RectTransform.Axis.Vertical;
-
-        public void SetData(List<CellData> data)
-        {
-            SetDataWithoutRebuild(data);
-            Rebuild();
-            LoadSecondStage(0);
-        }
-
-        public void SetDataWithoutRebuild(List<CellData> data)
-        {
-            if (!setup)
-            {
-                Awake();
-            }
-
-            this.data.Clear();
-            hierarchy.Clear();
-
-            foreach (Cell cell in visibleCells)
-            {
-                cell.CellData.Pool.Return(cell);
-            }
-
-            visibleCells.Clear();
-
-            foreach (CellData cellData in data)
-            {
-                AddCell(cellData);
-            }
-
-            RecalculateCellsState();
-        }
-
-        /// <summary>
-        /// Collapse a cell. Any children cell will be hidden from view.
-        /// </summary>
-        /// <param name="cellIndex">Flat index of cell.</param>
-        public void ToggleCollapse(int cellIndex)
-        {
-            hierarchy[cellIndex].IsCollapsed = !hierarchy[cellIndex].IsCollapsed;
-            RecalculateCellsState();
-            Rebuild(true);
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            OnPointerEvent?.Invoke();
-        }
-
-        public void OnDrag(BaseEventData eventData)
-        {
-            OnPointerEvent?.Invoke();
-        }
-
-        /// <summary>
-        /// Add cell to cells list along with their children.
-        /// </summary>
-        private void AddCell(CellData cellData, int parent = -1, int indent = 0)
-        {
-            int index = data.Count;
-
-            data.Add(cellData);
-            hierarchy.Add(new HierarchyData(index, cellData.Size, indent, parent)
-            {
-                IsCollapsed = cellData.CollapsedByDefault,
-                SecondStageStarted = false,
-            });
-
-            if (cellData.Children != null)
-            {
-                foreach (CellData child in cellData.Children)
-                {
-                    AddCell(child, index, indent + 1);
-                }
-            }
-        }
 
         private void Awake()
         {
@@ -184,21 +97,11 @@ namespace ArcCreate.Utility.InfiniteScroll
             setup = true;
         }
 
-        private void OnDestroy()
-        {
-            scrollRect.onValueChanged.RemoveListener(OnScroll);
-        }
-
-        private void OnScroll(Vector2 val)
-        {
-            Rebuild();
-        }
-
         private void Update()
         {
             if (useTwoStageLoading)
             {
-                Vector2 velocity = contentRect.anchoredPosition - previousContentRectPosition;
+                var velocity = contentRect.anchoredPosition - previousContentRectPosition;
                 velocity /= Time.deltaTime;
                 LoadSecondStage(IsVertical ? velocity.y : velocity.x);
 
@@ -206,71 +109,134 @@ namespace ArcCreate.Utility.InfiniteScroll
             }
         }
 
+        private void OnDestroy()
+        {
+            scrollRect.onValueChanged.RemoveListener(OnScroll);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            OnPointerEvent?.Invoke();
+        }
+
+        public event Action OnPointerEvent;
+
+        public void SetData(List<CellData> data)
+        {
+            SetDataWithoutRebuild(data);
+            Rebuild();
+            LoadSecondStage(0);
+        }
+
+        public void SetDataWithoutRebuild(List<CellData> data)
+        {
+            if (!setup) Awake();
+
+            this.Data.Clear();
+            Hierarchy.Clear();
+
+            foreach (var cell in visibleCells) cell.CellData.Pool.Return(cell);
+
+            visibleCells.Clear();
+
+            foreach (var cellData in data) AddCell(cellData);
+
+            RecalculateCellsState();
+        }
+
+        /// <summary>
+        ///     Collapse a cell. Any children cell will be hidden from view.
+        /// </summary>
+        /// <param name="cellIndex">Flat index of cell.</param>
+        public void ToggleCollapse(int cellIndex)
+        {
+            Hierarchy[cellIndex].IsCollapsed = !Hierarchy[cellIndex].IsCollapsed;
+            RecalculateCellsState();
+            Rebuild(true);
+        }
+
+        public void OnDrag(BaseEventData eventData)
+        {
+            OnPointerEvent?.Invoke();
+        }
+
+        /// <summary>
+        ///     Add cell to cells list along with their children.
+        /// </summary>
+        private void AddCell(CellData cellData, int parent = -1, int indent = 0)
+        {
+            var index = Data.Count;
+
+            Data.Add(cellData);
+            Hierarchy.Add(new HierarchyData(index, cellData.Size, indent, parent)
+            {
+                IsCollapsed = cellData.CollapsedByDefault,
+                SecondStageStarted = false
+            });
+
+            if (cellData.Children != null)
+                foreach (var child in cellData.Children)
+                    AddCell(child, index, indent + 1);
+        }
+
+        private void OnScroll(Vector2 val)
+        {
+            Rebuild();
+        }
+
         private void RecalculateCellsState()
         {
-            float positionSoFar = IsVertical ? marginTop : marginLeft;
-            for (int i = 0; i < hierarchy.Count; i++)
+            var positionSoFar = IsVertical ? marginTop : marginLeft;
+            for (var i = 0; i < Hierarchy.Count; i++)
             {
-                HierarchyData item = hierarchy[i];
+                var item = Hierarchy[i];
                 item.IsVisible = IsVisible(i);
                 item.PositionInRect = positionSoFar;
-                if (item.IsVisible)
-                {
-                    positionSoFar += item.Size + spacing;
-                }
+                if (item.IsVisible) positionSoFar += item.Size + spacing;
             }
 
             positionSoFar += IsVertical ? marginBottom : marginRight;
-            contentRect.SetSizeWithCurrentAnchors(axis, (float)positionSoFar);
+            contentRect.SetSizeWithCurrentAnchors(axis, positionSoFar);
 
-            for (int i = 0; i < visibleCells.Count; i++)
+            for (var i = 0; i < visibleCells.Count; i++)
             {
-                Cell cell = visibleCells[i];
-                HierarchyData item = cell.HierarchyData;
+                var cell = visibleCells[i];
+                var item = cell.HierarchyData;
                 ApplyCellRect(cell, item);
             }
         }
 
         private bool IsVisible(int index)
         {
-            HierarchyData cell = hierarchy[index];
-            if (cell.ParentIndex == -1)
-            {
-                return true;
-            }
+            var cell = Hierarchy[index];
+            if (cell.ParentIndex == -1) return true;
 
-            HierarchyData parent = hierarchy[cell.ParentIndex];
-            if (parent.IsCollapsed)
-            {
-                return false;
-            }
+            var parent = Hierarchy[cell.ParentIndex];
+            if (parent.IsCollapsed) return false;
 
             return IsVisible(cell.ParentIndex);
         }
 
         public void Rebuild(bool checkInbetween = false)
         {
-            float minVisiblePositionInRect = IsVertical
-                                           ? contentRect.anchoredPosition.y
-                                           : -contentRect.anchoredPosition.x;
-            float maxVisiblePositionInRect = IsVertical
-                                           ? contentRect.anchoredPosition.y + containerRect.rect.height
-                                           : -contentRect.anchoredPosition.x + containerRect.rect.width;
+            var minVisiblePositionInRect = IsVertical
+                ? contentRect.anchoredPosition.y
+                : -contentRect.anchoredPosition.x;
+            var maxVisiblePositionInRect = IsVertical
+                ? contentRect.anchoredPosition.y + containerRect.rect.height
+                : -contentRect.anchoredPosition.x + containerRect.rect.width;
 
             if (visibleCells.Count == 0)
             {
-                for (int i = 0; i <= hierarchy.Count - 1; i++)
+                for (var i = 0; i <= Hierarchy.Count - 1; i++)
                 {
-                    HierarchyData item = hierarchy[i];
-                    bool cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
-                                    && item.PositionInRect <= maxVisiblePositionInRect;
-                    if (!cellVisible || !item.IsVisible)
-                    {
-                        continue;
-                    }
+                    var item = Hierarchy[i];
+                    var cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
+                                      && item.PositionInRect <= maxVisiblePositionInRect;
+                    if (!cellVisible || !item.IsVisible) continue;
 
-                    CellData cellData = data[i];
-                    Cell cell = cellData.Pool.Get(contentRect);
+                    var cellData = Data[i];
+                    var cell = cellData.Pool.Get(contentRect);
                     ApplyCell(cell, cellData, item);
                     visibleCells.Add(cell);
                 }
@@ -278,15 +244,15 @@ namespace ArcCreate.Utility.InfiniteScroll
                 return;
             }
 
-            int minVisibleIndex = hierarchy.Count;
-            int maxVisibleIndex = -1;
+            var minVisibleIndex = Hierarchy.Count;
+            var maxVisibleIndex = -1;
 
-            for (int i = visibleCells.Count - 1; i >= 0; i--)
+            for (var i = visibleCells.Count - 1; i >= 0; i--)
             {
-                Cell cell = visibleCells[i];
-                HierarchyData item = cell.HierarchyData;
-                bool cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
-                                && item.PositionInRect <= maxVisiblePositionInRect;
+                var cell = visibleCells[i];
+                var item = cell.HierarchyData;
+                var cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
+                                  && item.PositionInRect <= maxVisiblePositionInRect;
 
                 if (cellVisible)
                 {
@@ -305,76 +271,57 @@ namespace ArcCreate.Utility.InfiniteScroll
             }
 
             if (checkInbetween)
-            {
-                for (int i = minVisibleIndex; i < maxVisibleIndex; i++)
+                for (var i = minVisibleIndex; i < maxVisibleIndex; i++)
                 {
-                    HierarchyData item = hierarchy[i];
-                    bool cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
-                                    && item.PositionInRect <= maxVisiblePositionInRect;
+                    var item = Hierarchy[i];
+                    var cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
+                                      && item.PositionInRect <= maxVisiblePositionInRect;
 
-                    if (!item.IsVisible || !cellVisible)
-                    {
-                        continue;
-                    }
+                    if (!item.IsVisible || !cellVisible) continue;
 
-                    bool isAlreadyVisible = false;
+                    var isAlreadyVisible = false;
                     foreach (var visible in visibleCells)
-                    {
                         if (visible.HierarchyData.IndexFlat == i)
                         {
                             isAlreadyVisible = true;
                             break;
                         }
-                    }
 
                     if (!isAlreadyVisible)
                     {
-                        CellData cellData = data[i];
-                        Cell cell = cellData.Pool.Get(contentRect);
+                        var cellData = Data[i];
+                        var cell = cellData.Pool.Get(contentRect);
                         ApplyCell(cell, cellData, item);
                         visibleCells.Add(cell);
                     }
                 }
-            }
 
-            for (int i = minVisibleIndex - 1; i >= 0; i--)
+            for (var i = minVisibleIndex - 1; i >= 0; i--)
             {
-                HierarchyData item = hierarchy[i];
-                bool cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
-                                && item.PositionInRect <= maxVisiblePositionInRect;
-                if (!cellVisible)
-                {
-                    break;
-                }
+                var item = Hierarchy[i];
+                var cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
+                                  && item.PositionInRect <= maxVisiblePositionInRect;
+                if (!cellVisible) break;
 
-                if (!item.IsVisible)
-                {
-                    continue;
-                }
+                if (!item.IsVisible) continue;
 
-                CellData cellData = data[i];
-                Cell cell = cellData.Pool.Get(contentRect);
+                var cellData = Data[i];
+                var cell = cellData.Pool.Get(contentRect);
                 ApplyCell(cell, cellData, item);
                 visibleCells.Add(cell);
             }
 
-            for (int i = maxVisibleIndex + 1; i < hierarchy.Count; i++)
+            for (var i = maxVisibleIndex + 1; i < Hierarchy.Count; i++)
             {
-                HierarchyData item = hierarchy[i];
-                bool cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
-                                && item.PositionInRect <= maxVisiblePositionInRect;
-                if (!cellVisible)
-                {
-                    break;
-                }
+                var item = Hierarchy[i];
+                var cellVisible = item.PositionInRect + item.Size >= minVisiblePositionInRect
+                                  && item.PositionInRect <= maxVisiblePositionInRect;
+                if (!cellVisible) break;
 
-                if (!item.IsVisible)
-                {
-                    continue;
-                }
+                if (!item.IsVisible) continue;
 
-                CellData cellData = data[i];
-                Cell cell = cellData.Pool.Get(contentRect);
+                var cellData = Data[i];
+                var cell = cellData.Pool.Get(contentRect);
                 ApplyCell(cell, cellData, item);
                 visibleCells.Add(cell);
             }
@@ -413,26 +360,23 @@ namespace ArcCreate.Utility.InfiniteScroll
 
         private void LoadSecondStage(float velocity)
         {
-            if (Mathf.Abs(velocity) > maxVelocityForSecondStage)
-            {
-                return;
-            }
+            if (Mathf.Abs(velocity) > maxVelocityForSecondStage) return;
 
-            float minVisiblePositionInRect = IsVertical
-                                           ? contentRect.anchoredPosition.y
-                                           : -contentRect.anchoredPosition.x;
-            float maxVisiblePositionInRect = IsVertical
-                                           ? contentRect.anchoredPosition.y + containerRect.rect.height
-                                           : -contentRect.anchoredPosition.x + containerRect.rect.width;
+            var minVisiblePositionInRect = IsVertical
+                ? contentRect.anchoredPosition.y
+                : -contentRect.anchoredPosition.x;
+            var maxVisiblePositionInRect = IsVertical
+                ? contentRect.anchoredPosition.y + containerRect.rect.height
+                : -contentRect.anchoredPosition.x + containerRect.rect.width;
 
             foreach (var cell in visibleCells)
             {
-                float predictedMinVisibleAfterLoad = minVisiblePositionInRect + (velocity * cell.PredictedLoadTime);
-                float predictedMaxVisibleAfterLoad = maxVisiblePositionInRect + (velocity * cell.PredictedLoadTime);
+                var predictedMinVisibleAfterLoad = minVisiblePositionInRect + velocity * cell.PredictedLoadTime;
+                var predictedMaxVisibleAfterLoad = maxVisiblePositionInRect + velocity * cell.PredictedLoadTime;
 
-                HierarchyData item = cell.HierarchyData;
-                bool willBeVisible = item.PositionInRect + item.Size >= predictedMinVisibleAfterLoad
-                                  && item.PositionInRect <= predictedMaxVisibleAfterLoad;
+                var item = cell.HierarchyData;
+                var willBeVisible = item.PositionInRect + item.Size >= predictedMinVisibleAfterLoad
+                                    && item.PositionInRect <= predictedMaxVisibleAfterLoad;
 
                 if (willBeVisible && !item.SecondStageStarted)
                 {

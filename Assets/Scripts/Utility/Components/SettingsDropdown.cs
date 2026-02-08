@@ -9,8 +9,8 @@ namespace ArcCreate
     public class SettingsDropdown : MonoBehaviour
     {
         private TMP_Dropdown dropdown;
-        private IntSetting setting;
         private Array enumValues;
+        private IntSetting setting;
 
         private TMP_Dropdown Dropdown
         {
@@ -19,21 +19,6 @@ namespace ArcCreate
                 dropdown = dropdown == null ? GetComponent<TMP_Dropdown>() : dropdown;
                 return dropdown;
             }
-        }
-
-        public void Setup(IntSetting setting, Type enumType, string i18nKey)
-        {
-            enumValues = Enum.GetValues(enumType);
-            this.setting = setting;
-            List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
-            foreach (object enumValue in enumValues)
-            {
-                options.Add(new TMP_Dropdown.OptionData(I18n.S($"{i18nKey}.{enumValue.ToString().ToLower()}")));
-            }
-
-            Dropdown.options = options;
-            setting.OnValueChanged.AddListener(OnSettingChange);
-            OnSettingChange(setting.Value);
         }
 
         private void Awake()
@@ -47,11 +32,24 @@ namespace ArcCreate
             setting?.OnValueChanged.RemoveListener(OnSettingChange);
         }
 
+        public void Setup(IntSetting setting, Type enumType, string i18nKey)
+        {
+            enumValues = Enum.GetValues(enumType);
+            this.setting = setting;
+            var options = new List<TMP_Dropdown.OptionData>();
+            foreach (var enumValue in enumValues)
+                options.Add(new TMP_Dropdown.OptionData(I18n.S($"{i18nKey}.{enumValue.ToString().ToLower()}")));
+
+            Dropdown.options = options;
+            setting.OnValueChanged.AddListener(OnSettingChange);
+            OnSettingChange(setting.Value);
+        }
+
         private void OnSettingChange(int value)
         {
-            for (int i = 0; i < enumValues.Length; i++)
+            for (var i = 0; i < enumValues.Length; i++)
             {
-                object obj = enumValues.GetValue(i);
+                var obj = enumValues.GetValue(i);
                 if ((int)obj == value)
                 {
                     Dropdown.SetValueWithoutNotify(i);

@@ -12,24 +12,9 @@ namespace ArcCreate.Gameplay.Audio
         [SerializeField] private Image image;
         private IPauseButtonHandler pauseButtonHandler;
 
-        public UnityEvent OnActivation { get; } = new UnityEvent();
+        public UnityEvent OnActivation { get; } = new();
 
         public bool Interactable { get; set; } = true;
-
-        public void Activate()
-        {
-            OnActivation.Invoke();
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            pauseButtonHandler.OnClick();
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            pauseButtonHandler.OnRelease();
-        }
 
         private void Awake()
         {
@@ -45,6 +30,21 @@ namespace ArcCreate.Gameplay.Audio
             Settings.PauseButtonMode.OnValueChanged.RemoveListener(OnModeSettings);
         }
 
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            pauseButtonHandler.OnClick();
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            pauseButtonHandler.OnRelease();
+        }
+
+        public void Activate()
+        {
+            OnActivation.Invoke();
+        }
+
         private void OnHideSettings(bool val)
         {
             image.color = new Color(1, 1, 1, val ? 0.01f : 1);
@@ -52,7 +52,7 @@ namespace ArcCreate.Gameplay.Audio
 
         private void OnModeSettings(int val)
         {
-            PauseButtonMode mode = (PauseButtonMode)val;
+            var mode = (PauseButtonMode)val;
             switch (mode)
             {
                 case PauseButtonMode.ClickOnce:

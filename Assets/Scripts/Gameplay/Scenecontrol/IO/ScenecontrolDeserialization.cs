@@ -6,52 +6,41 @@ namespace ArcCreate.Gameplay.Scenecontrol
 {
     public class ScenecontrolDeserialization
     {
-        private readonly Scene scene;
-        private readonly PostProcessing postProcessing;
-        private readonly List<SerializedUnit> serializedUnits;
         private readonly ISerializableUnit[] deserialized;
+        private readonly PostProcessing postProcessing;
+        private readonly Scene scene;
+        private readonly List<SerializedUnit> serializedUnits;
         private EnabledFeatures features = EnabledFeatures.None;
 
-        public ScenecontrolDeserialization(Scene scene, PostProcessing postProcessing, List<SerializedUnit> serializedUnits)
+        public ScenecontrolDeserialization(Scene scene, PostProcessing postProcessing,
+            List<SerializedUnit> serializedUnits)
         {
             this.serializedUnits = serializedUnits;
             this.scene = scene;
             this.postProcessing = postProcessing;
             deserialized = new ISerializableUnit[serializedUnits.Count];
-            for (int i = 0; i < serializedUnits.Count; i++)
-            {
-                deserialized[i] = GetUnitFromId(i);
-            }
+            for (var i = 0; i < serializedUnits.Count; i++) deserialized[i] = GetUnitFromId(i);
         }
 
         public List<ISerializableUnit> Result => deserialized.ToList();
 
         public ISerializableUnit GetUnitFromId(int id)
         {
-            if (deserialized[id] != null)
-            {
-                return deserialized[id];
-            }
+            if (deserialized[id] != null) return deserialized[id];
 
-            SerializedUnit serializedChannel = serializedUnits[id];
-            ISerializableUnit result = GetUnitFromType(serializedChannel.Type);
+            var serializedChannel = serializedUnits[id];
+            var result = GetUnitFromType(serializedChannel.Type);
             result.DeserializeProperties(serializedChannel.Properties, features, this);
-            if (result is ScenecontrolVersioning versioning)
-            {
-                this.features = versioning.Features;
-            }
+            if (result is ScenecontrolVersioning versioning) features = versioning.Features;
             return result;
         }
 
         public T GetUnitFromId<T>(object obj)
             where T : class, ISerializableUnit
         {
-            if (obj == null)
-            {
-                return null;
-            }
+            if (obj == null) return null;
 
-            int id = Convert.ToInt32(obj);
+            var id = Convert.ToInt32(obj);
             return GetUnitFromId(id) as T;
         }
 
@@ -153,16 +142,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
                     return new ObserveTrigger();
                 default:
                     ISceneController c = scene.CreateFromTypeName(type);
-                    if (c != null)
-                    {
-                        return c;
-                    }
+                    if (c != null) return c;
 
-                    ISceneController p = postProcessing.CreateFromTypeName(type);
-                    if (p != null)
-                    {
-                        return p;
-                    }
+                    var p = postProcessing.CreateFromTypeName(type);
+                    if (p != null) return p;
 
                     throw new Exception($"Could not resolve object type {type}");
             }

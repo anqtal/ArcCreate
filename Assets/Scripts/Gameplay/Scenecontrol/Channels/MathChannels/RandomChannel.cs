@@ -7,10 +7,10 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class RandomChannel : ValueChannel
     {
+        private ValueChannel max;
+        private ValueChannel min;
         private Random randomGenerator;
         private int seed;
-        private ValueChannel min;
-        private ValueChannel max;
 
         public RandomChannel()
         {
@@ -38,15 +38,15 @@ namespace ArcCreate.Gameplay.Scenecontrol
             {
                 seed,
                 serialization.AddUnitAndGetId(min),
-                serialization.AddUnitAndGetId(max),
+                serialization.AddUnitAndGetId(max)
             };
         }
 
         public override float ValueAt(int timing)
         {
-            float minVal = min.ValueAt(timing);
-            float maxVal = max.ValueAt(timing);
-            return minVal + ((maxVal - minVal) * (float)randomGenerator.NextDouble());
+            var minVal = min.ValueAt(timing);
+            var maxVal = max.ValueAt(timing);
+            return minVal + (maxVal - minVal) * (float)randomGenerator.NextDouble();
         }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()

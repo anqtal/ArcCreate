@@ -9,8 +9,8 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private Graphic baseGraphic;
         [SerializeField] private Graphic gradietntGraphic;
 
-        [Header("Animation")]
-        [SerializeField] private float tweenDuration;
+        [Header("Animation")] [SerializeField] private float tweenDuration;
+
         [SerializeField] private Ease tweenEase;
 
         public Color Color

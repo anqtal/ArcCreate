@@ -1,15 +1,15 @@
-using ArcCreate.Data;
-using ArcCreate.Storage.Data;
+using System.Collections.Generic;
+using ArcCreate.Storage;
 using ArcCreate.Utility.InfiniteScroll;
 
 namespace ArcCreate.Selection.Interface
 {
     public class LevelCellData : CellData
     {
-        public LevelStorage LevelStorage { get; set; }
+        public SongList Song { get; set; }
 
-        public PlayHistory PlayHistory { get; set; }
+        public Difficulty DifficultyToDisplay { get; set; }
 
-        public ChartSettings ChartToDisplay { get; set; }
+        public List<Difficulty> Difficulties { get; set; }
     }
 }

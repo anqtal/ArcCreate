@@ -6,8 +6,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class AccumulatingTriggerChannel : TriggerChannel
     {
-        private TriggerValueDispatchEvent dispatching;
         private float currentValue;
+        private TriggerValueDispatchEvent dispatching;
         private bool isDispatchComplete = true;
 
         public AccumulatingTriggerChannel()
@@ -24,7 +24,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
         {
             if (!isDispatchComplete)
             {
-                float t = (float)(value.StartTiming - dispatching.StartTiming) / value.Duration;
+                var t = (float)(value.StartTiming - dispatching.StartTiming) / value.Duration;
                 currentValue += dispatching.Easing.Invoke(0, dispatching.Value, t);
             }
 
@@ -46,16 +46,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 currentValue += dispatching.Value;
             }
 
-            if (isDispatchComplete)
-            {
-                return BaseValue.ValueAt(timing) + currentValue;
-            }
-            else
-            {
-                float t = (float)(timing - dispatching.StartTiming) / dispatching.Duration;
-                float dispatchingVal = dispatching.Easing.Invoke(0, dispatching.Value, t);
-                return BaseValue.ValueAt(timing) + currentValue + dispatchingVal;
-            }
+            if (isDispatchComplete) return BaseValue.ValueAt(timing) + currentValue;
+
+            var t = (float)(timing - dispatching.StartTiming) / dispatching.Duration;
+            var dispatchingVal = dispatching.Easing.Invoke(0, dispatching.Value, t);
+            return BaseValue.ValueAt(timing) + currentValue + dispatchingVal;
         }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()

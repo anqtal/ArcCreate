@@ -6,11 +6,11 @@ namespace ArcCreate.Gameplay.Data
 
         public override ArcEvent Clone()
         {
-            return new IncludeEvent()
+            return new IncludeEvent
             {
                 Timing = Timing,
                 TimingGroup = TimingGroup,
-                File = File,
+                File = File
             };
         }
     }

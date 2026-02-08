@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using MoonSharp.Interpreter;
-using UnityEngine;
 
 namespace ArcCreate.Gameplay.Scenecontrol
 {
@@ -18,8 +17,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override float ValueAt(int timing)
         {
-            Camera cam = Services.Camera.GameplayCamera;
-            return (1.77777779f - (1f * cam.pixelWidth / cam.pixelHeight) < 0.1f) ? 1 : 0;
+            var cam = Services.Camera.GameplayCamera;
+            return 1.77777779f - 1f * cam.pixelWidth / cam.pixelHeight < 0.1f ? 1 : 0;
         }
 
         protected override IEnumerable<ValueChannel> GetChildrenChannels()

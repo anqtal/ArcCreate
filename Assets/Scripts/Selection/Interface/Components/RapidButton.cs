@@ -13,7 +13,12 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private int decreaseRate = 1;
         private Button button;
 
-        private CancellationTokenSource cts = new CancellationTokenSource();
+        private CancellationTokenSource cts = new();
+
+        private void Awake()
+        {
+            button = GetComponent<Button>();
+        }
 
         public void OnPointerDown(PointerEventData eventData)
         {
@@ -27,21 +32,13 @@ namespace ArcCreate.Selection.Interface
             cts = new CancellationTokenSource();
         }
 
-        private void Awake()
-        {
-            button = GetComponent<Button>();
-        }
-
         private async UniTask HeldTask(CancellationToken ct)
         {
-            int count = startingCount;
+            var count = startingCount;
             while (true)
             {
                 await UniTask.DelayFrame(count);
-                if (ct.IsCancellationRequested)
-                {
-                    return;
-                }
+                if (ct.IsCancellationRequested) return;
 
                 count = Mathf.Max(1, count - decreaseRate);
                 button.onClick?.Invoke();

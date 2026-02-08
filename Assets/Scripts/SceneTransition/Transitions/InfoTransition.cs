@@ -4,7 +4,8 @@ namespace ArcCreate.SceneTransition
 {
     public class InfoTransition : ITransition
     {
-        public int DurationMs => TransitionScene.Instance == null ? 0 : TransitionScene.Instance.InfoAnimationDurationMs;
+        public int DurationMs =>
+            TransitionScene.Instance == null ? 0 : TransitionScene.Instance.InfoAnimationDurationMs;
 
         public void DisableGameObject()
         {
@@ -26,18 +27,12 @@ namespace ArcCreate.SceneTransition
 
         public async UniTask EndTransition()
         {
-            if (TransitionScene.Instance != null)
-            {
-                await TransitionScene.Instance.HideInfo();
-            }
+            if (TransitionScene.Instance != null) await TransitionScene.Instance.HideInfo();
         }
 
         public async UniTask StartTransition()
         {
-            if (TransitionScene.Instance != null)
-            {
-                await TransitionScene.Instance.ShowInfo();
-            }
+            if (TransitionScene.Instance != null) await TransitionScene.Instance.ShowInfo();
         }
     }
 }

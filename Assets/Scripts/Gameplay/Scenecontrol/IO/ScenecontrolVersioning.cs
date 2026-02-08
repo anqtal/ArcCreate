@@ -6,7 +6,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
     {
         public ScenecontrolVersioning(EnabledFeatures features)
         {
-            this.Features = features;
+            Features = features;
         }
 
         public EnabledFeatures Features { get; private set; }
@@ -14,7 +14,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public void DeserializeProperties(List<object> properties, EnabledFeatures features,
             ScenecontrolDeserialization deserialization)
         {
-            this.Features = (EnabledFeatures)(long)properties[0];
+            Features = (EnabledFeatures)(long)properties[0];
         }
 
         public List<object> SerializeProperties(ScenecontrolSerialization serialization)

@@ -12,6 +12,18 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private TMP_Text contentText;
         [SerializeField] private ScriptedAnimator animator;
 
+        protected virtual void Awake()
+        {
+            hideButton.onClick.AddListener(Hide);
+            if (copyButton != null) copyButton.onClick.AddListener(Copy);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            hideButton.onClick.RemoveListener(Hide);
+            if (copyButton != null) copyButton.onClick.RemoveListener(Copy);
+        }
+
         public void Show()
         {
             animator.Show();
@@ -25,24 +37,6 @@ namespace ArcCreate.Selection.Interface
         public void Copy()
         {
             GUIUtility.systemCopyBuffer = contentText.text;
-        }
-
-        protected virtual void Awake()
-        {
-            hideButton.onClick.AddListener(Hide);
-            if (copyButton != null)
-            {
-                copyButton.onClick.AddListener(Copy);
-            }
-        }
-
-        protected virtual void OnDestroy()
-        {
-            hideButton.onClick.RemoveListener(Hide);
-            if (copyButton != null)
-            {
-                copyButton.onClick.RemoveListener(Copy);
-            }
         }
     }
 }

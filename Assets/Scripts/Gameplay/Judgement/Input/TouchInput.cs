@@ -18,7 +18,7 @@ namespace ArcCreate.Gameplay.Judgement.Input
             IsTap = touch.phase == TouchPhase.Began;
             Phase = touch.phase;
 
-            (int lane, float vx, float vy) = Projection.CastRayOntoPlayfield(cameraRay);
+            var (lane, vx, vy) = Projection.CastRayOntoPlayfield(cameraRay);
             VerticalPos = new Vector3(vx, vy);
             Lane = lane;
         }
@@ -30,7 +30,7 @@ namespace ArcCreate.Gameplay.Judgement.Input
             IsTap = isTap;
             Phase = phase;
 
-            (int lane, float vx, float vy) = Projection.CastRayOntoPlayfield(cameraRay);
+            var (lane, vx, vy) = Projection.CastRayOntoPlayfield(cameraRay);
             VerticalPos = new Vector3(vx, vy);
             Lane = lane;
         }

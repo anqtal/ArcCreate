@@ -1,3 +1,5 @@
+using System;
+
 public readonly struct Option<T>
 {
     public readonly bool HasValue;
@@ -11,20 +13,26 @@ public readonly struct Option<T>
     }
 
     public static implicit operator Option<T>(T value)
-        => new Option<T>(value, true);
+    {
+        return new Option<T>(value, true);
+    }
 
     public static Option<T> Some(T value)
-        => new Option<T>(value, true);
+    {
+        return new Option<T>(value, true);
+    }
 
     public static Option<T> None()
-        => new Option<T>(default, false);
+    {
+        return new Option<T>(default, false);
+    }
 
     public T Or(T alternate)
     {
         return HasValue ? Value : alternate;
     }
 
-    public Option<R> Map<R>(System.Func<T, R> mapper)
+    public Option<R> Map<R>(Func<T, R> mapper)
     {
         return HasValue ? Option<R>.Some(mapper.Invoke(Value)) : Option<R>.None();
     }

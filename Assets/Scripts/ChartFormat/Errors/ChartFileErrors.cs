@@ -4,7 +4,7 @@ using System.Text;
 namespace ArcCreate.ChartFormat
 {
     /// <summary>
-    /// Error class for a single chart file which may contain multiple errors.
+    ///     Error class for a single chart file which may contain multiple errors.
     /// </summary>
     public class ChartFileErrors : Error
     {
@@ -14,25 +14,22 @@ namespace ArcCreate.ChartFormat
             Errors = errors;
         }
 
-        public string File { get; private set; }
+        public string File { get; }
 
-        public List<ChartError> Errors { get; private set; }
+        public List<ChartError> Errors { get; }
 
         public override string Message
         {
             get
             {
-                StringBuilder content = new StringBuilder();
-                foreach (ChartError error in Errors)
-                {
-                    content.AppendLine(error.Message);
-                }
+                var content = new StringBuilder();
+                foreach (var error in Errors) content.AppendLine(error.Message);
 
                 content.ToString();
-                return I18n.S("Format.Exception.File", new Dictionary<string, object>()
+                return I18n.S("Format.Exception.File", new Dictionary<string, object>
                 {
                     { "File", File },
-                    { "Error", content },
+                    { "Error", content }
                 });
             }
         }

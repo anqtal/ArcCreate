@@ -21,18 +21,28 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public float DefaultLumContrib { get; set; }
 
+        protected override void Reset()
+        {
+            Intensity = new ConstantChannel(DefaultIntensity);
+            Size = new ConstantChannel(DefaultSize);
+            LumContrib = new ConstantChannel(DefaultLumContrib);
+            TargetEffect.colored.overrideState = false;
+            TargetEffect.intensity.overrideState = false;
+            TargetEffect.size.overrideState = false;
+            TargetEffect.lumContrib.overrideState = false;
+            TargetEffect.colored.value = DefaultColored;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "intensity": TargetEffect.intensity.overrideState = true; break;
                     case "size": TargetEffect.size.overrideState = true; break;
                     case "lumcontrib": TargetEffect.lumContrib.overrideState = true; break;
                 }
-            }
         }
 
         public void SetColored(bool colored)
@@ -57,13 +67,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 TargetEffect.lumContrib.overrideState,
                 serialization.AddUnitAndGetId(Intensity),
                 serialization.AddUnitAndGetId(Size),
-                serialization.AddUnitAndGetId(LumContrib),
+                serialization.AddUnitAndGetId(LumContrib)
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.intensity.overrideState = (bool)properties[offset++];
             TargetEffect.size.overrideState = (bool)properties[offset++];
@@ -79,18 +90,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             DefaultIntensity = TargetEffect.intensity.value;
             DefaultSize = TargetEffect.size.value;
             DefaultLumContrib = TargetEffect.lumContrib.value;
-        }
-
-        protected override void Reset()
-        {
-            Intensity = new ConstantChannel(DefaultIntensity);
-            Size = new ConstantChannel(DefaultSize);
-            LumContrib = new ConstantChannel(DefaultLumContrib);
-            TargetEffect.colored.overrideState = false;
-            TargetEffect.intensity.overrideState = false;
-            TargetEffect.size.overrideState = false;
-            TargetEffect.lumContrib.overrideState = false;
-            TargetEffect.colored.value = DefaultColored;
         }
     }
 }

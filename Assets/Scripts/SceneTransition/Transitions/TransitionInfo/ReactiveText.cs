@@ -7,18 +7,12 @@ namespace ArcCreate.SceneTransition
     public class ReactiveText : MonoBehaviour
     {
         [SerializeField] private StringSO stringSO;
-        private TMP_Text cachedText;
 
-        protected TMP_Text CachedText => cachedText;
-
-        protected virtual void OnTextChange(string text)
-        {
-            cachedText.text = text;
-        }
+        protected TMP_Text CachedText { get; private set; }
 
         private void Awake()
         {
-            cachedText = GetComponent<TMP_Text>();
+            CachedText = GetComponent<TMP_Text>();
             stringSO.OnValueChange.AddListener(OnTextChange);
             OnTextChange(stringSO.Value);
         }
@@ -26,6 +20,11 @@ namespace ArcCreate.SceneTransition
         private void OnDestroy()
         {
             stringSO.OnValueChange.RemoveListener(OnTextChange);
+        }
+
+        protected virtual void OnTextChange(string text)
+        {
+            CachedText.text = text;
         }
     }
 }

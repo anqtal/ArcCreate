@@ -1,20 +1,21 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class InstancedRenderer
 {
     public const int Population = 511;
     public static readonly int ColorShaderId = Shader.PropertyToID("_Color");
     public static readonly int PropertyShaderId = Shader.PropertyToID("_Properties");
+    private readonly Vector4[] colors = new Vector4[Population];
 
     private readonly Material material;
-    private readonly Mesh mesh;
     private readonly Matrix4x4[] matrices = new Matrix4x4[Population];
-    private readonly Vector4[] colors = new Vector4[Population];
+    private readonly Mesh mesh;
+    private readonly MaterialPropertyBlock mpb;
     private readonly Vector4[] properties = new Vector4[Population];
     private readonly bool useProperties;
-    private readonly MaterialPropertyBlock mpb;
 
-    private int count = 0;
+    private int count;
 
     public InstancedRenderer(Material material, Mesh mesh, bool useProperties)
     {
@@ -26,10 +27,7 @@ public class InstancedRenderer
 
     public bool RegisterInstance(Matrix4x4 matrix, Color color, Vector4 property = default)
     {
-        if (count >= Population)
-        {
-            return false;
-        }
+        if (count >= Population) return false;
 
         matrices[count] = matrix;
         colors[count] = color;
@@ -43,22 +41,19 @@ public class InstancedRenderer
         if (count > 0)
         {
             mpb.SetVectorArray(ColorShaderId, colors);
-            if (useProperties)
-            {
-                mpb.SetVectorArray(PropertyShaderId, properties);
-            }
+            if (useProperties) mpb.SetVectorArray(PropertyShaderId, properties);
 
             Graphics.DrawMeshInstanced(
-                mesh: mesh,
-                submeshIndex: 0,
-                material: material,
-                matrices: matrices,
-                count: count,
-                properties: mpb,
-                castShadows: UnityEngine.Rendering.ShadowCastingMode.Off,
-                receiveShadows: false,
-                layer: layerMask,
-                camera: camera);
+                mesh,
+                0,
+                material,
+                matrices,
+                count,
+                mpb,
+                ShadowCastingMode.Off,
+                false,
+                layerMask,
+                camera);
         }
 
         count = 0;

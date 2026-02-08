@@ -3,7 +3,7 @@ using UnityEngine;
 namespace ArcCreate.Utility
 {
     /// <summary>
-    /// Component for resizing a rect transform to fit an icon and a text component.
+    ///     Component for resizing a rect transform to fit an icon and a text component.
     /// </summary>
     public class IconText : I18nText
     {
@@ -18,7 +18,7 @@ namespace ArcCreate.Utility
 
         public void UpdateSize()
         {
-            float textWidth = Text.preferredWidth;
+            var textWidth = Text.preferredWidth;
             parent.sizeDelta = new Vector2(
                 textWidth + spacing,
                 parent.sizeDelta.y);

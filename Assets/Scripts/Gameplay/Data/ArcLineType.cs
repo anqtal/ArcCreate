@@ -10,6 +10,6 @@ namespace ArcCreate.Gameplay.Data
         SiSi = 4,
         SiSo = 5,
         SoSi = 6,
-        SoSo = 7,
+        SoSo = 7
     }
 }

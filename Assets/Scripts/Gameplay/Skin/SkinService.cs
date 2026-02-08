@@ -13,12 +13,12 @@ using UnityEngine.Video;
 
 namespace ArcCreate.Gameplay.Skin
 {
-    public class SkinService : MonoBehaviour, ISkinService, ISkinControl
+    public class SkinService : MonoBehaviour
     {
         [SerializeField] private GameplayData gameplayData;
 
-        [Header("Objects")]
-        [SerializeField] private SpriteRenderer singleLineL;
+        [Header("Objects")] [SerializeField] private SpriteRenderer singleLineL;
+
         [SerializeField] private SpriteRenderer singleLineR;
         [SerializeField] private TMP_Text comboText;
         [SerializeField] private ThemeGroup themeGroup;
@@ -33,16 +33,17 @@ namespace ArcCreate.Gameplay.Skin
         [SerializeField] private Image pauseButton;
         [SerializeField] private VideoPlayer videoBackground;
 
-        [Header("Skin Options")]
-        [SerializeField] private List<AlignmentOption> alignmentOptions;
+        [Header("Skin Options")] [SerializeField]
+        private List<AlignmentOption> alignmentOptions;
+
         [SerializeField] private List<NoteSkinOption> noteSkinOptions;
         [SerializeField] private List<ParticleSkinOption> particleSkinOptions;
         [SerializeField] private List<TrackSkinOption> trackSkinOptions;
         [SerializeField] private List<AccentOption> accentOptions;
         [SerializeField] private List<SingleLineOption> singleLineOptions;
 
-        [Header("Colors")]
-        [SerializeField] private Color defaultTraceColor;
+        [Header("Colors")] [SerializeField] private Color defaultTraceColor;
+
         [SerializeField] private Color defaultShadowColor;
         [SerializeField] private List<Color> defaultArcColors;
         [SerializeField] private List<Color> defaultArcLowColors;
@@ -51,40 +52,39 @@ namespace ArcCreate.Gameplay.Skin
         [SerializeField] private Color unknownArcColor;
         [SerializeField] private Color unknownArcLowColor;
 
-        [Header("Arcs")]
-        [SerializeField] private Material arcMaterial;
+        [Header("Arcs")] [SerializeField] private Material arcMaterial;
+
         [SerializeField] private Material traceMaterial;
         [SerializeField] private Material shadowMaterial;
         [SerializeField] private Texture defaultHeightIndicator;
         [SerializeField] private Texture defaultArctapShadow;
-        private readonly List<Color> arcColors = new List<Color>();
-        private readonly List<Color> arcLowColors = new List<Color>();
-        private readonly List<Color> arcLowDesaturatedColors = new List<Color>();
-        private readonly List<float> redArcValues = new List<float>();
-        private float unknownRedArcValue = 0;
-        private ExternalTexture arcTexture;
+        private readonly List<Color> arcColors = new();
+        private readonly List<Color> arcLowColors = new();
+        private readonly List<Color> arcLowDesaturatedColors = new();
+        private readonly List<float> redArcValues = new();
         private ExternalTexture arctapShadowTexture;
-        private ExternalTexture heightIndicatorTexture;
+        private ExternalTexture arcTexture;
+        private string currentAccentOption;
 
         private AlignmentOption currentAlignment;
-        private NoteSkinOption currentNoteSkin;
-        private string currentNoteOption;
-        private string currentParticleOption;
-        private string currentTrackOption;
-        private string currentAccentOption;
-        private string currentSingleLineOption;
 
-        private int traceColorShaderId;
+        private string currentNoteOption;
+        private NoteSkinOption currentNoteSkin;
+        private string currentParticleOption;
+        private string currentSingleLineOption;
+        private string currentTrackOption;
+        private ExternalTexture heightIndicatorTexture;
         private int shadowColorShaderId;
 
-        private Color currentComboColor;
+        private int traceColorShaderId;
+        private float unknownRedArcValue;
 
         public string AlignmentSkin
         {
             get => currentAlignment.Name;
             set
             {
-                AlignmentOption alignmentOpt = alignmentOptions.FirstOrDefault(opt => opt.Name == value);
+                var alignmentOpt = alignmentOptions.FirstOrDefault(opt => opt.Name == value);
                 alignmentOpt = alignmentOpt != null ? alignmentOpt : alignmentOptions[0];
                 currentAlignment = alignmentOpt;
 
@@ -106,7 +106,7 @@ namespace ArcCreate.Gameplay.Skin
             set
             {
                 currentNoteOption = value;
-                NoteSkinOption noteSkinOpt = noteSkinOptions.FirstOrDefault(opt => opt.Name == value);
+                var noteSkinOpt = noteSkinOptions.FirstOrDefault(opt => opt.Name == value);
                 noteSkinOpt = noteSkinOpt != null ? noteSkinOpt : currentAlignment.DefaultNoteOption;
 
                 currentNoteSkin = noteSkinOpt;
@@ -121,7 +121,7 @@ namespace ArcCreate.Gameplay.Skin
             set
             {
                 currentParticleOption = value;
-                ParticleSkinOption particleOpt = particleSkinOptions.FirstOrDefault(opt => opt.Name == value);
+                var particleOpt = particleSkinOptions.FirstOrDefault(opt => opt.Name == value);
                 particleOpt = particleOpt != null ? particleOpt : currentAlignment.DefaultParticleOption;
 
                 Services.Particle.SetTapParticleSkin(particleOpt.ParticleSkin.Value);
@@ -141,7 +141,7 @@ namespace ArcCreate.Gameplay.Skin
             set
             {
                 currentTrackOption = value;
-                TrackSkinOption trackOpt = trackSkinOptions.FirstOrDefault(opt => opt.Name == value);
+                var trackOpt = trackSkinOptions.FirstOrDefault(opt => opt.Name == value);
                 trackOpt = trackOpt != null ? trackOpt : currentAlignment.DefaultTrackOption;
 
                 track.sprite = trackOpt.TrackSkin.Value;
@@ -159,7 +159,7 @@ namespace ArcCreate.Gameplay.Skin
             set
             {
                 currentSingleLineOption = value;
-                SingleLineOption lineOpt = singleLineOptions.FirstOrDefault(opt => opt.Name == value);
+                var lineOpt = singleLineOptions.FirstOrDefault(opt => opt.Name == value);
                 lineOpt = lineOpt != null ? lineOpt : currentAlignment.DefaultSingleLineOption;
 
                 singleLineL.sprite = lineOpt.SingleLineSkin.Value;
@@ -176,27 +176,24 @@ namespace ArcCreate.Gameplay.Skin
             set
             {
                 currentAccentOption = value;
-                AccentOption accentOpt = accentOptions.FirstOrDefault(opt => opt.Name == value);
+                var accentOpt = accentOptions.FirstOrDefault(opt => opt.Name == value);
                 accentOpt = accentOpt != null ? accentOpt : currentAlignment.DefaultAccentOption;
 
-                foreach (var c in criticalLines)
-                {
-                    c.sprite = accentOpt.CriticalLineSkin.Value;
-                }
+                foreach (var c in criticalLines) c.sprite = accentOpt.CriticalLineSkin.Value;
 
                 comboText.color = accentOpt.ComboColor;
                 comboText.outlineColor = accentOpt.ComboColor;
-                Color outline = accentOpt.ComboColor;
+                var outline = accentOpt.ComboColor;
                 outline.a = 0.5f;
                 comboText.gameObject.SetActive(false);
                 comboText.fontSharedMaterial.SetColor("_OutlineColor", outline);
                 comboText.gameObject.SetActive(true);
-                currentComboColor = accentOpt.ComboColor;
+                ComboColor = accentOpt.ComboColor;
                 gameplayData.NotifySkinValuesChange();
             }
         }
 
-        public Color ComboColor => currentComboColor;
+        public Color ComboColor { get; private set; }
 
         public Color DefaultTraceColor => defaultTraceColor;
 
@@ -211,6 +208,52 @@ namespace ArcCreate.Gameplay.Skin
         public Color UnknownArcLowColor => unknownArcLowColor;
 
         public Sprite DefaultBackground => currentAlignment.DefaultBackground.Value;
+
+        private void Awake()
+        {
+            traceColorShaderId = Shader.PropertyToID("_TraceColor");
+            shadowColorShaderId = Shader.PropertyToID("_ShadowColor");
+
+            Settings.InputMode.OnValueChanged.AddListener(ReloadNoteSkin);
+            Settings.EnableColorblind.OnValueChanged.AddListener(OnColorBlindSetting);
+
+            arcMaterial = Instantiate(arcMaterial);
+            traceMaterial = Instantiate(traceMaterial);
+            shadowMaterial = Instantiate(shadowMaterial);
+
+            currentAlignment = alignmentOptions[0];
+            currentNoteSkin = currentAlignment.DefaultNoteOption;
+            ComboColor = currentAlignment.DefaultAccentOption.ComboColor;
+
+            RegisterExternalSkin();
+            LoadExternalSkin().Forget();
+        }
+
+        private void OnDestroy()
+        {
+            Settings.InputMode.OnValueChanged.RemoveListener(ReloadNoteSkin);
+            Settings.EnableColorblind.OnValueChanged.RemoveListener(OnColorBlindSetting);
+
+            Destroy(arcMaterial);
+            Destroy(traceMaterial);
+            Destroy(shadowMaterial);
+
+            foreach (var opt in alignmentOptions) opt.UnloadExternalSkin();
+
+            foreach (var opt in noteSkinOptions) opt.UnloadExternalSkin();
+
+            foreach (var opt in particleSkinOptions) opt.UnloadExternalSkin();
+
+            foreach (var opt in trackSkinOptions) opt.UnloadExternalSkin();
+
+            foreach (var opt in accentOptions) opt.UnloadExternalSkin();
+
+            foreach (var opt in singleLineOptions) opt.UnloadExternalSkin();
+
+            arcTexture.Unload();
+            arctapShadowTexture.Unload();
+            heightIndicatorTexture.Unload();
+        }
 
         public (Texture texture, Color connectionLineColor) GetTapSkin(Tap note)
         {
@@ -259,34 +302,25 @@ namespace ArcCreate.Gameplay.Skin
 
         public (Texture arcCap, Color heightIndicatorColor) GetArcSkin(Arc note)
         {
-            Texture arcCap = currentNoteSkin.GetArcCapSprite(note);
+            var arcCap = currentNoteSkin.GetArcCapSprite(note);
 
-            if (note.IsTrace)
-            {
-                return (arcCap, Color.clear);
-            }
+            if (note.IsTrace) return (arcCap, Color.clear);
 
-            if (note.Color < 0 || note.Color >= arcColors.Count)
-            {
-                return (arcCap, unknownArcColor);
-            }
+            if (note.Color < 0 || note.Color >= arcColors.Count) return (arcCap, unknownArcColor);
 
             return (arcCap, arcColors[note.Color]);
         }
 
         public float GetRedArcValue(int color)
         {
-            if (color < 0 || color >= redArcValues.Count)
-            {
-                return unknownRedArcValue;
-            }
+            if (color < 0 || color >= redArcValues.Count) return unknownRedArcValue;
 
             return redArcValues[color];
         }
 
         public (Sprite lane, Sprite extraLane) GetTrackSprite(string name)
         {
-            TrackSkinOption trackSkinOpt = trackSkinOptions.FirstOrDefault(opt => opt.Name == name);
+            var trackSkinOpt = trackSkinOptions.FirstOrDefault(opt => opt.Name == name);
             trackSkinOpt = trackSkinOpt != null ? trackSkinOpt : trackSkinOptions.First();
             return (trackSkinOpt.TrackSkin.Value, trackSkinOpt.TrackExtraSkin.Value);
         }
@@ -304,14 +338,13 @@ namespace ArcCreate.Gameplay.Skin
             arcLowDesaturatedColors.Clear();
             redArcValues.Clear();
 
-            int max = Mathf.Min(arcs.Count, arcLows.Count);
-            for (int i = 0; i < max; i++)
-            {
+            var max = Mathf.Min(arcs.Count, arcLows.Count);
+            for (var i = 0; i < max; i++)
                 if (Settings.EnableColorblind.Value
-                 && i >= 0
-                 && i < defaultArcColorblindColors.Count
-                 && arcs[i] == defaultArcColors[i]
-                 && arcLows[i] == defaultArcLowColors[i])
+                    && i >= 0
+                    && i < defaultArcColorblindColors.Count
+                    && arcs[i] == defaultArcColors[i]
+                    && arcLows[i] == defaultArcLowColors[i])
                 {
                     arcColors.Add(defaultArcColorblindColors[i]);
                     arcLowColors.Add(defaultArcLowColorblindColors[i]);
@@ -325,7 +358,6 @@ namespace ArcCreate.Gameplay.Skin
                     arcLowDesaturatedColors.Add(Desaturate(arcLows[i]));
                     redArcValues.Add(0);
                 }
-            }
         }
 
         public void SetShadowColor(Color color)
@@ -362,13 +394,13 @@ namespace ArcCreate.Gameplay.Skin
 
         public (Color high, Color low) GetArcColor(int colorId)
         {
-            int i = Mathf.Clamp(colorId, 0, arcColors.Count - 1);
+            var i = Mathf.Clamp(colorId, 0, arcColors.Count - 1);
             return (arcColors[i], arcLowColors[i]);
         }
 
         public (Color color1, Color color2) GetArcParticleColor(int colorId)
         {
-            int i = Mathf.Clamp(colorId, 0, arcColors.Count - 1);
+            var i = Mathf.Clamp(colorId, 0, arcColors.Count - 1);
             return (arcLowDesaturatedColors[i], arcLowColors[i]);
         }
 
@@ -382,63 +414,23 @@ namespace ArcCreate.Gameplay.Skin
                 path = isUri ? Uri.EscapeUriString(path.Replace("\\", "/")) : path.Replace("\\", "/");
                 videoBackground.url = isUri ? path : "file://" + path;
                 if (Application.platform == RuntimePlatform.Android && Constants.AndroidVersionCode >= 29)
-                {
                     videoBackground.url = path;
-                }
             }
-        }
-
-        private void Awake()
-        {
-            traceColorShaderId = Shader.PropertyToID("_TraceColor");
-            shadowColorShaderId = Shader.PropertyToID("_ShadowColor");
-
-            Settings.InputMode.OnValueChanged.AddListener(ReloadNoteSkin);
-            Settings.EnableColorblind.OnValueChanged.AddListener(OnColorBlindSetting);
-
-            arcMaterial = Instantiate(arcMaterial);
-            traceMaterial = Instantiate(traceMaterial);
-            shadowMaterial = Instantiate(shadowMaterial);
-
-            currentAlignment = alignmentOptions[0];
-            currentNoteSkin = currentAlignment.DefaultNoteOption;
-            currentComboColor = currentAlignment.DefaultAccentOption.ComboColor;
-
-            RegisterExternalSkin();
-            LoadExternalSkin().Forget();
         }
 
         private void RegisterExternalSkin()
         {
-            foreach (var opt in alignmentOptions)
-            {
-                opt.RegisterExternalSkin();
-            }
+            foreach (var opt in alignmentOptions) opt.RegisterExternalSkin();
 
-            foreach (var opt in noteSkinOptions)
-            {
-                opt.RegisterExternalSkin();
-            }
+            foreach (var opt in noteSkinOptions) opt.RegisterExternalSkin();
 
-            foreach (var opt in particleSkinOptions)
-            {
-                opt.RegisterExternalSkin();
-            }
+            foreach (var opt in particleSkinOptions) opt.RegisterExternalSkin();
 
-            foreach (var opt in trackSkinOptions)
-            {
-                opt.RegisterExternalSkin();
-            }
+            foreach (var opt in trackSkinOptions) opt.RegisterExternalSkin();
 
-            foreach (var opt in accentOptions)
-            {
-                opt.RegisterExternalSkin();
-            }
+            foreach (var opt in accentOptions) opt.RegisterExternalSkin();
 
-            foreach (var opt in singleLineOptions)
-            {
-                opt.RegisterExternalSkin();
-            }
+            foreach (var opt in singleLineOptions) opt.RegisterExternalSkin();
 
             arcTexture = new ExternalTexture(arcMaterial.mainTexture, "Note");
             arctapShadowTexture = new ExternalTexture(defaultArctapShadow, "Note");
@@ -447,35 +439,17 @@ namespace ArcCreate.Gameplay.Skin
 
         private async UniTask LoadExternalSkin()
         {
-            foreach (var opt in alignmentOptions)
-            {
-                await opt.LoadExternalSkin();
-            }
+            foreach (var opt in alignmentOptions) await opt.LoadExternalSkin();
 
-            foreach (var opt in noteSkinOptions)
-            {
-                await opt.LoadExternalSkin();
-            }
+            foreach (var opt in noteSkinOptions) await opt.LoadExternalSkin();
 
-            foreach (var opt in particleSkinOptions)
-            {
-                await opt.LoadExternalSkin();
-            }
+            foreach (var opt in particleSkinOptions) await opt.LoadExternalSkin();
 
-            foreach (var opt in trackSkinOptions)
-            {
-                await opt.LoadExternalSkin();
-            }
+            foreach (var opt in trackSkinOptions) await opt.LoadExternalSkin();
 
-            foreach (var opt in accentOptions)
-            {
-                await opt.LoadExternalSkin();
-            }
+            foreach (var opt in accentOptions) await opt.LoadExternalSkin();
 
-            foreach (var opt in singleLineOptions)
-            {
-                await opt.LoadExternalSkin();
-            }
+            foreach (var opt in singleLineOptions) await opt.LoadExternalSkin();
 
             await arcTexture.Load();
             await arctapShadowTexture.Load();
@@ -502,67 +476,22 @@ namespace ArcCreate.Gameplay.Skin
             AccentSkin = AccentSkin;
         }
 
-        private void OnDestroy()
-        {
-            Settings.InputMode.OnValueChanged.RemoveListener(ReloadNoteSkin);
-            Settings.EnableColorblind.OnValueChanged.RemoveListener(OnColorBlindSetting);
-
-            Destroy(arcMaterial);
-            Destroy(traceMaterial);
-            Destroy(shadowMaterial);
-
-            foreach (var opt in alignmentOptions)
-            {
-                opt.UnloadExternalSkin();
-            }
-
-            foreach (var opt in noteSkinOptions)
-            {
-                opt.UnloadExternalSkin();
-            }
-
-            foreach (var opt in particleSkinOptions)
-            {
-                opt.UnloadExternalSkin();
-            }
-
-            foreach (var opt in trackSkinOptions)
-            {
-                opt.UnloadExternalSkin();
-            }
-
-            foreach (var opt in accentOptions)
-            {
-                opt.UnloadExternalSkin();
-            }
-
-            foreach (var opt in singleLineOptions)
-            {
-                opt.UnloadExternalSkin();
-            }
-
-            arcTexture.Unload();
-            arctapShadowTexture.Unload();
-            heightIndicatorTexture.Unload();
-        }
-
         private void OnColorBlindSetting(bool on)
         {
-            for (int i = 0; i < Mathf.Min(defaultArcColorblindColors.Count, arcColors.Count); i++)
-            {
+            for (var i = 0; i < Mathf.Min(defaultArcColorblindColors.Count, arcColors.Count); i++)
                 if (on && arcColors[i] == defaultArcColors[i] && arcLowColors[i] == defaultArcLowColors[i])
                 {
                     arcColors[i] = defaultArcColorblindColors[i];
                     arcLowColors[i] = defaultArcLowColorblindColors[i];
                     arcLowDesaturatedColors[i] = Desaturate(defaultArcLowColorblindColors[i]);
                 }
-                else if (!on && arcColors[i] == defaultArcColorblindColors[i] && arcLowColors[i] == defaultArcLowColorblindColors[i])
+                else if (!on && arcColors[i] == defaultArcColorblindColors[i] &&
+                         arcLowColors[i] == defaultArcLowColorblindColors[i])
                 {
                     arcColors[i] = defaultArcColors[i];
                     arcLowColors[i] = defaultArcLowColors[i];
                     arcLowDesaturatedColors[i] = Desaturate(defaultArcLowColors[i]);
                 }
-            }
 
             Services.Chart?.ReloadSkin();
         }
@@ -574,8 +503,8 @@ namespace ArcCreate.Gameplay.Skin
 
         private Color Desaturate(Color color)
         {
-            Color.RGBToHSV(color, out float h, out float s, out float v);
-            Color c = Color.HSVToRGB(h, s / 2, v);
+            Color.RGBToHSV(color, out var h, out var s, out var v);
+            var c = Color.HSVToRGB(h, s / 2, v);
             c.a = color.a;
             return c;
         }

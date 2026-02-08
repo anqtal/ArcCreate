@@ -15,17 +15,23 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public float DefaultSampleCount { get; set; }
 
+        protected override void Reset()
+        {
+            ShutterAngle = new ConstantChannel(DefaultShutterAngle);
+            SampleCount = new ConstantChannel(DefaultSampleCount);
+            TargetEffect.shutterAngle.overrideState = false;
+            TargetEffect.sampleCount.overrideState = false;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "shutterangle": TargetEffect.shutterAngle.overrideState = true; break;
                     case "samplecount": TargetEffect.sampleCount.overrideState = true; break;
                 }
-            }
         }
 
         public override void UpdateController(int timing)
@@ -42,13 +48,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 TargetEffect.shutterAngle.overrideState,
                 TargetEffect.sampleCount.overrideState,
                 serialization.AddUnitAndGetId(ShutterAngle),
-                serialization.AddUnitAndGetId(SampleCount),
+                serialization.AddUnitAndGetId(SampleCount)
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.shutterAngle.overrideState = (bool)properties[offset++];
             TargetEffect.sampleCount.overrideState = (bool)properties[offset++];
@@ -60,14 +67,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
         {
             DefaultShutterAngle = TargetEffect.shutterAngle.value;
             DefaultSampleCount = TargetEffect.sampleCount.value;
-        }
-
-        protected override void Reset()
-        {
-            ShutterAngle = new ConstantChannel(DefaultShutterAngle);
-            SampleCount = new ConstantChannel(DefaultSampleCount);
-            TargetEffect.shutterAngle.overrideState = false;
-            TargetEffect.sampleCount.overrideState = false;
         }
     }
 }

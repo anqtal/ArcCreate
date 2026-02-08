@@ -9,9 +9,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [EmmyDoc("Channel whose value is defined by interpolating between keyframes")]
     public class KeyChannel : ValueChannel, IComparer<Key>
     {
+        private readonly List<Key> keys;
         private readonly CachedBinarySearch<Key, int> keySearch;
         private Func<float, float, float, float> defaultEasing;
-        private readonly List<Key> keys;
         private string defaultEasingString;
 
         public KeyChannel()
@@ -22,7 +22,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public int KeyCount => keys.Count;
 
-        [EmmyDoc("Sets the default easing to assign to keyframe for any subsequent keys added to this channel that does not have any easing defined")]
+        [MoonSharpHidden]
+        public int Compare(Key x, Key y)
+        {
+            if (x.Timing == y.Timing) return x.OverrideIndex.CompareTo(y.OverrideIndex);
+
+            return x.Timing.CompareTo(y.Timing);
+        }
+
+        [EmmyDoc(
+            "Sets the default easing to assign to keyframe for any subsequent keys added to this channel that does not have any easing defined")]
 #pragma warning disable
         public KeyChannel SetDefaultEasing(
             [EmmyChoice(
@@ -54,40 +63,25 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override float ValueAt(int timing)
         {
-            if (keys.Count == 0)
-            {
-                return 0;
-            }
+            if (keys.Count == 0) return 0;
 
-            if (keys.Count == 1)
-            {
-                return keys[0].Value;
-            }
+            if (keys.Count == 1) return keys[0].Value;
 
             // Extrapolate
-            if (timing <= keys[0].Timing)
-            {
-                return keys[0].Value;
-            }
+            if (timing <= keys[0].Timing) return keys[0].Value;
 
-            if (timing >= keys[keys.Count - 1].Timing)
-            {
-                return keys[keys.Count - 1].Value;
-            }
+            if (timing >= keys[keys.Count - 1].Timing) return keys[keys.Count - 1].Value;
 
-            int index = keySearch.Search(timing);
-            int timing1 = keys[index].Timing;
-            int timing2 = keys[index + 1].Timing;
-            Key key1 = keys[index];
-            Key key2 = keys[index + 1];
+            var index = keySearch.Search(timing);
+            var timing1 = keys[index].Timing;
+            var timing2 = keys[index + 1].Timing;
+            var key1 = keys[index];
+            var key2 = keys[index + 1];
 
-            if (timing1 == timing2)
-            {
-                return key1.OverrideIndex > key2.OverrideIndex ? key1.Value : key2.Value;
-            }
+            if (timing1 == timing2) return key1.OverrideIndex > key2.OverrideIndex ? key1.Value : key2.Value;
 
-            float p = (float)(timing - timing1) / (timing2 - timing1);
-            float value = (float)key1.Easing(key1.Value, key2.Value, p);
+            var p = (float)(timing - timing1) / (timing2 - timing1);
+            var value = key1.Easing(key1.Value, key2.Value, p);
 
             return value;
         }
@@ -132,19 +126,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 estr = easing;
             }
 
-            int overrideIndex = 0;
-            if (keys.Count > 0 && keys[keySearch.Search(timing)].Timing == timing)
-            {
-                overrideIndex += 1;
-            }
+            var overrideIndex = 0;
+            if (keys.Count > 0 && keys[keySearch.Search(timing)].Timing == timing) overrideIndex += 1;
 
-            Key key = new Key
+            var key = new Key
             {
                 Timing = timing,
                 Value = value,
                 Easing = e,
                 EasingString = estr,
-                OverrideIndex = overrideIndex,
+                OverrideIndex = overrideIndex
             };
 
             keys.Add(key);
@@ -155,35 +146,18 @@ namespace ArcCreate.Gameplay.Scenecontrol
         [EmmyDoc("Remove all keys that has matching timing value")]
         public KeyChannel RemoveKeyAtTiming(int timing)
         {
-            int index = keySearch.Search(timing);
-            if (keys[index].Timing == timing)
-            {
-                keys.RemoveAt(index);
-            }
+            var index = keySearch.Search(timing);
+            if (keys[index].Timing == timing) keys.RemoveAt(index);
 
             keySearch.Sort();
             return this;
         }
 
-        [MoonSharpHidden]
-        public int Compare(Key x, Key y)
-        {
-            if (x.Timing == y.Timing)
-            {
-                return x.OverrideIndex.CompareTo(y.OverrideIndex);
-            }
-
-            return x.Timing.CompareTo(y.Timing);
-        }
-
         public override List<object> SerializeProperties(ScenecontrolSerialization serialization)
         {
-            List<object> result = new List<object>(keys.Count);
+            var result = new List<object>(keys.Count);
 
-            foreach (var key in keys)
-            {
-                result.Add(key.Serialize());
-            }
+            foreach (var key in keys) result.Add(key.Serialize());
 
             return result;
         }
@@ -191,11 +165,11 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public override void DeserializeProperties(List<object> properties, ScenecontrolDeserialization deserialization)
         {
             keys.Clear();
-            for (int i = 0; i < properties.Count; i++)
+            for (var i = 0; i < properties.Count; i++)
             {
-                object obj = properties[i];
-                string str = obj as string;
-                Key key = new Key();
+                var obj = properties[i];
+                var str = obj as string;
+                var key = new Key();
                 key.Deserialize(str);
                 key.Easing = Easing.FromString(key.EasingString);
                 keys.Add(key);

@@ -12,7 +12,8 @@ namespace ArcCreate.Utility.Lua
         [EmmyAlias("RGBAToHex")]
         public static string RGBAToHex(float r, float g, float b, float a)
         {
-            return "#" + ((int)(r * 255)).ToString("X2") + ((int)(g * 255)).ToString("X2") + ((int)(b * 255)).ToString("X2") + ((int)(a * 255)).ToString("X2");
+            return "#" + ((int)(r * 255)).ToString("X2") + ((int)(g * 255)).ToString("X2") +
+                   ((int)(b * 255)).ToString("X2") + ((int)(a * 255)).ToString("X2");
         }
 
         [EmmyAlias("RGBAToHex")]
@@ -30,11 +31,8 @@ namespace ArcCreate.Utility.Lua
         [EmmyAlias("HexToRGBA")]
         public static RGBA HexToRGBA(string hex)
         {
-            bool converted = ColorUtility.TryParseHtmlString(hex, out Color color);
-            if (!converted)
-            {
-                return default;
-            }
+            var converted = ColorUtility.TryParseHtmlString(hex, out var color);
+            if (!converted) return default;
 
             return new RGBA(color);
         }
@@ -48,9 +46,9 @@ namespace ArcCreate.Utility.Lua
         [EmmyAlias("RGBAToHSVA")]
         public static HSVA RGBAToHSVA(float r, float g, float b, float a)
         {
-            Color c = new RGBA(r, g, b, a).ToColor();
-            Color.RGBToHSV(c, out float h, out float s, out float v);
-            HSVA hsva = new HSVA(h * 360, s, v, a / 255);
+            var c = new RGBA(r, g, b, a).ToColor();
+            Color.RGBToHSV(c, out var h, out var s, out var v);
+            var hsva = new HSVA(h * 360, s, v, a / 255);
             return hsva;
         }
 
@@ -63,8 +61,8 @@ namespace ArcCreate.Utility.Lua
         [EmmyAlias("HSVAToRGBA")]
         public static RGBA HSVAToRGBA(float h, float s, float v, float a)
         {
-            Color rgb = Color.HSVToRGB(h / 360, s, v);
-            RGBA rgba = new RGBA(rgb) { A = a * 255 };
+            var rgb = Color.HSVToRGB(h / 360, s, v);
+            var rgba = new RGBA(rgb) { A = a * 255 };
             return rgba;
         }
 

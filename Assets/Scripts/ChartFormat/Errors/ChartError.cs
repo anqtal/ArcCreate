@@ -4,12 +4,10 @@ using ArcCreate.Utility.Parser;
 namespace ArcCreate.ChartFormat
 {
     /// <summary>
-    /// Error class for one single error within a file.
+    ///     Error class for one single error within a file.
     /// </summary>
     public class ChartError : Error
     {
-        private string reason;
-
         public enum Kind
         {
             Parsing,
@@ -26,7 +24,7 @@ namespace ArcCreate.ChartFormat
             IncludeAReferencedFragment,
             TimingGroupPropertiesInvalid,
             BaseTimingInvalid,
-            FileDoesNotExist,
+            FileDoesNotExist
         }
 
         public Option<string> LineContent { get; private set; }
@@ -45,24 +43,25 @@ namespace ArcCreate.ChartFormat
             => LineNumber.HasValue && LineContent.HasValue ? MessageFull : MessageShort;
 
         public string MessageShort
-            => I18n.S("Format.Exception.SingleErrorShortFormat", new Dictionary<string, object>()
+            => I18n.S("Format.Exception.SingleErrorShortFormat", new Dictionary<string, object>
             {
                 { "EventType", EventType },
-                { "Reason", reason },
+                { "Reason", Reason }
             });
 
         public string MessageFull
-            => I18n.S("Format.Exception.SingleErrorFormat", new Dictionary<string, object>()
+            => I18n.S("Format.Exception.SingleErrorFormat", new Dictionary<string, object>
             {
                 { "LineNumber", LineNumber.Map(x => x.ToString()).Or("Unknown") },
                 { "EventType", EventType },
                 { "Content", LineContent.Or("Unknown") },
-                { "Reason", reason },
+                { "Reason", Reason }
             });
 
-        public string Reason => reason;
+        public string Reason { get; private set; }
 
-        public static ChartError Property(string lineContent, int lineNumber, RawEventType eventType, Option<int> startPosition, Option<int> length, Kind kind)
+        public static ChartError Property(string lineContent, int lineNumber, RawEventType eventType,
+            Option<int> startPosition, Option<int> length, Kind kind)
         {
             return new ChartError
             {
@@ -72,7 +71,7 @@ namespace ArcCreate.ChartFormat
                 StartPosition = startPosition,
                 Length = length,
                 ErrorKind = kind,
-                reason = I18n.S($"Format.Exception.{kind}"),
+                Reason = I18n.S($"Format.Exception.{kind}")
             };
         }
 
@@ -86,11 +85,12 @@ namespace ArcCreate.ChartFormat
                 StartPosition = Option<int>.None(),
                 Length = Option<int>.None(),
                 ErrorKind = kind,
-                reason = I18n.S($"Format.Exception.{kind}"),
+                Reason = I18n.S($"Format.Exception.{kind}")
             };
         }
 
-        public static ChartError Parsing(string lineContent, int lineNumber, RawEventType eventType, ParsingError parsingError)
+        public static ChartError Parsing(string lineContent, int lineNumber, RawEventType eventType,
+            ParsingError parsingError)
         {
             return new ChartError
             {
@@ -100,11 +100,12 @@ namespace ArcCreate.ChartFormat
                 StartPosition = parsingError.StartCharPos,
                 Length = parsingError.Length,
                 ErrorKind = Kind.Parsing,
-                reason = parsingError.Message,
+                Reason = parsingError.Message
             };
         }
 
-        public static ChartError ReferencedFile(string lineContent, int lineNumber, RawEventType eventType, ChartFileErrors errors)
+        public static ChartError ReferencedFile(string lineContent, int lineNumber, RawEventType eventType,
+            ChartFileErrors errors)
         {
             return new ChartError
             {
@@ -114,7 +115,7 @@ namespace ArcCreate.ChartFormat
                 StartPosition = 0,
                 Length = lineContent.Length,
                 ErrorKind = Kind.ReferencedFileError,
-                reason = I18n.S($"Format.Exception.ReferencedFileError", errors.Message),
+                Reason = I18n.S("Format.Exception.ReferencedFileError", errors.Message)
             };
         }
     }

@@ -11,30 +11,38 @@ namespace ArcCreate.Gameplay.Audio.Practice
         [SerializeField] private Camera viewCamera;
         [SerializeField] private RawImage image;
         [SerializeField] private RectTransform rect;
-        private readonly int timingShaderId = Shader.PropertyToID("_CurrentSample");
         private readonly int lengthShaderId = Shader.PropertyToID("_AudioLength");
         private readonly int repeatFromShaderId = Shader.PropertyToID("_RepeatSampleFrom");
         private readonly int repeatToShaderId = Shader.PropertyToID("_RepeatSampleTo");
+        private readonly int timingShaderId = Shader.PropertyToID("_CurrentSample");
 
-        public void OnPointerClick(PointerEventData eventData) => OnDrag(eventData);
+        private void Update()
+        {
+            image.material.SetFloat(
+                timingShaderId,
+                WaveformGenerator.SecondToSample(Services.Audio.AudioTiming / 1000f, gameplayData.AudioClip.Value));
+        }
 
         public void OnDrag(PointerEventData eventData)
         {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, eventData.position, viewCamera, out Vector2 local);
-            float t = Mathf.Clamp(local.x / rect.rect.width, -0.5f, 0.5f) + 0.5f;
-            int timing = Mathf.RoundToInt(t * Services.Audio.AudioLength);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, eventData.position, viewCamera,
+                out var local);
+            var t = Mathf.Clamp(local.x / rect.rect.width, -0.5f, 0.5f) + 0.5f;
+            var timing = Mathf.RoundToInt(t * Services.Audio.AudioLength);
             Services.Audio.AudioTiming = timing;
             Services.Audio.SetResumeAt(timing);
         }
 
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            OnDrag(eventData);
+        }
+
         public void LoadWaveformFor(AudioClip clip)
         {
-            if (image.texture != null)
-            {
-                Destroy(image.texture);
-            }
+            if (image.texture != null) Destroy(image.texture);
 
-            Texture2D texture = WaveformGenerator.EncodeTexture(clip);
+            var texture = WaveformGenerator.EncodeTexture(clip);
             image.texture = texture;
             image.material.mainTexture = texture;
             image.enabled = true;
@@ -43,20 +51,12 @@ namespace ArcCreate.Gameplay.Audio.Practice
 
         public void SetRepeatRange(bool repeatOn, int repeatFromTiming, int repeatToTiming)
         {
-            if (!repeatOn)
-            {
-                repeatFromTiming = repeatToTiming = -1;
-            }
+            if (!repeatOn) repeatFromTiming = repeatToTiming = -1;
 
-            image.material.SetFloat(repeatFromShaderId, WaveformGenerator.SecondToSample(repeatFromTiming / 1000f, gameplayData.AudioClip.Value));
-            image.material.SetFloat(repeatToShaderId, WaveformGenerator.SecondToSample(repeatToTiming / 1000f, gameplayData.AudioClip.Value));
-        }
-
-        private void Update()
-        {
-            image.material.SetFloat(
-                timingShaderId,
-                WaveformGenerator.SecondToSample(Services.Audio.AudioTiming / 1000f, gameplayData.AudioClip.Value));
+            image.material.SetFloat(repeatFromShaderId,
+                WaveformGenerator.SecondToSample(repeatFromTiming / 1000f, gameplayData.AudioClip.Value));
+            image.material.SetFloat(repeatToShaderId,
+                WaveformGenerator.SecondToSample(repeatToTiming / 1000f, gameplayData.AudioClip.Value));
         }
     }
 }

@@ -64,7 +64,8 @@ namespace ArcCreate.Selection.Interface
 
         private void UpdateModifierParent()
         {
-            modifierListParent.SetActive(autoPreview.activeSelf || practicePreview.activeSelf || mirrorPreview.activeSelf);
+            modifierListParent.SetActive(autoPreview.activeSelf || practicePreview.activeSelf ||
+                                         mirrorPreview.activeSelf);
         }
     }
 }

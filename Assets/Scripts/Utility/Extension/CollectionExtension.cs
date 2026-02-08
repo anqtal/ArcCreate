@@ -2,13 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace ArcCreate.Utility.Extension
 {
     public static class CollectionExtension
     {
         /// <summary>
-        /// Whether or not the index is outside the range of the collection.
+        ///     Whether or not the index is outside the range of the collection.
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <param name="index">Index to check.</param>
@@ -19,13 +20,14 @@ namespace ArcCreate.Utility.Extension
         }
 
         /// <summary>
-        /// Search for smallest index within a sorted list, whose corresponding item is greater than or equal to the provided value.<br/>
-        /// Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 3.<br/>
-        /// The returned index is guaranteed to be within the range of the list.
+        ///     Search for smallest index within a sorted list, whose corresponding item is greater than or equal to the provided
+        ///     value.<br />
+        ///     Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 3.<br />
+        ///     The returned index is guaranteed to be within the range of the list.
         /// </summary>
         /// <param name="list">The list to bisect.</param>
         /// <param name="value">The value to search for.</param>
-        /// <param name="property">Function to extract property <see cref="{R}"/> from items.</param>
+        /// <param name="property">Function to extract property <see cref="{R}" /> from items.</param>
         /// <typeparam name="T">Type of the list.</typeparam>
         /// <typeparam name="R">Type of the property to search by.</typeparam>
         /// <returns>The index found, which is always within the index range of the list.</returns>
@@ -33,41 +35,32 @@ namespace ArcCreate.Utility.Extension
             where R : IComparable<R>
         {
             // Copied implementation from python lol
-            if (value.CompareTo(property(list[0])) <= 0)
-            {
-                return 0;
-            }
+            if (value.CompareTo(property(list[0])) <= 0) return 0;
 
-            if (value.CompareTo(property(list[list.Count - 1])) >= 0)
-            {
-                return list.Count - 1;
-            }
+            if (value.CompareTo(property(list[list.Count - 1])) >= 0) return list.Count - 1;
 
-            int low = 0;
-            int high = list.Count;
+            var low = 0;
+            var high = list.Count;
             int mid;
 
             while (low < high)
             {
-                mid = (int)((low + high) / 2);
+                mid = (low + high) / 2;
                 if (property(list[mid]).CompareTo(value) < 0)
-                {
                     low = mid + 1;
-                }
                 else
-                {
                     high = mid;
-                }
             }
 
-            low = UnityEngine.Mathf.Clamp(low, 0, list.Count - 1);
+            low = Mathf.Clamp(low, 0, list.Count - 1);
             return low;
         }
 
         /// <summary>
-        /// Search for smallest index within a sorted list, whose corresponding item is greater than or equal to the provided value.<br/>
-        /// Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 3.<br/>
-        /// The returned index is guaranteed to be within the range of the list.
+        ///     Search for smallest index within a sorted list, whose corresponding item is greater than or equal to the provided
+        ///     value.<br />
+        ///     Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 3.<br />
+        ///     The returned index is guaranteed to be within the range of the list.
         /// </summary>
         /// <param name="list">The list to bisect.</param>
         /// <param name="value">The value to search for.</param>
@@ -77,46 +70,36 @@ namespace ArcCreate.Utility.Extension
             where T : IComparable<T>
         {
             // Copied implementation from python lol
-            if (value.CompareTo(list[0]) <= 0)
-            {
-                return 0;
-            }
+            if (value.CompareTo(list[0]) <= 0) return 0;
 
-            if (value.CompareTo(list[list.Count - 1]) >= 0)
-            {
-                return list.Count - 1;
-            }
+            if (value.CompareTo(list[list.Count - 1]) >= 0) return list.Count - 1;
 
-            int low = 0;
-            int high = list.Count;
+            var low = 0;
+            var high = list.Count;
             int mid;
 
             while (low < high)
             {
-                mid = (int)((low + high) / 2);
+                mid = (low + high) / 2;
                 if (list[mid].CompareTo(value) < 0)
-                {
                     low = mid + 1;
-                }
                 else
-                {
                     high = mid;
-                }
             }
 
-            low = UnityEngine.Mathf.Clamp(low, 0, list.Count - 1);
+            low = Mathf.Clamp(low, 0, list.Count - 1);
             return low;
         }
 
         /// <summary>
-        /// Search for smallest index within a sorted list, whose corresponding item is greater than the provided value.<br/>
-        /// Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 5.<br/>
-        /// If the search value is greater than any item in the list, the list's count value will be returned.<br/>
-        /// If the search value is smaller than any item in the list, -1 will be returned.
+        ///     Search for smallest index within a sorted list, whose corresponding item is greater than the provided value.<br />
+        ///     Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 5.<br />
+        ///     If the search value is greater than any item in the list, the list's count value will be returned.<br />
+        ///     If the search value is smaller than any item in the list, -1 will be returned.
         /// </summary>
         /// <param name="list">The list to bisect.</param>
         /// <param name="value">The value to search for.</param>
-        /// <param name="property">Function to extract property <see cref="{R}"/> from items.</param>
+        /// <param name="property">Function to extract property <see cref="{R}" /> from items.</param>
         /// <typeparam name="T">Type of the list.</typeparam>
         /// <typeparam name="R">Type of the property to search by.</typeparam>
         /// <returns>The index found.</returns>
@@ -124,31 +107,27 @@ namespace ArcCreate.Utility.Extension
             where R : IComparable<R>
         {
             // Copied implementation from python lol
-            int low = 0;
-            int high = list.Count;
+            var low = 0;
+            var high = list.Count;
             int mid;
 
             while (low < high)
             {
-                mid = (int)((low + high) / 2);
+                mid = (low + high) / 2;
                 if (value.CompareTo(property(list[mid])) < 0)
-                {
                     high = mid;
-                }
                 else
-                {
                     low = mid + 1;
-                }
             }
 
             return low;
         }
 
         /// <summary>
-        /// Search for smallest index within a sorted list, whose corresponding item is greater than the provided value.<br/>
-        /// Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 5.<br/>
-        /// If the search value is greater than any item in the list, the list's count value will be returned.<br/>
-        /// If the search value is smaller than any item in the list, -1 will be returned.
+        ///     Search for smallest index within a sorted list, whose corresponding item is greater than the provided value.<br />
+        ///     Example: for the list [0, 0, 1, 2, 2, 3], searching for 2 will return the index 5.<br />
+        ///     If the search value is greater than any item in the list, the list's count value will be returned.<br />
+        ///     If the search value is smaller than any item in the list, -1 will be returned.
         /// </summary>
         /// <param name="list">The list to bisect.</param>
         /// <param name="value">The value to search for.</param>
@@ -158,28 +137,24 @@ namespace ArcCreate.Utility.Extension
             where T : IComparable<T>
         {
             // Copied implementation from python lol
-            int low = 0;
-            int high = list.Count;
+            var low = 0;
+            var high = list.Count;
             int mid;
 
             while (low < high)
             {
-                mid = (int)((low + high) / 2);
+                mid = (low + high) / 2;
                 if (value.CompareTo(list[mid]) < 0)
-                {
                     high = mid;
-                }
                 else
-                {
                     low = mid + 1;
-                }
             }
 
             return low;
         }
 
         /// <summary>
-        /// Taken from ArcadeZero. Idk how it works anymore.
+        ///     Taken from ArcadeZero. Idk how it works anymore.
         /// </summary>
         /// <param name="list">The list to search from.</param>
         /// <param name="value">The value to search for.</param>
@@ -190,22 +165,16 @@ namespace ArcCreate.Utility.Extension
         public static int BinarySearchNearest<T, R>(this IList<T> list, R value, Func<T, R> property)
             where R : IComparable<R>
         {
-            if (value.CompareTo(property(list[0])) <= 0)
-            {
-                return 0;
-            }
+            if (value.CompareTo(property(list[0])) <= 0) return 0;
 
-            if (value.CompareTo(property(list[list.Count - 1])) >= 0)
-            {
-                return list.Count - 1;
-            }
+            if (value.CompareTo(property(list[list.Count - 1])) >= 0) return list.Count - 1;
 
-            int index = 0;
+            var index = 0;
 
-            int first = 0;
-            int last = list.Count - 1;
-            int mid = 0;
-            R midValue = property(list[mid]);
+            var first = 0;
+            var last = list.Count - 1;
+            var mid = 0;
+            var midValue = property(list[mid]);
 
             while (first < last - 1)
             {
@@ -216,26 +185,19 @@ namespace ArcCreate.Utility.Extension
                     index = mid;
                     break;
                 }
-                else if (value.CompareTo(midValue) < 0)
-                {
+
+                if (value.CompareTo(midValue) < 0)
                     last = mid;
-                }
                 else
-                {
                     first = mid;
-                }
             }
 
             if (midValue.CompareTo(value) <= 0)
-            {
                 index = mid;
-            }
             else
-            {
                 index = mid - 1;
-            }
 
-            index = UnityEngine.Mathf.Clamp(index, 0, list.Count - 1);
+            index = Mathf.Clamp(index, 0, list.Count - 1);
             return index;
         }
 
@@ -253,14 +215,14 @@ namespace ArcCreate.Utility.Extension
 
         public static void SetNumberDigitsToArray(this char[] array, int number, out int length)
         {
-            bool isNegative = number < 0;
+            var isNegative = number < 0;
             number = isNegative ? -number : number;
 
-            int i = array.Length - 1;
+            var i = array.Length - 1;
             length = 0;
             while (i >= 0 && number > 0)
             {
-                array[i] = (char)('0' + (number % 10));
+                array[i] = (char)('0' + number % 10);
                 number /= 10;
                 length++;
                 i--;
@@ -269,13 +231,9 @@ namespace ArcCreate.Utility.Extension
             if (isNegative)
             {
                 if (i > 0)
-                {
                     length++;
-                }
                 else
-                {
                     i = 0;
-                }
 
                 array[i] = '-';
             }

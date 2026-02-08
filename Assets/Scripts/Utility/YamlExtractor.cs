@@ -26,15 +26,15 @@ namespace ArcCreate.Utility
 
         public static void ExtractTo(Dictionary<string, string> dict, YamlMappingNode node, string key)
         {
-            foreach (KeyValuePair<YamlNode, YamlNode> child in node.Children)
+            foreach (var child in node.Children)
             {
-                string nodeKey = (child.Key as YamlScalarNode).Value;
-                string newKey = string.IsNullOrEmpty(key) ? nodeKey : $"{key}.{nodeKey}";
+                var nodeKey = (child.Key as YamlScalarNode).Value;
+                var newKey = string.IsNullOrEmpty(key) ? nodeKey : $"{key}.{nodeKey}";
 
-                YamlNode value = child.Value;
+                var value = child.Value;
                 if (value is YamlScalarNode scalar)
                 {
-                    string leaf = scalar.Value;
+                    var leaf = scalar.Value;
                     dict.Add(newKey, leaf);
                 }
                 else
@@ -46,28 +46,24 @@ namespace ArcCreate.Utility
 
         public static void ExtractListsTo(Dictionary<string, List<string>> dict, YamlMappingNode node, string key)
         {
-            foreach (KeyValuePair<YamlNode, YamlNode> child in node.Children)
+            foreach (var child in node.Children)
             {
-                string nodeKey = (child.Key as YamlScalarNode).Value;
-                string newKey = string.IsNullOrEmpty(key) ? nodeKey : $"{key}.{nodeKey}";
+                var nodeKey = (child.Key as YamlScalarNode).Value;
+                var newKey = string.IsNullOrEmpty(key) ? nodeKey : $"{key}.{nodeKey}";
 
-                YamlNode value = child.Value;
+                var value = child.Value;
                 if (value is YamlSequenceNode sequence)
                 {
-                    List<string> list = new List<string>();
+                    var list = new List<string>();
                     foreach (var children in sequence)
-                    {
                         if (children is YamlScalarNode scalar)
-                        {
                             list.Add(scalar.Value);
-                        }
-                    }
 
                     dict.Add(newKey, list);
                 }
                 else if (value is YamlScalarNode scalar)
                 {
-                    List<string> list = new List<string>() { scalar.Value };
+                    var list = new List<string> { scalar.Value };
                     dict.Add(newKey, list);
                 }
                 else if (value is YamlMappingNode map)

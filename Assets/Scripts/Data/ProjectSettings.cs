@@ -5,8 +5,7 @@ namespace ArcCreate.Data
 {
     public class ProjectSettings
     {
-        [YamlIgnore]
-        public string Path { get; set; }
+        [YamlIgnore] public string Path { get; set; }
 
         public string LastOpenedChartPath { get; set; }
 
@@ -16,31 +15,25 @@ namespace ArcCreate.Data
 
         public ChartSettings GetClosestDifficultyToChart(ChartSettings selectedChart)
         {
-            if (selectedChart == null)
-            {
-                return Charts[0];
-            }
+            if (selectedChart == null) return Charts[0];
 
             return GetClosestDifficultyToConstant(selectedChart.ChartConstant, selectedChart.ChartPath);
         }
 
         public ChartSettings GetClosestDifficultyToConstant(double constant, string chartPath)
         {
-            double minCcDiff = double.MaxValue;
+            var minCcDiff = double.MaxValue;
             ChartSettings result = null;
             foreach (var chart in Charts)
             {
-                double ccDiff = chart.ChartConstant - constant;
+                var ccDiff = chart.ChartConstant - constant;
                 if (ccDiff < minCcDiff)
                 {
                     result = chart;
                     minCcDiff = ccDiff;
                 }
 
-                if (ccDiff == minCcDiff && chartPath == chart.ChartPath)
-                {
-                    result = chart;
-                }
+                if (ccDiff == minCcDiff && chartPath == chart.ChartPath) result = chart;
             }
 
             return result;

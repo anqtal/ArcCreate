@@ -1,6 +1,6 @@
 using ArcCreate.Data;
 using ArcCreate.SceneTransition;
-using ArcCreate.Storage.Data;
+using ArcCreate.Storage;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -15,20 +15,9 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private GradeDisplay grade;
         [SerializeField] private ClearResultDisplay clearResult;
         [SerializeField] private Button button;
-        private LevelStorage level;
-        private ChartSettings chart;
+        private Difficulty chart;
+        private SongList level;
         private PlayResult result;
-
-        public void Display(LevelStorage level, ChartSettings chart, PlayResult result)
-        {
-            this.level = level;
-            this.chart = chart;
-            this.result = result;
-            score.text = result.FormattedScore;
-            grade.Display(result.Grade);
-            clearResult.Display(result.ClearResult);
-            dateTime.text = result.DateTime.ToString("yyyy/MM/dd HH:mm");
-        }
 
         private void Awake()
         {
@@ -40,20 +29,28 @@ namespace ArcCreate.Selection.Interface
             button.onClick.RemoveListener(OnClick);
         }
 
+        public void Display(SongList level, Difficulty chart, PlayResult result)
+        {
+            this.level = level;
+            this.chart = chart;
+            this.result = result;
+            score.text = result.FormattedScore;
+            grade.Display(result.Grade);
+            clearResult.Display(result.ClearResult);
+            dateTime.text = result.DateTime.ToString("yyyy/MM/dd HH:mm");
+        }
+
         private void OnClick()
         {
-            if (SceneTransitionManager.Instance.IsTransitioning)
-            {
-                return;
-            }
+            if (SceneTransitionManager.Instance.IsTransitioning) return;
 
-            TransitionSequence transition = new TransitionSequence()
+            var transition = new TransitionSequence()
                 .OnShow()
                 .AddTransition(new TriangleTileTransition());
             SceneTransitionManager.Instance.SetTransition(transition);
             SceneTransitionManager.Instance.SwitchScene(
                 SceneNames.ResultScene,
-                (rep) =>
+                rep =>
                 {
                     rep.PassData(level, chart, result, false);
                     return default;

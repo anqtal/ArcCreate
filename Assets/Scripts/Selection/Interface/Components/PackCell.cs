@@ -1,8 +1,6 @@
 using System.Threading;
-using ArcCreate.Selection.Select;
 using ArcCreate.Selection.SoundEffect;
 using ArcCreate.Storage;
-using ArcCreate.Storage.Data;
 using ArcCreate.Utility.InfiniteScroll;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -14,47 +12,39 @@ namespace ArcCreate.Selection.Interface
     public class PackCell : Cell
     {
         [SerializeField] private StorageData storage;
-        [SerializeField] private SelectableStorage selectable;
         [SerializeField] private Button button;
         [SerializeField] private TMP_Text title;
         [SerializeField] private RawImage image;
 
-        private PackStorage pack;
-
-        public override void SetCellData(CellData cellData)
-        {
-            PackCellData data = cellData as PackCellData;
-            pack = data.PackStorage;
-            selectable.StorageUnit = pack;
-            title.text = pack.PackName;
-
-            if (storage.TryAssignTextureFromCache(image, pack, pack.ImagePath,packPath:pack.ImagePath))
-            {
-                MarkFullyLoaded();
-            }
-        }
-
-        public override async UniTask LoadCellFully(CellData cellData, CancellationToken cancellationToken)
-        {
-            await storage.AssignTexture(image, pack, pack.ImagePath,packPath:pack.ImagePath);
-        }
+        private Pack pack;
 
         private void Awake()
         {
-            button.onClick.AddListener(SelectSelf);
+            if (button != null) button.onClick.AddListener(SelectSelf);
         }
 
         private void OnDestroy()
         {
-            button.onClick.RemoveListener(SelectSelf);
+            if (button != null) button.onClick.RemoveListener(SelectSelf);
+        }
+
+        public override void SetCellData(CellData cellData)
+        {
+            var data = cellData as PackCellData;
+            pack = data.Pack;
+            title.text = pack?.name ?? string.Empty;
+
+            if (storage.TryAssignPackJacketFromCache(image, pack)) MarkFullyLoaded();
+        }
+
+        public override async UniTask LoadCellFully(CellData cellData, CancellationToken cancellationToken)
+        {
+            await StorageData.AssignPackJacket(image, pack);
         }
 
         private void SelectSelf()
         {
-            if (Services.Select.IsAnySelected || storage.IsTransitioning)
-            {
-                return;
-            }
+            if (storage.IsTransitioning) return;
 
             storage.SelectedPack.Value = pack;
             Services.SoundEffect.Play(Sound.CellSelect);

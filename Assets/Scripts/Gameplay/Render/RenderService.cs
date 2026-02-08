@@ -4,13 +4,13 @@ using UnityEngine;
 
 namespace ArcCreate.Gameplay.Render
 {
-    public class RenderService : MonoBehaviour, IRenderService
+    public class RenderService : MonoBehaviour
     {
         [SerializeField] private Camera notesCamera;
         [SerializeField] private int layer;
 
-        [Header("Meshes")]
-        [SerializeField] private Mesh arctapMesh;
+        [Header("Meshes")] [SerializeField] private Mesh arctapMesh;
+
         [SerializeField] private Mesh arctapSfxMesh;
         [SerializeField] private Mesh arctapShadowMesh;
         [SerializeField] private Mesh tapMesh;
@@ -20,39 +20,39 @@ namespace ArcCreate.Gameplay.Render
         [SerializeField] private Mesh arcCapMesh;
         [SerializeField] private Mesh arcCapControllerMesh;
 
-        [Header("Materials")]
-        [SerializeField] private Material baseArctapMaterial;
+        [Header("Materials")] [SerializeField] private Material baseArctapMaterial;
+
         [SerializeField] private Material baseTapMaterial;
         [SerializeField] private Material baseHoldMaterial;
         [SerializeField] private Material baseArcCapMaterial;
         [SerializeField] private Material arctapShadowMaterial;
         [SerializeField] private Material heightIndicatorMaterial;
         [SerializeField] private Material connectionLineMaterial;
-
-        private readonly List<Material> generatedMaterials = new List<Material>();
-
-        // Floor
-        private readonly Dictionary<Texture, InstancedRendererPool> tapDrawers = new Dictionary<Texture, InstancedRendererPool>();
-        private readonly Dictionary<Texture, InstancedRendererPool> holdDrawers = new Dictionary<Texture, InstancedRendererPool>();
-        private InstancedRendererPool connectionLineDrawer;
-
-        // Arc & trace
-        private readonly List<ArcDrawCall> queuedArcDrawCalls = new List<ArcDrawCall>();
-        private readonly List<ArcDrawCall> queuedTraceDrawCalls = new List<ArcDrawCall>();
+        private readonly Dictionary<Texture, InstancedRendererPool> arcCapDrawers = new();
         private readonly IComparer<ArcDrawCall> arcDrawCallComparer = new ArcDrawCallComparer();
-        private InstancedRendererPool arcSegmentDrawer;
-        private InstancedRendererPool arcHeadDrawer;
-        private readonly Dictionary<Texture, InstancedRendererPool> arcCapDrawers = new Dictionary<Texture, InstancedRendererPool>();
-        private InstancedRendererPool arcShadowDrawer;
-        private InstancedRendererPool traceSegmentDrawer;
-        private InstancedRendererPool traceHeadDrawer;
-        private InstancedRendererPool traceShadowDrawer;
-        private InstancedRendererPool heightIndicatorDrawer;
 
         // Arctap
-        private readonly Dictionary<Texture, InstancedRendererPool> arctapDrawers = new Dictionary<Texture, InstancedRendererPool>();
-        private readonly Dictionary<Texture, InstancedRendererPool> arctapSfxDrawers = new Dictionary<Texture, InstancedRendererPool>();
+        private readonly Dictionary<Texture, InstancedRendererPool> arctapDrawers = new();
+        private readonly Dictionary<Texture, InstancedRendererPool> arctapSfxDrawers = new();
+
+        private readonly List<Material> generatedMaterials = new();
+        private readonly Dictionary<Texture, InstancedRendererPool> holdDrawers = new();
+
+        // Arc & trace
+        private readonly List<ArcDrawCall> queuedArcDrawCalls = new();
+        private readonly List<ArcDrawCall> queuedTraceDrawCalls = new();
+
+        // Floor
+        private readonly Dictionary<Texture, InstancedRendererPool> tapDrawers = new();
+        private InstancedRendererPool arcHeadDrawer;
+        private InstancedRendererPool arcSegmentDrawer;
+        private InstancedRendererPool arcShadowDrawer;
         private InstancedRendererPool arctapShadowDrawer;
+        private InstancedRendererPool connectionLineDrawer;
+        private InstancedRendererPool heightIndicatorDrawer;
+        private InstancedRendererPool traceHeadDrawer;
+        private InstancedRendererPool traceSegmentDrawer;
+        private InstancedRendererPool traceShadowDrawer;
 
         public bool IsLoaded { get; private set; }
 
@@ -62,11 +62,52 @@ namespace ArcCreate.Gameplay.Render
 
         public Mesh ArcTapMesh => arctapMesh;
 
+        private void Awake()
+        {
+            Shader.WarmupAllShaders();
+            connectionLineDrawer = new InstancedRendererPool(
+                connectionLineMaterial,
+                connectionLineMesh,
+                false);
+
+            UpdateLoadedState();
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var material in generatedMaterials) Destroy(material);
+
+            generatedMaterials.Clear();
+
+            foreach (var pair in holdDrawers) pair.Value.Dispose();
+
+            connectionLineDrawer.Dispose();
+            foreach (var pair in tapDrawers) pair.Value.Dispose();
+
+            traceShadowDrawer.Dispose();
+            arcShadowDrawer.Dispose();
+
+            traceSegmentDrawer.Dispose();
+            traceHeadDrawer.Dispose();
+            arctapShadowDrawer.Dispose();
+
+            heightIndicatorDrawer.Dispose();
+            foreach (var pair in arcCapDrawers) pair.Value.Dispose();
+
+            arcSegmentDrawer.Dispose();
+
+            foreach (var pair in arctapDrawers) pair.Value.Dispose();
+
+            foreach (var pair in arctapSfxDrawers) pair.Value.Dispose();
+
+            arcHeadDrawer.Dispose();
+        }
+
         public void DrawTap(Texture texture, Matrix4x4 matrix, Color color, bool selected)
         {
             if (!tapDrawers.ContainsKey(texture))
             {
-                Material newTap = Instantiate(baseTapMaterial);
+                var newTap = Instantiate(baseTapMaterial);
                 newTap.mainTexture = texture;
                 generatedMaterials.Add(newTap);
                 tapDrawers.Add(texture, new InstancedRendererPool(
@@ -82,7 +123,7 @@ namespace ArcCreate.Gameplay.Render
         {
             if (!holdDrawers.ContainsKey(texture))
             {
-                Material newHold = Instantiate(baseHoldMaterial);
+                var newHold = Instantiate(baseHoldMaterial);
                 newHold.mainTexture = texture;
                 generatedMaterials.Add(newHold);
                 holdDrawers.Add(texture, new InstancedRendererPool(
@@ -91,7 +132,8 @@ namespace ArcCreate.Gameplay.Render
                     true));
             }
 
-            holdDrawers[texture].RegisterInstance(matrix, color, new Vector4(selected ? 1 : 0, from, highlight ? 1 : 0, 0));
+            holdDrawers[texture]
+                .RegisterInstance(matrix, color, new Vector4(selected ? 1 : 0, from, highlight ? 1 : 0, 0));
         }
 
         public void DrawConnectionLine(Matrix4x4 matrix, Color color)
@@ -99,17 +141,18 @@ namespace ArcCreate.Gameplay.Render
             connectionLineDrawer.RegisterInstance(matrix, color);
         }
 
-        public void DrawArcSegment(int colorId, bool highlight, Matrix4x4 matrix, Color color, bool selected, float redValue, float y, float depth)
+        public void DrawArcSegment(int colorId, bool highlight, Matrix4x4 matrix, Color color, bool selected,
+            float redValue, float y, float depth)
         {
-            (Color high, Color low) = Services.Skin.GetArcColor(colorId);
+            var (high, low) = Services.Skin.GetArcColor(colorId);
             color *= Color.Lerp(Color.Lerp(low, high, (y - 1) / 4.5f), Color.red, redValue);
-            Vector4 properties = new Vector4(selected ? 1 : 0, highlight ? 1 : 0, 0, 0);
+            var properties = new Vector4(selected ? 1 : 0, highlight ? 1 : 0, 0, 0);
             queuedArcDrawCalls.Add(new ArcDrawCall
             {
                 Matrix = matrix,
                 Color = color,
                 Properties = properties,
-                Depth = depth,
+                Depth = depth
             });
         }
 
@@ -120,7 +163,7 @@ namespace ArcCreate.Gameplay.Render
                 Matrix = matrix,
                 Color = color,
                 Properties = new Vector4(selected ? 1 : 0, 0, 0, 0),
-                Depth = depth,
+                Depth = depth
             });
         }
 
@@ -134,11 +177,12 @@ namespace ArcCreate.Gameplay.Render
             traceShadowDrawer.RegisterInstance(matrix, color);
         }
 
-        public void DrawArcHead(int colorId, bool highlight, Matrix4x4 matrix, Color color, bool selected, float redValue, float y)
+        public void DrawArcHead(int colorId, bool highlight, Matrix4x4 matrix, Color color, bool selected,
+            float redValue, float y)
         {
-            (Color high, Color low) = Services.Skin.GetArcColor(colorId);
+            var (high, low) = Services.Skin.GetArcColor(colorId);
             color *= Color.Lerp(Color.Lerp(low, high, (y - 1) / 4.5f), Color.red, redValue);
-            Vector4 properties = new Vector4(selected ? 1 : 0, highlight ? 1 : 0, 0, 0);
+            var properties = new Vector4(selected ? 1 : 0, highlight ? 1 : 0, 0, 0);
             arcHeadDrawer.RegisterInstance(matrix, color, properties);
         }
 
@@ -151,7 +195,7 @@ namespace ArcCreate.Gameplay.Render
         {
             if (!arcCapDrawers.ContainsKey(texture))
             {
-                Material newArcCap = Instantiate(baseArcCapMaterial);
+                var newArcCap = Instantiate(baseArcCapMaterial);
                 newArcCap.mainTexture = texture;
                 generatedMaterials.Add(newArcCap);
                 arcCapDrawers.Add(texture, new InstancedRendererPool(
@@ -173,7 +217,7 @@ namespace ArcCreate.Gameplay.Render
             var drawer = sfx ? arctapSfxDrawers : arctapDrawers;
             if (!drawer.ContainsKey(texture))
             {
-                Material newArctap = Instantiate(baseArctapMaterial);
+                var newArctap = Instantiate(baseArctapMaterial);
                 newArctap.mainTexture = texture;
                 generatedMaterials.Add(newArctap);
                 drawer.Add(texture, new InstancedRendererPool(
@@ -192,33 +236,22 @@ namespace ArcCreate.Gameplay.Render
 
         public void UpdateRenderers()
         {
-            if (!notesCamera.enabled || !notesCamera.gameObject.activeInHierarchy)
-            {
-                return;
-            }
+            if (!notesCamera.enabled || !notesCamera.gameObject.activeInHierarchy) return;
 
-            foreach (var pair in holdDrawers)
-            {
-                pair.Value.Draw(notesCamera, layer);
-            }
+            foreach (var pair in holdDrawers) pair.Value.Draw(notesCamera, layer);
 
             connectionLineDrawer.Draw(notesCamera, layer);
-            foreach (var pair in tapDrawers)
-            {
-                pair.Value.Draw(notesCamera, layer);
-            }
+            foreach (var pair in tapDrawers) pair.Value.Draw(notesCamera, layer);
 
             traceShadowDrawer.Draw(notesCamera, layer);
             arcShadowDrawer.Draw(notesCamera, layer);
 
             queuedTraceDrawCalls.Sort(arcDrawCallComparer);
             foreach (var call in queuedTraceDrawCalls)
-            {
                 traceSegmentDrawer.RegisterInstance(
                     call.Matrix,
                     call.Color,
                     call.Properties);
-            }
 
             traceSegmentDrawer.Draw(notesCamera, layer);
             queuedTraceDrawCalls.Clear();
@@ -227,32 +260,21 @@ namespace ArcCreate.Gameplay.Render
             arctapShadowDrawer.Draw(notesCamera, layer);
 
             heightIndicatorDrawer.Draw(notesCamera, layer);
-            foreach (var pair in arcCapDrawers)
-            {
-                pair.Value.Draw(notesCamera, layer);
-            }
+            foreach (var pair in arcCapDrawers) pair.Value.Draw(notesCamera, layer);
 
             queuedArcDrawCalls.Sort(arcDrawCallComparer);
             foreach (var call in queuedArcDrawCalls)
-            {
                 arcSegmentDrawer.RegisterInstance(
                     call.Matrix,
                     call.Color,
                     call.Properties);
-            }
 
             arcSegmentDrawer.Draw(notesCamera, layer);
             queuedArcDrawCalls.Clear();
 
-            foreach (var pair in arctapDrawers)
-            {
-                pair.Value.Draw(notesCamera, layer);
-            }
+            foreach (var pair in arctapDrawers) pair.Value.Draw(notesCamera, layer);
 
-            foreach (var pair in arctapSfxDrawers)
-            {
-                pair.Value.Draw(notesCamera, layer);
-            }
+            foreach (var pair in arctapSfxDrawers) pair.Value.Draw(notesCamera, layer);
 
             arcHeadDrawer.Draw(notesCamera, layer);
         }
@@ -314,7 +336,7 @@ namespace ArcCreate.Gameplay.Render
             heightIndicatorDrawer?.Dispose();
             arctapShadowDrawer?.Dispose();
 
-            Material height = Instantiate(heightIndicatorMaterial);
+            var height = Instantiate(heightIndicatorMaterial);
             height.mainTexture = heightIndicator;
             generatedMaterials.Add(height);
             heightIndicatorDrawer = new InstancedRendererPool(
@@ -322,7 +344,7 @@ namespace ArcCreate.Gameplay.Render
                 heightIndicatorMesh,
                 false);
 
-            Material shadow = Instantiate(arctapShadowMaterial);
+            var shadow = Instantiate(arctapShadowMaterial);
             shadow.mainTexture = arctapShadow;
             generatedMaterials.Add(shadow);
             arctapShadowDrawer = new InstancedRendererPool(
@@ -336,74 +358,15 @@ namespace ArcCreate.Gameplay.Render
         private void UpdateLoadedState()
         {
             IsLoaded = connectionLineDrawer != null
-                    && arcSegmentDrawer != null
-                    && arcHeadDrawer != null
-                    && traceSegmentDrawer != null
-                    && traceHeadDrawer != null
-                    && arcShadowDrawer != null
-                    && traceShadowDrawer != null
-                    && connectionLineDrawer != null
-                    && heightIndicatorDrawer != null
-                    && arctapShadowDrawer != null;
-        }
-
-        private void Awake()
-        {
-            Shader.WarmupAllShaders();
-            connectionLineDrawer = new InstancedRendererPool(
-                connectionLineMaterial,
-                connectionLineMesh,
-                false);
-
-            UpdateLoadedState();
-        }
-
-        private void OnDestroy()
-        {
-            foreach (Material material in generatedMaterials)
-            {
-                Destroy(material);
-            }
-
-            generatedMaterials.Clear();
-
-            foreach (var pair in holdDrawers)
-            {
-                pair.Value.Dispose();
-            }
-
-            connectionLineDrawer.Dispose();
-            foreach (var pair in tapDrawers)
-            {
-                pair.Value.Dispose();
-            }
-
-            traceShadowDrawer.Dispose();
-            arcShadowDrawer.Dispose();
-
-            traceSegmentDrawer.Dispose();
-            traceHeadDrawer.Dispose();
-            arctapShadowDrawer.Dispose();
-
-            heightIndicatorDrawer.Dispose();
-            foreach (var pair in arcCapDrawers)
-            {
-                pair.Value.Dispose();
-            }
-
-            arcSegmentDrawer.Dispose();
-
-            foreach (var pair in arctapDrawers)
-            {
-                pair.Value.Dispose();
-            }
-
-            foreach (var pair in arctapSfxDrawers)
-            {
-                pair.Value.Dispose();
-            }
-
-            arcHeadDrawer.Dispose();
+                       && arcSegmentDrawer != null
+                       && arcHeadDrawer != null
+                       && traceSegmentDrawer != null
+                       && traceHeadDrawer != null
+                       && arcShadowDrawer != null
+                       && traceShadowDrawer != null
+                       && connectionLineDrawer != null
+                       && heightIndicatorDrawer != null
+                       && arctapShadowDrawer != null;
         }
     }
 }

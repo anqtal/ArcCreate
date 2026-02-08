@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using ArcCreate.Storage;
 using ArcCreate.Utility.InfiniteScroll;
 
 namespace ArcCreate.Selection.Interface
@@ -11,25 +11,22 @@ namespace ArcCreate.Selection.Interface
 
         public List<CellData> GroupCells(List<LevelCellData> cells, ISortStrategy sortStrategy)
         {
-            if (cells.Count == 0)
-            {
-                return new List<CellData>();
-            }
+            if (cells.Count == 0) return new List<CellData>();
 
-            List<(string name, List<LevelCellData> cells)> groups = new List<(string, List<LevelCellData>)>();
+            List<(string name, List<LevelCellData> cells)> groups = new();
 
             cells = cells
-                .OrderBy(cell => cell.LevelStorage.Identifier)
-                .ThenBy(cell => cell.ChartToDisplay.Title)
+                .OrderBy(cell => SongDifficultyUtility.GetCharter(cell.DifficultyToDisplay))
+                .ThenBy(cell => SongDifficultyUtility.GetTitle(cell.Song))
                 .ToList();
 
             // Sort to folders
-            string cname = GetCharterName(cells[0].LevelStorage.Identifier);
+            var cname = GetCharterName(SongDifficultyUtility.GetCharter(cells[0].DifficultyToDisplay));
             groups.Add((cname, new List<LevelCellData>()));
 
-            foreach (LevelCellData level in cells)
+            foreach (var level in cells)
             {
-                string name = GetCharterName(level.LevelStorage.Identifier);
+                var name = GetCharterName(SongDifficultyUtility.GetCharter(level.DifficultyToDisplay));
                 if (name != cname)
                 {
                     cname = name;
@@ -39,15 +36,15 @@ namespace ArcCreate.Selection.Interface
                 groups[groups.Count - 1].cells.Add(level);
             }
 
-            List<CellData> groupCells = new List<CellData>();
-            foreach ((string name, List<LevelCellData> group) in groups)
+            var groupCells = new List<CellData>();
+            foreach (var (name, group) in groups)
             {
-                GroupCellData newGroup = new GroupCellData
+                var newGroup = new GroupCellData
                 {
                     Pool = Pools.Get<Cell>("GroupCell"),
                     Size = LevelList.GroupCellSize,
                     Children = sortStrategy.Sort(group).ToList<CellData>(),
-                    Title = name,
+                    Title = name
                 };
                 groupCells.Add(newGroup);
             }
@@ -55,15 +52,9 @@ namespace ArcCreate.Selection.Interface
             return groupCells;
         }
 
-        private string GetCharterName(string identifier)
+        private string GetCharterName(string charter)
         {
-            int index = identifier.IndexOf('.');
-            if (index >= 0 && index < identifier.Length)
-            {
-                return identifier.Substring(0, index);
-            }
-
-            return "Unknown";
+            return string.IsNullOrWhiteSpace(charter) ? "Unknown" : charter;
         }
     }
 }

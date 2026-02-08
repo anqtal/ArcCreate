@@ -17,9 +17,8 @@ namespace ArcCreate.Utility.Extension
         public static string OrdinalNumber(int number)
         {
             number = Mathf.Max(number, 1);
-            string suffix = "TH";
+            var suffix = "TH";
             if (number < 10 || number >= 20)
-            {
                 switch (number % 10)
                 {
                     case 1:
@@ -32,7 +31,6 @@ namespace ArcCreate.Utility.Extension
                         suffix = "RD";
                         break;
                 }
-            }
 
             return $"{number}{suffix}";
         }

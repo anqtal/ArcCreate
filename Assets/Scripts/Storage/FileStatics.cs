@@ -10,7 +10,6 @@ namespace ArcCreate.Storage
         public const string FileStorage = "files";
         public const string Level = "level";
         public const string Pack = "pack";
-        public const string DefaultPackage = "default.arcpkg";
         public const string Temp = "__temp";
 
 #if UNITY_EDITOR
@@ -22,7 +21,6 @@ namespace ArcCreate.Storage
         public static readonly string DatabasePath = Path.Combine(RootPath, Database);
         public static readonly string FileStoragePathLegacy = Path.Combine(RootPath, FileStorageLegacy);
         public static readonly string FileStoragePath = Path.Combine(RootPath, FileStorage);
-        public static readonly string DefaultPackagePath = Path.Combine(Application.streamingAssetsPath, DefaultPackage);
 
 #if UNITY_EDITOR
         public static readonly string TempPath = Path.Combine(Application.dataPath, ".temporary");

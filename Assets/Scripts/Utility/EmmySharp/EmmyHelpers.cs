@@ -13,15 +13,9 @@ namespace EmmySharp
     {
         public static string ToCamelCase(this string self)
         {
-            if (self.Length == 0)
-            {
-                return self;
-            }
+            if (self.Length == 0) return self;
 
-            if (char.IsUpper(self[0]))
-            {
-                return char.ToLower(self[0]) + self.Substring(1);
-            }
+            if (char.IsUpper(self[0])) return char.ToLower(self[0]) + self.Substring(1);
 
             return self;
         }
@@ -29,28 +23,28 @@ namespace EmmySharp
         public static T GetAttrOr<T>(this ICustomAttributeProvider attrs)
             where T : Attribute
         {
-            if (attrs == null)
-            {
-                return null;
-            }
+            if (attrs == null) return null;
 
             var customs = attrs.GetCustomAttributes(typeof(T), false);
 
-            if (!customs.Any())
-            {
-                return null;
-            }
+            if (!customs.Any()) return null;
 
             return (T)customs[0];
         }
 
         public static string EmmyDoc(this ICustomAttributeProvider p)
-            => p.GetAttrOr<EmmyDocAttribute>()?.Documentation;
+        {
+            return p.GetAttrOr<EmmyDocAttribute>()?.Documentation;
+        }
 
         public static string[] EmmyChoice(this ICustomAttributeProvider p)
-            => p.GetAttrOr<EmmyChoiceAttribute>()?.Values;
+        {
+            return p.GetAttrOr<EmmyChoiceAttribute>()?.Values;
+        }
 
         public static string EmmyAlias(this ICustomAttributeProvider p)
-            => p.GetAttrOr<EmmyAliasAttribute>()?.Alias;
+        {
+            return p.GetAttrOr<EmmyAliasAttribute>()?.Alias;
+        }
     }
 }

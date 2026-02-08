@@ -731,7 +731,6 @@ GameObject:
   - component: {fileID: 8358422145107475023}
   - component: {fileID: 8358422145107475022}
   - component: {fileID: 8358422145107475017}
-  - component: {fileID: 8358422145107475028}
   m_Layer: 11
   m_Name: NumberInputField
   m_TagString: Untagged
@@ -896,19 +895,3 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &8358422145107475028
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8358422145107475019}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd06a6d9ced0a7784829b1fa2c9ea866, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  increaseButton: {fileID: 4227966455252578855}
-  decreaseButton: {fileID: 4227966455107421388}
-  increment: 5
-  debounceMs: 1000

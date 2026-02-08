@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using UltraLiteDB;
 
 namespace ArcCreate.Data
 {
@@ -48,27 +47,20 @@ namespace ArcCreate.Data
 
         public int NoteCount { get; set; }
 
-        [BsonIgnore]
         public int PerfectCount => LatePerfectCount + EarlyPerfectCount + MappedPerfectCount + MaxCount;
 
-        [BsonIgnore]
         public int GoodCount => LateGoodCount + EarlyGoodCount + MappedGoodCount;
 
-        [BsonIgnore]
         public int MissCount => LateMissCount + EarlyMissCount + MappedMissCount;
 
-        [BsonIgnore]
         public double Score
         {
             get
             {
                 double res = 0;
-                if (NoteCount == 0)
-                {
-                    return 0;
-                }
+                if (NoteCount == 0) return 0;
 
-                double scorePerNote = (double)Constants.MaxScore / NoteCount;
+                var scorePerNote = (double)Constants.MaxScore / NoteCount;
                 res += GoodCount * scorePerNote * Constants.GoodPenaltyMultipler;
                 res += PerfectCount * scorePerNote;
                 res += MaxCount;
@@ -76,59 +68,36 @@ namespace ArcCreate.Data
             }
         }
 
-        [BsonIgnore]
         public ClearResult ClearResult
         {
             get
             {
-                if (NoteCount == 0)
-                {
-                    return ClearResult.Unknown;
-                }
+                if (NoteCount == 0) return ClearResult.Unknown;
 
-                if (MaxCount == NoteCount)
-                {
-                    return ClearResult.Max;
-                }
+                if (MaxCount == NoteCount) return ClearResult.Max;
 
-                if (PerfectCount == NoteCount)
-                {
-                    return ClearResult.AllPerfect;
-                }
+                if (PerfectCount == NoteCount) return ClearResult.AllPerfect;
 
-                if (GoodCount == NoteCount)
-                {
-                    return ClearResult.AllGood;
-                }
+                if (GoodCount == NoteCount) return ClearResult.AllGood;
 
-                if (MaxCombo == NoteCount)
-                {
-                    return ClearResult.FullCombo;
-                }
+                if (MaxCombo == NoteCount) return ClearResult.FullCombo;
 
-                if (GaugeValue > GaugeClearRequirement)
-                {
-                    return ClearResult.Clear;
-                }
+                if (GaugeValue > GaugeClearRequirement) return ClearResult.Clear;
 
                 return ClearResult.Fail;
             }
         }
 
-        [BsonIgnore]
+
         public Grade Grade
         {
             get
             {
-                double score = Score;
-                Grade result = Grade.D;
+                var score = Score;
+                var result = Grade.D;
                 foreach (Grade grade in Enum.GetValues(typeof(Grade)))
-                {
                     if (score > (double)grade && (double)grade > (double)result)
-                    {
                         result = grade;
-                    }
-                }
 
                 return result;
             }
@@ -138,15 +107,12 @@ namespace ArcCreate.Data
 
         public static string FormatScore(double score)
         {
-            string s = ((int)Math.Round(score)).ToString("D8");
-            StringBuilder sb = new StringBuilder();
-            for (int i = s.Length - 1; i >= 0; i--)
+            var s = ((int)Math.Round(score)).ToString("D8");
+            var sb = new StringBuilder();
+            for (var i = s.Length - 1; i >= 0; i--)
             {
                 sb.Insert(0, s[i]);
-                if ((s.Length - i) % 3 == 0 && i != 0)
-                {
-                    sb.Insert(0, '\'');
-                }
+                if ((s.Length - i) % 3 == 0 && i != 0) sb.Insert(0, '\'');
             }
 
             return sb.ToString();

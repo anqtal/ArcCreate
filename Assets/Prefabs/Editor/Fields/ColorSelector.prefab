@@ -311,7 +311,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7277160540869746340}
   - component: {fileID: 7277160540869746341}
-  - component: {fileID: 5027564780583889160}
   m_Layer: 11
   m_Name: ColorSelector
   m_TagString: Untagged
@@ -347,17 +346,3 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7277160540869746343}
   m_CullTransparentMesh: 0
---- !u!114 &5027564780583889160
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7277160540869746343}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3a20431fc8ee222f81135329eb1af08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gradient: {fileID: 7277160540563550883}
-  text: {fileID: 7277160540500152989}

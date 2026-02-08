@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using ArcCreate.ChartFormat;
 using ArcCreate.Gameplay.Audio;
@@ -13,9 +14,9 @@ using UnityEngine.Networking;
 namespace ArcCreate.Gameplay
 {
     /// <summary>
-    /// Gameplay loop.
+    ///     Gameplay loop.
     /// </summary>
-    public class GameplayManager : SceneRepresentative, IGameplayControl
+    public class GameplayManager : SceneRepresentative
     {
         [SerializeField] private ChartService chartService;
         [SerializeField] private SkinService skinService;
@@ -28,25 +29,57 @@ namespace ArcCreate.Gameplay
         [SerializeField] private Camera overlayCamera;
         [SerializeField] private string testPlayChartFileName = "test.aff";
 
-        public IChartControl Chart => chartService;
+        public ChartService Chart => chartService;
 
-        public ISkinControl Skin => skinService;
+        public SkinService Skin => skinService;
 
-        public IAudioControl Audio => audioService;
+        public AudioService Audio => audioService;
 
-        public ICameraControl Camera => cameraService;
+        public CameraService Camera => cameraService;
 
-        public IScenecontrolControl Scenecontrol => scenecontrolService;
+        public ScenecontrolService Scenecontrol => scenecontrolService;
 
         public bool IsLoaded =>
             Services.Chart.IsLoaded
             && Services.Scenecontrol.IsLoaded
-            && Services.Render.IsLoaded;
-            //&& Services.Hitsound.IsLoaded;
+            && Services.Render.IsLoaded
+            && Services.Audio.IsReadyForUpdate;
 
-        public bool EnablePauseMenu { get => Values.EnablePauseMenu; set => Values.EnablePauseMenu = value; }
+        public bool EnablePauseMenu
+        {
+            get => Values.EnablePauseMenu;
+            set => Values.EnablePauseMenu = value;
+        }
 
-        public bool ShouldNotifyOnAudioEnd { get => Values.ShouldNotifyOnAudioEnd; set => Values.ShouldNotifyOnAudioEnd = value; }
+        public bool ShouldNotifyOnAudioEnd
+        {
+            get => Values.ShouldNotifyOnAudioEnd;
+            set => Values.ShouldNotifyOnAudioEnd = value;
+        }
+
+        private void Update()
+        {
+            if (!IsLoaded) return;
+
+            Services.Audio.UpdateTime();
+            Services.Particle.UpdateParticles();
+            Services.InputFeedback.UpdateInputFeedback();
+
+            var currentTiming = Services.Audio.ChartTiming;
+
+            Services.Chart.UpdateChartJudgement(currentTiming);
+            Services.Judgement.ProcessInput(currentTiming);
+
+            Services.Score.UpdateScore(currentTiming);
+            Services.Scenecontrol.UpdateScenecontrol(currentTiming);
+            Services.Camera.UpdateCamera(currentTiming);
+            Services.Chart.UpdateChartRender(currentTiming);
+            Services.Score.UpdateDisplay();
+            //Services.Hitsound.UpdateHitsoundHistory(currentTiming);
+            Services.Render.UpdateRenderers();
+
+            gameplayData.NotifyUpdate(currentTiming);
+        }
 
         public void SetCameraViewportRect(Rect rect)
         {
@@ -69,15 +102,11 @@ namespace ArcCreate.Gameplay
         public override void OnNoBootScene()
         {
             // Load test chart
-            string path = Path.Combine(Application.streamingAssetsPath, testPlayChartFileName);
+            var path = Path.Combine(Application.streamingAssetsPath, testPlayChartFileName);
             if (Application.platform == RuntimePlatform.Android)
-            {
                 ImportTestChartAndroid(path).Forget();
-            }
             else
-            {
                 ImportTestChart(path);
-            }
 
             Settings.InputMode.Value = (int)InputMode.Auto;
             Services.Scenecontrol.WaitForSceneLoad();
@@ -86,10 +115,8 @@ namespace ArcCreate.Gameplay
         protected override void OnSceneLoad()
         {
             if (Application.platform == RuntimePlatform.Android
-             || Application.platform == RuntimePlatform.IPhonePlayer)
-            {
+                || Application.platform == RuntimePlatform.IPhonePlayer)
                 Settings.InputMode.Value = (int)InputMode.Touch;
-            }
 
             Time.timeScale = 1;
             Services.Judgement.SetDebugDisplayMode(Settings.ShowGameplayDebug.Value);
@@ -98,17 +125,14 @@ namespace ArcCreate.Gameplay
 
         private async UniTask ImportTestChartAndroid(string path)
         {
-            UnityWebRequest www = UnityWebRequest.Get(path);
+            var www = UnityWebRequest.Get(path);
             await www.SendWebRequest();
 
-            if (!string.IsNullOrWhiteSpace(www.error))
-            {
-                throw new System.Exception($"Cannot load test chart file");
-            }
+            if (!string.IsNullOrWhiteSpace(www.error)) throw new Exception("Cannot load test chart file");
 
-            byte[] data = www.downloadHandler.data;
-            string copyPath = Path.Combine(Application.temporaryCachePath, "test_arc.aff");
-            using (FileStream fs = new FileStream(copyPath, FileMode.OpenOrCreate, FileAccess.Write))
+            var data = www.downloadHandler.data;
+            var copyPath = Path.Combine(Application.temporaryCachePath, "test_arc.aff");
+            using (var fs = new FileStream(copyPath, FileMode.OpenOrCreate, FileAccess.Write))
             {
                 fs.Write(data, 0, data.Length);
             }
@@ -119,40 +143,13 @@ namespace ArcCreate.Gameplay
 
         private void ImportTestChart(string path)
         {
-            ChartReader reader = ChartReaderFactory.GetReader(new PhysicalFileAccess(), path);
+            var reader = ChartReaderFactory.GetReader(new PhysicalFileAccess(), path);
             reader.Parse();
 
             gameplayData.AudioClip.Value = testAudio;
             chartService.LoadChart(reader);
 
             Audio.PlayWithDelay(0, Values.DelayBeforeAudioStart);
-        }
-
-        private void Update()
-        {
-            if (!IsLoaded)
-            {
-                return;
-            }
-
-            Services.Audio.UpdateTime();
-            Services.Particle.UpdateParticles();
-            Services.InputFeedback.UpdateInputFeedback();
-
-            int currentTiming = Services.Audio.ChartTiming;
-
-            Services.Chart.UpdateChartJudgement(currentTiming);
-            Services.Judgement.ProcessInput(currentTiming);
-
-            Services.Score.UpdateScore(currentTiming);
-            Services.Scenecontrol.UpdateScenecontrol(currentTiming);
-            Services.Camera.UpdateCamera(currentTiming);
-            Services.Chart.UpdateChartRender(currentTiming);
-            Services.Score.UpdateDisplay();
-            //Services.Hitsound.UpdateHitsoundHistory(currentTiming);
-            Services.Render.UpdateRenderers();
-
-            gameplayData.NotifyUpdate(currentTiming);
         }
     }
 }

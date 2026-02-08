@@ -16,8 +16,6 @@ namespace ArcCreate
             value = defaultValue;
         }
 
-        public event Action<T> OnValueChange;
-
         public T Value
         {
             get => value;
@@ -27,6 +25,8 @@ namespace ArcCreate
                 OnValueChange?.Invoke(value);
             }
         }
+
+        public event Action<T> OnValueChange;
 
         public void SetValueWithoutNotify(T value)
         {

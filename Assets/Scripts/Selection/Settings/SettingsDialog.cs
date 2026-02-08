@@ -15,8 +15,8 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private ThemeGroup themeGroup;
         [SerializeField] private GameplayData gameplayData;
 
-        [Header("Gameplay")]
-        [SerializeField] private Button decreaseSpeedButton;
+        [Header("Gameplay")] [SerializeField] private Button decreaseSpeedButton;
+
         [SerializeField] private Button increateSpeedButton;
         [SerializeField] private TMP_Text noteSpeedText;
         [SerializeField] private SettingsToggle earlyLatePerfectSetting;
@@ -26,8 +26,8 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private Button closeCreditButton;
         [SerializeField] private ScriptedAnimator creditAnimation;
 
-        [Header("Audio")]
-        [SerializeField] private Button increaseNoteVolumeButton;
+        [Header("Audio")] [SerializeField] private Button increaseNoteVolumeButton;
+
         [SerializeField] private Button decreaseNoteVolumeButton;
         [SerializeField] private TMP_Text noteVolumeText;
         [SerializeField] private Button increaseMusicVolumeButton;
@@ -39,8 +39,8 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private Button setupOffsetButton;
         [SerializeField] private ScriptedAnimator setupOffsetDialog;
 
-        [Header("Visual")]
-        [SerializeField] private SettingsToggle colorblindModeSetting;
+        [Header("Visual")] [SerializeField] private SettingsToggle colorblindModeSetting;
+
         [SerializeField] private SettingsEnum frPmDisplayPositionSetting;
         [SerializeField] private SettingsEnum lateEarlyPositionSetting;
         [SerializeField] private SettingsToggle maxIndicatorSetting;
@@ -49,15 +49,15 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private List<ScoreDisplayPreviewItem> scoreDisplayPreviews;
         [SerializeField] private SettingsToggle disableAdvancedGraphicsSetting;
 
-        [Header("Judgement")]
-        [SerializeField] private SettingsToggle showMsDifferenceSetting;
+        [Header("Judgement")] [SerializeField] private SettingsToggle showMsDifferenceSetting;
+
         [SerializeField] private SettingsToggle showMaxSetting;
         [SerializeField] private SettingsToggle showPerfectSetting;
         [SerializeField] private SettingsToggle showGoodSetting;
         [SerializeField] private SettingsToggle showMissSetting;
 
-        [Header("Interface")]
-        [SerializeField] private SettingsEnum forceUIThemeSetting;
+        [Header("Interface")] [SerializeField] private SettingsEnum forceUIThemeSetting;
+
         [SerializeField] private SettingsToggle switchResumeAndRetrySetting;
         [SerializeField] private SettingsToggle showFpsSetting;
         [SerializeField] private SettingsToggle showDebugSetting;
@@ -88,24 +88,29 @@ namespace ArcCreate.Selection.Interface
             ChangeScoreDisplayPreview(Settings.ScoreDisplayMode.Value);
 
             hidePauseSetting.Setup(Settings.HidePause);
-            pauseModeSetting.Setup(Settings.PauseButtonMode, typeof(PauseButtonMode), "Gameplay.Selection.Settings.PauseMode");
+            pauseModeSetting.Setup(Settings.PauseButtonMode, typeof(PauseButtonMode),
+                "Gameplay.Selection.Settings.PauseMode");
             earlyLatePerfectSetting.Setup(Settings.ShowEarlyLatePerfect);
             colorblindModeSetting.Setup(Settings.EnableColorblind);
             disableAdvancedGraphicsSetting.Setup(Settings.DisableAdvancedGraphics);
-            frPmDisplayPositionSetting.Setup(Settings.FrPmIndicatorPosition, typeof(FrPmPosition), "Gameplay.Selection.Settings.FrPmPosition");
+            frPmDisplayPositionSetting.Setup(Settings.FrPmIndicatorPosition, typeof(FrPmPosition),
+                "Gameplay.Selection.Settings.FrPmPosition");
             earlyLatePerfectSetting.Setup(Settings.ShowEarlyLatePerfect);
-            lateEarlyPositionSetting.Setup(Settings.LateEarlyTextPosition, typeof(EarlyLateTextPosition), "Gameplay.Selection.Settings.EarlyLateTextPosition");
+            lateEarlyPositionSetting.Setup(Settings.LateEarlyTextPosition, typeof(EarlyLateTextPosition),
+                "Gameplay.Selection.Settings.EarlyLateTextPosition");
             limitFrameRateSetting.Setup(Settings.LimitFrameRate);
             showFpsSetting.Setup(Settings.ShowFPSCounter);
             showDebugSetting.Setup(Settings.ShowGameplayDebug);
             maxIndicatorSetting.Setup(Settings.EnableMaxIndicator);
-            scoreDisplaySetting.Setup(Settings.ScoreDisplayMode, typeof(ScoreDisplayMode), "Gameplay.Selection.Settings.ScoreDisplay");
+            scoreDisplaySetting.Setup(Settings.ScoreDisplayMode, typeof(ScoreDisplayMode),
+                "Gameplay.Selection.Settings.ScoreDisplay");
             showMsDifferenceSetting.Setup(Settings.DisplayMsDifference);
             showMaxSetting.Setup(Settings.ShowMaxJudgement);
             showPerfectSetting.Setup(Settings.ShowPerfectJudgement);
             showGoodSetting.Setup(Settings.ShowGoodJudgement);
             showMissSetting.Setup(Settings.ShowMissJudgement);
-            forceUIThemeSetting.Setup(Settings.ForceTheme, typeof(ForceUIThemeMode), "Gameplay.Selection.Settings.ForceTheme");
+            forceUIThemeSetting.Setup(Settings.ForceTheme, typeof(ForceUIThemeMode),
+                "Gameplay.Selection.Settings.ForceTheme");
             switchResumeAndRetrySetting.Setup(Settings.SwitchResumeAndRetryPosition);
 
             openCreditButton.onClick.AddListener(creditAnimation.Show);
@@ -151,12 +156,12 @@ namespace ArcCreate.Selection.Interface
 
         private void OnMusicAudioSettings(float value)
         {
-            musicVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + "%";
+            musicVolumeText.text = Mathf.RoundToInt(value * 100) + "%";
         }
 
         private void OnEffectAudioSettings(float value)
         {
-            noteVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + "%";
+            noteVolumeText.text = Mathf.RoundToInt(value * 100) + "%";
         }
 
         private void OnGlobalAudioOffsetSettings(int value)
@@ -166,12 +171,14 @@ namespace ArcCreate.Selection.Interface
 
         private void OnDecreaseSpeedButton()
         {
-            Settings.DropRate.Value = (int)Mathf.Clamp(Settings.DropRate.Value - (Constants.DropRateScalar / 10), Constants.MinDropRate, Constants.MaxDropRate);
+            Settings.DropRate.Value = (int)Mathf.Clamp(Settings.DropRate.Value - Constants.DropRateScalar / 10,
+                Constants.MinDropRate, Constants.MaxDropRate);
         }
 
         private void OnIncreateSpeedButton()
         {
-            Settings.DropRate.Value = (int)Mathf.Clamp(Settings.DropRate.Value + (Constants.DropRateScalar / 10), Constants.MinDropRate, Constants.MaxDropRate);
+            Settings.DropRate.Value = (int)Mathf.Clamp(Settings.DropRate.Value + Constants.DropRateScalar / 10,
+                Constants.MinDropRate, Constants.MaxDropRate);
         }
 
         private void OnIncreaseNoteVolumeButton()
@@ -206,11 +213,8 @@ namespace ArcCreate.Selection.Interface
 
         private void ChangeScoreDisplayPreview(int val)
         {
-            ScoreDisplayMode mode = (ScoreDisplayMode)val;
-            foreach (var item in scoreDisplayPreviews)
-            {
-                item.GameObject.SetActive(mode == item.Mode);
-            }
+            var mode = (ScoreDisplayMode)val;
+            foreach (var item in scoreDisplayPreviews) item.GameObject.SetActive(mode == item.Mode);
         }
 
         [Serializable]

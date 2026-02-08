@@ -12,13 +12,11 @@ namespace ArcCreate.Selection.SoundEffect
         public void Play(Sound soundEffect)
         {
             foreach (var def in soundEffects)
-            {
                 if (def.Type == soundEffect)
                 {
                     audioSource.PlayOneShot(def.Audio);
                     return;
                 }
-            }
         }
 
         [Serializable]

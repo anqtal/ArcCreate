@@ -3,8 +3,8 @@ namespace ArcCreate.Gameplay.Score
     // See: https://en.m.wikipedia.org/wiki/Algorithms_for_calculating_variance#On-line_algorithm
     public class StatisticCalculator
     {
-        private double m2;
         private int count;
+        private double m2;
 
         public double Mean { get; private set; }
 
@@ -13,9 +13,9 @@ namespace ArcCreate.Gameplay.Score
         public void UpdateStatistics(double newValue)
         {
             count++;
-            double delta = newValue - Mean;
+            var delta = newValue - Mean;
             Mean += delta / count;
-            double delta2 = newValue - Mean;
+            var delta2 = newValue - Mean;
             m2 += delta * delta2;
         }
 

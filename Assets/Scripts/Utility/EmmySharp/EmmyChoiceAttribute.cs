@@ -7,7 +7,8 @@ using System;
 
 namespace EmmySharp
 {
-    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue | AttributeTargets.Property | AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue | AttributeTargets.Property |
+                    AttributeTargets.Field)]
     public class EmmyChoiceAttribute : Attribute
     {
         public EmmyChoiceAttribute(params string[] values)

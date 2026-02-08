@@ -4,24 +4,25 @@ using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+using Object = UnityEngine.Object;
 
 namespace ArcCreate.Utility.ExternalAssets
 {
     /// <summary>
-    /// Class for handling loading extenal skin as sprites.
+    ///     Class for handling loading extenal skin as sprites.
     /// </summary>
     public class ExternalSprite
     {
-        private static readonly string[] Extensions = new string[] { ".jpg", ".png" };
-        private static readonly Dictionary<string, Sprite> Cache = new Dictionary<string, Sprite>();
+        private static readonly string[] Extensions = { ".jpg", ".png" };
+        private static readonly Dictionary<string, Sprite> Cache = new();
+        private readonly bool fullRect;
 
         private readonly Sprite original;
         private readonly string subDirectory;
-        private readonly bool fullRect;
         private Sprite external;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExternalSprite"/> class.
+        ///     Initializes a new instance of the <see cref="ExternalSprite" /> class.
         /// </summary>
         /// <param name="original">The original sprite.</param>
         /// <param name="subDirectory">The sub directory (relative to Skin directory) to look for the file.</param>
@@ -42,33 +43,30 @@ namespace ArcCreate.Utility.ExternalAssets
 
         public async UniTask Load()
         {
-            foreach (string ext in Extensions)
+            foreach (var ext in Extensions)
             {
-                string path = string.IsNullOrEmpty(subDirectory) ?
-                    Path.Combine(ExternalAssetsCommon.SkinFolderPath, original.name + ext) :
-                    Path.Combine(ExternalAssetsCommon.SkinFolderPath, subDirectory, original.name + ext);
+                var path = string.IsNullOrEmpty(subDirectory)
+                    ? Path.Combine(ExternalAssetsCommon.SkinFolderPath, original.name + ext)
+                    : Path.Combine(ExternalAssetsCommon.SkinFolderPath, subDirectory, original.name + ext);
 
-                if (!File.Exists(path))
-                {
-                    continue;
-                }
+                if (!File.Exists(path)) continue;
 
-                if (Cache.TryGetValue(path, out Sprite s))
+                if (Cache.TryGetValue(path, out var s))
                 {
                     external = s;
                     return;
                 }
 
-                using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(
-                    Uri.EscapeUriString("file:///" + path.Replace("\\", "/"))))
+                using (var req = UnityWebRequestTexture.GetTexture(
+                           Uri.EscapeUriString("file:///" + path.Replace("\\", "/"))))
                 {
                     await req.SendWebRequest();
                     if (!string.IsNullOrWhiteSpace(req.error))
                     {
-                        Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>()
+                        Debug.LogWarning(I18n.S("Gameplay.Exception.Skin", new Dictionary<string, object>
                         {
                             { "Path", path },
-                            { "Error", req.error },
+                            { "Error", req.error }
                         }));
                         return;
                     }
@@ -78,25 +76,22 @@ namespace ArcCreate.Utility.ExternalAssets
 
                     Sprite sprite;
 
-                    Vector2 pivot = new Vector2(original.pivot.x / original.rect.width, original.pivot.y / original.rect.height);
+                    var pivot = new Vector2(original.pivot.x / original.rect.width,
+                        original.pivot.y / original.rect.height);
 
                     if (!fullRect)
-                    {
                         sprite = Sprite.Create(
-                            texture: t,
-                            rect: new Rect(0, 0, t.width, t.height),
-                            pivot: pivot);
-                    }
+                            t,
+                            new Rect(0, 0, t.width, t.height),
+                            pivot);
                     else
-                    {
                         sprite = Sprite.Create(
-                            texture: t,
-                            rect: new Rect(0, 0, t.width, t.height),
-                            pivot: pivot,
-                            pixelsPerUnit: original.pixelsPerUnit,
-                            extrude: 1,
-                            meshType: SpriteMeshType.FullRect);
-                    }
+                            t,
+                            new Rect(0, 0, t.width, t.height),
+                            pivot,
+                            original.pixelsPerUnit,
+                            1,
+                            SpriteMeshType.FullRect);
 
                     Cache.Add(path, sprite);
                     external = sprite;
@@ -109,8 +104,8 @@ namespace ArcCreate.Utility.ExternalAssets
         {
             if (external != null)
             {
-                UnityEngine.Object.Destroy(external.texture);
-                UnityEngine.Object.Destroy(external);
+                Object.Destroy(external.texture);
+                Object.Destroy(external);
                 external = null;
             }
         }

@@ -10,7 +10,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
     public class ConstantTextChannel : TextChannel
     {
         private char[] charArray;
-        private bool readOnce = false;
+        private bool readOnce;
 
         public ConstantTextChannel()
         {
@@ -36,11 +36,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override List<object> SerializeProperties(ScenecontrolSerialization serialization)
         {
-            StringBuilder str = new StringBuilder();
-            for (int i = 0; i < charArray.Length; i++)
-            {
-                str.Append(charArray[i]);
-            }
+            var str = new StringBuilder();
+            for (var i = 0; i < charArray.Length; i++) str.Append(charArray[i]);
 
             return new List<object> { str.ToString() };
         }

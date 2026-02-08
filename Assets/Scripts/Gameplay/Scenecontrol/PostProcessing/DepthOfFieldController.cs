@@ -20,18 +20,26 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public float DefaultFocalLength { get; set; }
 
+        protected override void Reset()
+        {
+            FocusDistance = new ConstantChannel(DefaultFocusDistance);
+            Aperture = new ConstantChannel(DefaultAperture);
+            FocalLength = new ConstantChannel(DefaultFocalLength);
+            TargetEffect.focusDistance.overrideState = false;
+            TargetEffect.aperture.overrideState = false;
+            TargetEffect.focalLength.overrideState = false;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "focusdistance": TargetEffect.focusDistance.overrideState = true; break;
                     case "aperture": TargetEffect.focusDistance.overrideState = true; break;
                     case "focallength": TargetEffect.focalLength.overrideState = true; break;
                 }
-            }
         }
 
         public override void UpdateController(int timing)
@@ -50,13 +58,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 TargetEffect.focalLength.overrideState,
                 serialization.AddUnitAndGetId(FocusDistance),
                 serialization.AddUnitAndGetId(Aperture),
-                serialization.AddUnitAndGetId(FocalLength),
+                serialization.AddUnitAndGetId(FocalLength)
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.focusDistance.overrideState = (bool)properties[offset++];
             TargetEffect.focusDistance.overrideState = (bool)properties[offset++];
@@ -71,16 +80,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             DefaultFocusDistance = TargetEffect.focusDistance.value;
             DefaultAperture = TargetEffect.aperture.value;
             DefaultFocalLength = TargetEffect.focalLength.value;
-        }
-
-        protected override void Reset()
-        {
-            FocusDistance = new ConstantChannel(DefaultFocusDistance);
-            Aperture = new ConstantChannel(DefaultAperture);
-            FocalLength = new ConstantChannel(DefaultFocalLength);
-            TargetEffect.focusDistance.overrideState = false;
-            TargetEffect.aperture.overrideState = false;
-            TargetEffect.focalLength.overrideState = false;
         }
     }
 }

@@ -4,6 +4,6 @@ namespace ArcCreate.ChartFormat
     {
         None,
         Light,
-        Conflict,
+        Conflict
     }
 }

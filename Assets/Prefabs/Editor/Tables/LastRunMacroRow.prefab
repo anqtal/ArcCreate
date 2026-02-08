@@ -221,7 +221,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8757697088334389326}
-  - component: {fileID: 7816765081799017853}
   - component: {fileID: 2026495658179325877}
   - component: {fileID: 2059393258424906060}
   - component: {fileID: 6487433247160082243}
@@ -253,24 +252,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 30}
   m_Pivot: {x: 0.5, y: 1}
---- !u!114 &7816765081799017853
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7624829432020106637}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c40dd7e0c6d2262d993871979103b85d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  icon: {fileID: 140813390462702440}
-  text: {fileID: 140813390859991156}
-  button: {fileID: 2026495658179325877}
-  textRect: {fileID: 140813390859991159}
-  offsetMinWithIcon: 27
-  offsetMinWithoutIcon: 6
 --- !u!114 &2026495658179325877
 MonoBehaviour:
   m_ObjectHideFlags: 0

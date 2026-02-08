@@ -18,7 +18,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
         [EmmyDoc("Creates constant string channel")]
         public static StringChannel Constant(string value)
         {
-            KeyStringChannel channel = new KeyStringChannel();
+            var channel = new KeyStringChannel();
             channel.AddKey(int.MinValue, value);
             return channel;
         }

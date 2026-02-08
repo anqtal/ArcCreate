@@ -112,6 +112,19 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
+        private void Awake()
+        {
+            autoExposure.SerializedType = "autoExposure";
+            bloom.SerializedType = "bloom";
+            chromaticAberration.SerializedType = "chromaticAberration";
+            colorGrading.SerializedType = "colorGrading";
+            depthOfField.SerializedType = "depthOfField";
+            grain.SerializedType = "grain";
+            lensDistortion.SerializedType = "lensDistortion";
+            motionBlur.SerializedType = "motionBlur";
+            vignette.SerializedType = "vignette";
+        }
+
         [MoonSharpHidden]
         public ISceneController CreateFromTypeName(string type)
         {
@@ -152,19 +165,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
         {
             layer.enabled = false;
             volume.enabled = false;
-        }
-
-        private void Awake()
-        {
-            autoExposure.SerializedType = "autoExposure";
-            bloom.SerializedType = "bloom";
-            chromaticAberration.SerializedType = "chromaticAberration";
-            colorGrading.SerializedType = "colorGrading";
-            depthOfField.SerializedType = "depthOfField";
-            grain.SerializedType = "grain";
-            lensDistortion.SerializedType = "lensDistortion";
-            motionBlur.SerializedType = "motionBlur";
-            vignette.SerializedType = "vignette";
         }
     }
 }

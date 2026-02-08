@@ -37,14 +37,12 @@ namespace ArcCreate.Gameplay.Data
             Editable = raw.Editable;
             Autoplay = raw.Autoplay;
             foreach (var pair in raw.JudgementMaps)
-            {
                 JudgementMaps.Add((JudgementResult)(int)pair.Key, (JudgementResult)(int)pair.Value);
-            }
         }
 
-        public string Name { get; set; } = null;
+        public string Name { get; set; }
 
-        public string FileName { get; set; } = null;
+        public string FileName { get; set; }
 
         public bool Editable { get; set; } = true;
 
@@ -56,39 +54,39 @@ namespace ArcCreate.Gameplay.Data
 
         public Quaternion RotationIndividual { get; set; } = Quaternion.identity;
 
-        public bool NoInput { get; set; } = false;
+        public bool NoInput { get; set; }
 
-        public bool NoClip { get; set; } = false;
+        public bool NoClip { get; set; }
 
-        public bool NoHeightIndicator { get; set; } = false;
+        public bool NoHeightIndicator { get; set; }
 
-        public bool NoHead { get; set; } = false;
+        public bool NoHead { get; set; }
 
-        public bool NoShadow { get; set; } = false;
+        public bool NoShadow { get; set; }
 
-        public bool NoArcCap { get; set; } = false;
+        public bool NoArcCap { get; set; }
 
-        public bool NoConnection { get; set; } = false;
+        public bool NoConnection { get; set; }
 
-        public bool FadingHolds { get; set; } = false;
+        public bool FadingHolds { get; set; }
 
-        public bool IgnoreMirror { get; set; } = false;
+        public bool IgnoreMirror { get; set; }
 
-        public bool Autoplay { get; set; } = false;
+        public bool Autoplay { get; set; }
 
-        public float AngleX { get; set; } = 0;
+        public float AngleX { get; set; }
 
-        public float AngleY { get; set; } = 0;
+        public float AngleY { get; set; }
 
         public float JudgementSizeX { get; set; } = 1;
 
         public float JudgementSizeY { get; set; } = 1;
 
-        public float JudgementOffsetX { get; set; } = 0;
+        public float JudgementOffsetX { get; set; }
 
-        public float JudgementOffsetY { get; set; } = 0;
+        public float JudgementOffsetY { get; set; }
 
-        public float JudgementOffsetZ { get; set; } = 0;
+        public float JudgementOffsetZ { get; set; }
 
         public float ArcResolution { get; set; } = 1;
 
@@ -110,26 +108,26 @@ namespace ArcCreate.Gameplay.Data
 
         public bool Visible { get; set; } = true;
 
-        public Dictionary<JudgementResult, JudgementResult> JudgementMaps { get; private set; }
-            = new Dictionary<JudgementResult, JudgementResult>();
+        public Dictionary<JudgementResult, JudgementResult> JudgementMaps { get; } = new();
 
         public Vector3 FallDirection
         {
             get
             {
-                float angleXf = 90.0f - AngleX - SCAngleX;
-                float angleYf = (AngleY + SCAngleY) * (Settings.MirrorNotes.Value ? -1 : 1);
+                var angleXf = 90.0f - AngleX - SCAngleX;
+                var angleYf = (AngleY + SCAngleY) * (Settings.MirrorNotes.Value ? -1 : 1);
 
-                float x = Mathf.Sin(angleXf * Mathf.Deg2Rad) * Mathf.Sin(angleYf * Mathf.Deg2Rad);
-                float y = -Mathf.Cos(angleXf * Mathf.Deg2Rad);
-                float z = Mathf.Sin(angleXf * Mathf.Deg2Rad) * Mathf.Cos(angleYf * Mathf.Deg2Rad);
+                var x = Mathf.Sin(angleXf * Mathf.Deg2Rad) * Mathf.Sin(angleYf * Mathf.Deg2Rad);
+                var y = -Mathf.Cos(angleXf * Mathf.Deg2Rad);
+                var z = Mathf.Sin(angleXf * Mathf.Deg2Rad) * Mathf.Cos(angleYf * Mathf.Deg2Rad);
                 return new Vector3(x, y, z);
             }
         }
 
-        public Vector2 CurrentJudgementSize => new Vector2(JudgementSizeX * SCJudgementSizeX, JudgementSizeY * SCJudgementSizeY);
+        public Vector2 CurrentJudgementSize =>
+            new(JudgementSizeX * SCJudgementSizeX, JudgementSizeY * SCJudgementSizeY);
 
-        public Vector3 CurrentJudgementOffset => new Vector3(
+        public Vector3 CurrentJudgementOffset => new(
             JudgementOffsetX + SCJudgementOffsetX,
             JudgementOffsetY + SCJudgementOffsetY,
             JudgementOffsetZ + SCJudgementOffsetZ);
@@ -158,30 +156,22 @@ namespace ArcCreate.Gameplay.Data
                 JudgementSizeY = JudgementSizeY,
                 ArcResolution = ArcResolution,
                 Autoplay = Autoplay,
-                IgnoreMirror = IgnoreMirror,
+                IgnoreMirror = IgnoreMirror
             };
 
             foreach (var pair in JudgementMaps)
-            {
                 rtg.JudgementMaps.Add((JudgementMap)(int)pair.Key, (JudgementMap)(int)pair.Value);
-            }
 
             return rtg;
         }
 
         public JudgementResult MapJudgementResult(JudgementResult from)
         {
-            InputMode inputMode = (InputMode)Settings.InputMode.Value;
-            bool isAuto = inputMode == InputMode.Auto || inputMode == InputMode.AutoController;
-            if (isAuto || Autoplay)
-            {
-                return JudgementResult.Max;
-            }
+            var inputMode = (InputMode)Settings.InputMode.Value;
+            var isAuto = inputMode == InputMode.Auto || inputMode == InputMode.AutoController;
+            if (isAuto || Autoplay) return JudgementResult.Max;
 
-            if (JudgementMaps.TryGetValue(from, out JudgementResult to))
-            {
-                return to;
-            }
+            if (JudgementMaps.TryGetValue(from, out var to)) return to;
 
             return from;
         }

@@ -16,26 +16,13 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private GameObject searchIcon;
         [SerializeField] private GameObject hideIcon;
         [SerializeField] private ScriptedAnimator showSearchAnimator;
-        private CancellationTokenSource cts = new CancellationTokenSource();
-
-        public event Action OnNeedRebuild;
+        private CancellationTokenSource cts = new();
 
         public IGroupStrategy GroupStrategy { get; private set; }
 
         public ISortStrategy SortStrategy { get; private set; }
 
         public string SearchQuery { get; private set; }
-
-        public void Setup()
-        {
-            Settings.SelectionGroupStrategy.OnValueChanged.AddListener(OnGroupStrategyChanged);
-            Settings.SelectionSortStrategy.OnValueChanged.AddListener(OnSortStrategyChanged);
-            SetGroupStrategy("none");//(Settings.SelectionGroupStrategy.Value);
-            SetSortStrategy("title");//(Settings.SelectionSortStrategy.Value);
-
-            toggleSearchButton.onClick.AddListener(ToggleSearchMenu);
-            searchField.onValueChanged.AddListener(OnSearchField);
-        }
 
         private void OnDestroy()
         {
@@ -44,6 +31,19 @@ namespace ArcCreate.Selection.Interface
 
             toggleSearchButton.onClick.RemoveListener(ToggleSearchMenu);
             searchField.onValueChanged.RemoveListener(OnSearchField);
+        }
+
+        public event Action OnNeedRebuild;
+
+        public void Setup()
+        {
+            Settings.SelectionGroupStrategy.OnValueChanged.AddListener(OnGroupStrategyChanged);
+            Settings.SelectionSortStrategy.OnValueChanged.AddListener(OnSortStrategyChanged);
+            SetGroupStrategy("none"); //(Settings.SelectionGroupStrategy.Value);
+            SetSortStrategy("title"); //(Settings.SelectionSortStrategy.Value);
+
+            toggleSearchButton.onClick.AddListener(ToggleSearchMenu);
+            searchField.onValueChanged.AddListener(OnSearchField);
         }
 
         private void OnSearchField(string query)
@@ -57,18 +57,15 @@ namespace ArcCreate.Selection.Interface
 
         private async UniTask QueueRebuild(CancellationToken ct)
         {
-            bool cancelled = await UniTask.Delay(debounceMs, cancellationToken: ct).SuppressCancellationThrow();
-            if (cancelled)
-            {
-                return;
-            }
+            var cancelled = await UniTask.Delay(debounceMs, cancellationToken: ct).SuppressCancellationThrow();
+            if (cancelled) return;
 
             OnNeedRebuild.Invoke();
         }
 
         private void ToggleSearchMenu()
         {
-            string prevQuery = SearchQuery;
+            var prevQuery = SearchQuery;
             if (showSearchAnimator.IsShown)
             {
                 showSearchAnimator.Hide();
@@ -85,10 +82,7 @@ namespace ArcCreate.Selection.Interface
                 hideIcon.SetActive(true);
             }
 
-            if (prevQuery != SearchQuery)
-            {
-                OnNeedRebuild?.Invoke();
-            }
+            if (prevQuery != SearchQuery) OnNeedRebuild?.Invoke();
         }
 
         private void OnGroupStrategyChanged(string strat)

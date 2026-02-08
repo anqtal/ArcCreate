@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using ArcCreate.Data;
-using ArcCreate.Storage.Data;
+using ArcCreate.Storage;
 using ArcCreate.Utility.InfiniteScroll;
-using UnityEngine;
 
 namespace ArcCreate.Selection.Interface
 {
@@ -13,58 +11,44 @@ namespace ArcCreate.Selection.Interface
 
         public List<CellData> GroupCells(List<LevelCellData> cells, ISortStrategy sortStrategy)
         {
-            if (cells.Count == 0)
-            {
-                return new List<CellData>();
-            }
+            if (cells.Count == 0) return new List<CellData>();
 
-            List<(string name, List<LevelCellData> cells)> groups = new List<(string, List<LevelCellData>)>();
-
+            var groups = new List<(int rating, bool isPlus, List<LevelCellData> cells)>();
             cells = cells
-                .OrderBy(cell => Mathf.FloorToInt(cell.PlayHistory.Rating))
-                .ThenBy(cell => cell.ChartToDisplay.Title)
+                .OrderBy(cell => SongDifficultyUtility.GetChartConstant(cell.DifficultyToDisplay))
+                .ThenBy(cell => SongDifficultyUtility.GetTitle(cell.Song))
                 .ToList();
 
-            // Sort to folders
-            string cname = GetName(cells[0].PlayHistory);
-            groups.Add((cname, new List<LevelCellData>()));
+            var (rating, isPlus) = SongDifficultyUtility.ParseChartConstant(cells[0].DifficultyToDisplay);
+            groups.Add((rating, isPlus, new List<LevelCellData>()));
 
-            foreach (LevelCellData level in cells)
+            foreach (var cell in cells)
             {
-                string name = GetName(level.PlayHistory);
-                if (name != cname)
+                var (diff, plus) = SongDifficultyUtility.ParseChartConstant(cell.DifficultyToDisplay);
+                if (diff != rating || plus != isPlus)
                 {
-                    cname = name;
-                    groups.Add((name, new List<LevelCellData>()));
+                    rating = diff;
+                    isPlus = plus;
+                    groups.Add((diff, plus, new List<LevelCellData>()));
                 }
 
-                groups[groups.Count - 1].cells.Add(level);
+                groups[groups.Count - 1].cells.Add(cell);
             }
 
-            List<CellData> groupCells = new List<CellData>();
-            foreach ((string name, List<LevelCellData> group) in groups)
+            var result = new List<CellData>();
+            foreach (var (diff, plus, group) in groups)
             {
-                GroupCellData newGroup = new GroupCellData
+                var newGroup = new GroupCellData
                 {
                     Pool = Pools.Get<Cell>("GroupCell"),
                     Size = LevelList.GroupCellSize,
                     Children = sortStrategy.Sort(group).ToList<CellData>(),
-                    Title = name,
+                    Title = $"Rating {diff}{(plus ? "+" : string.Empty)}"
                 };
-                groupCells.Add(newGroup);
+                result.Add(newGroup);
             }
 
-            return groupCells;
-        }
-
-        private string GetName(PlayHistory history)
-        {
-            if (history.Rating <= 0)
-            {
-                return "N/A";
-            }
-
-            return $"★{Mathf.FloorToInt(history.Rating)}";
+            return result;
         }
     }
 }

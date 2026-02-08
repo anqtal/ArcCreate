@@ -68,5 +68,4 @@ namespace ArcCreate.Selection.Interface
             text.text = I18n.S($"Gameplay.Selection.Sort.{newStrat}");
         }
     }
-
 }

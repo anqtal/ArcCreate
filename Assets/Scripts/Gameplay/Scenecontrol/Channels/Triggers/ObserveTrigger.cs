@@ -7,12 +7,12 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [MoonSharpUserData]
     public class ObserveTrigger : Trigger
     {
-        private ValueChannel target;
         private ValueChannel above;
         private ValueChannel below;
 
         private float lastDiffToAbove = float.MaxValue;
         private float lastDiffToBelow = float.MinValue;
+        private ValueChannel target;
 
         public ObserveTrigger()
         {
@@ -25,14 +25,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
             below = new ConstantChannel(float.MinValue);
         }
 
-        [EmmyDoc("Set the upper threshold value. The channel activates if the target channel's value go above the lower threshold")]
+        [EmmyDoc(
+            "Set the upper threshold value. The channel activates if the target channel's value go above the lower threshold")]
         public ObserveTrigger GoAbove(ValueChannel above)
         {
             this.above = above;
             return this;
         }
 
-        [EmmyDoc("Set the lower threshold value. The channel activates if the target channel's value go below the lower threshold")]
+        [EmmyDoc(
+            "Set the lower threshold value. The channel activates if the target channel's value go below the lower threshold")]
         public ObserveTrigger GoBelow(ValueChannel below)
         {
             this.below = below;
@@ -70,7 +72,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
             {
                 Value = value,
                 Duration = duration ?? ValueChannel.ConstantOneChannel,
-                Easing = Easing.FromString(easing),
+                Easing = Easing.FromString(easing)
             };
 
             return this;
@@ -78,18 +80,12 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override void Poll(int timing)
         {
-            float diffToAbove = target.ValueAt(timing) - above.ValueAt(timing);
-            float diffToBelow = target.ValueAt(timing) - below.ValueAt(timing);
+            var diffToAbove = target.ValueAt(timing) - above.ValueAt(timing);
+            var diffToBelow = target.ValueAt(timing) - below.ValueAt(timing);
 
-            if (lastDiffToAbove < 0 && diffToAbove >= 0)
-            {
-                Dispatch(timing);
-            }
+            if (lastDiffToAbove < 0 && diffToAbove >= 0) Dispatch(timing);
 
-            if (lastDiffToBelow > 0 && diffToBelow <= 0)
-            {
-                Dispatch(timing);
-            }
+            if (lastDiffToBelow > 0 && diffToBelow <= 0) Dispatch(timing);
 
             lastDiffToAbove = diffToAbove;
             lastDiffToBelow = diffToBelow;
@@ -104,7 +100,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(below),
                 serialization.AddUnitAndGetId(TriggerDispatch.Value),
                 serialization.AddUnitAndGetId(TriggerDispatch.Duration),
-                TriggerDispatch.EasingString,
+                TriggerDispatch.EasingString
             };
         }
 
@@ -118,7 +114,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 Value = deserialization.GetUnitFromId<ValueChannel>(properties[3]),
                 Duration = deserialization.GetUnitFromId<ValueChannel>(properties[4]),
                 EasingString = (string)properties[5],
-                Easing = Easing.FromString((string)properties[5]),
+                Easing = Easing.FromString((string)properties[5])
             };
         }
     }

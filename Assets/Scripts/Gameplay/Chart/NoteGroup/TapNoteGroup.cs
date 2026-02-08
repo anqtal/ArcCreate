@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ArcCreate.Gameplay.Data;
 
 namespace ArcCreate.Gameplay.Chart
@@ -7,9 +6,9 @@ namespace ArcCreate.Gameplay.Chart
     {
         public override void SetupNotes()
         {
-            for (int i = 0; i < Notes.Count; i++)
+            for (var i = 0; i < Notes.Count; i++)
             {
-                Tap tap = Notes[i];
+                var tap = Notes[i];
                 SetupConnection(tap);
             }
         }
@@ -33,10 +32,10 @@ namespace ArcCreate.Gameplay.Chart
         {
             RemoveConnection(note);
 
-            IEnumerable<ArcTap> connectedArcTaps
+            var connectedArcTaps
                 = Services.Chart.FindByTiming<ArcTap>(note.Timing - 1, note.Timing + 1);
 
-            foreach (ArcTap arcTap in connectedArcTaps)
+            foreach (var arcTap in connectedArcTaps)
             {
                 note.ConnectedArcTaps.Add(arcTap);
                 arcTap.ConnectedTaps.Add(note);
@@ -47,10 +46,7 @@ namespace ArcCreate.Gameplay.Chart
 
         private void RemoveConnection(Tap note)
         {
-            foreach (ArcTap arcTap in note.ConnectedArcTaps)
-            {
-                arcTap.ConnectedTaps.Remove(note);
-            }
+            foreach (var arcTap in note.ConnectedArcTaps) arcTap.ConnectedTaps.Remove(note);
 
             note.ConnectedArcTaps.Clear();
         }

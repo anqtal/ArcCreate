@@ -9,18 +9,19 @@ namespace ArcCreate.Gameplay.Scenecontrol
     public class CameraController : Controller, ICameraController, IPositionController
     {
         private ValueChannel fieldOfView;
-        private ValueChannel tiltFactor;
-        private ValueChannel translationX;
-        private ValueChannel translationY;
-        private ValueChannel translationZ;
         private ValueChannel rotationX;
         private ValueChannel rotationY;
         private ValueChannel rotationZ;
         private ValueChannel scaleX;
         private ValueChannel scaleY;
         private ValueChannel scaleZ;
+        private ValueChannel tiltFactor;
+        private ValueChannel translationX;
+        private ValueChannel translationY;
+        private ValueChannel translationZ;
 
-        [EmmyDoc("Channel for the camera's field of view. Value of this channel is added to the camera's internal field of view value (Default is 0)")]
+        [EmmyDoc(
+            "Channel for the camera's field of view. Value of this channel is added to the camera's internal field of view value (Default is 0)")]
         public ValueChannel FieldOfView
         {
             get => fieldOfView;
@@ -31,7 +32,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
-        [EmmyDoc("Channel for the camera's tilt factor. Camera tilting rotation is multipled with the value of this channel (Default is 1)")]
+        [EmmyDoc(
+            "Channel for the camera's tilt factor. Camera tilting rotation is multipled with the value of this channel (Default is 1)")]
         public ValueChannel TiltFactor
         {
             get => tiltFactor;
@@ -40,6 +42,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 tiltFactor = value;
                 EnableCameraModule = true;
             }
+        }
+
+        [MoonSharpHidden] public float DefaultFieldOfView => 0;
+
+        public bool EnableCameraModule { get; set; }
+
+        [MoonSharpHidden]
+        public void UpdateCamera(float fieldOfView, float tiltFactor)
+        {
+            Services.Camera.SetPropertiesExternal(fieldOfView, tiltFactor);
         }
 
         public ValueChannel TranslationX
@@ -132,23 +144,13 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
-        [MoonSharpHidden] public float DefaultFieldOfView => 0;
-
         [MoonSharpHidden] public Vector3 DefaultTranslation => Vector3.zero;
 
         [MoonSharpHidden] public Quaternion DefaultRotation => Quaternion.identity;
 
         [MoonSharpHidden] public Vector3 DefaultScale => Vector3.one;
 
-        public bool EnableCameraModule { get; set; }
-
         public bool EnablePositionModule { get; set; }
-
-        [MoonSharpHidden]
-        public void UpdateCamera(float fieldOfView, float tiltFactor)
-        {
-            Services.Camera.SetPropertiesExternal(fieldOfView, tiltFactor);
-        }
 
         [MoonSharpHidden]
         public void UpdatePosition(Vector3 translation, Quaternion rotation, Vector3 scale)

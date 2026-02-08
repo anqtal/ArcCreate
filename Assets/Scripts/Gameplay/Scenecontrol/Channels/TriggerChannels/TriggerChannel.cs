@@ -13,10 +13,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
         {
             BaseValue = ConstantZeroChannel;
             this.triggers = triggers;
-            foreach (var trigger in triggers)
-            {
-                trigger.BindToChannel(this);
-            }
+            foreach (var trigger in triggers) trigger.BindToChannel(this);
         }
 
         protected ValueChannel BaseValue { get; private set; }
@@ -24,7 +21,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public override void DeserializeProperties(List<object> properties, ScenecontrolDeserialization deserialization)
         {
             triggers = new Trigger[properties.Count];
-            for (int i = 0; i < triggers.Length; i++)
+            for (var i = 0; i < triggers.Length; i++)
             {
                 triggers[i] = deserialization.GetUnitFromId<Trigger>(properties[i]);
                 triggers[i].BindToChannel(this);
@@ -33,11 +30,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override List<object> SerializeProperties(ScenecontrolSerialization serialization)
         {
-            List<object> result = new List<object>();
-            foreach (var trigger in triggers)
-            {
-                result.Add(serialization.AddUnitAndGetId(trigger));
-            }
+            var result = new List<object>();
+            foreach (var trigger in triggers) result.Add(serialization.AddUnitAndGetId(trigger));
 
             return result;
         }
@@ -51,10 +45,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public override float ValueAt(int timing)
         {
-            foreach (var trigger in triggers)
-            {
-                trigger.Poll(timing);
-            }
+            foreach (var trigger in triggers) trigger.Poll(timing);
 
             return CalculateAfterPoll(timing);
         }

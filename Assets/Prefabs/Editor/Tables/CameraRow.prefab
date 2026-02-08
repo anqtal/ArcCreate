@@ -699,7 +699,6 @@ GameObject:
   - component: {fileID: 2406050079761947239}
   - component: {fileID: 2406050079761947232}
   - component: {fileID: 2406050079761947238}
-  - component: {fileID: 1667347730821679106}
   m_Layer: 11
   m_Name: TimingField
   m_TagString: Untagged
@@ -834,18 +833,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &1667347730821679106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2406050079761947236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2406050079894127628
 GameObject:
   m_ObjectHideFlags: 0
@@ -1403,7 +1390,6 @@ GameObject:
   - component: {fileID: 3001237779780216064}
   - component: {fileID: 3001237779780216071}
   - component: {fileID: 3001237779780216070}
-  - component: {fileID: 3001237779780216065}
   m_Layer: 11
   m_Name: Y
   m_TagString: Untagged
@@ -1538,18 +1524,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &3001237779780216065
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3001237779780216067}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3001237779895242315
 GameObject:
   m_ObjectHideFlags: 0
@@ -1870,7 +1844,6 @@ GameObject:
   - component: {fileID: 3001237780386648721}
   - component: {fileID: 3001237780386648724}
   - component: {fileID: 3001237780386648727}
-  - component: {fileID: 3001237780386648726}
   m_Layer: 11
   m_Name: Z
   m_TagString: Untagged
@@ -2005,18 +1978,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &3001237780386648726
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3001237780386648720}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3001237780694017519
 GameObject:
   m_ObjectHideFlags: 0
@@ -2162,7 +2123,6 @@ GameObject:
   - component: {fileID: 3001237780802510907}
   - component: {fileID: 3001237780802510910}
   - component: {fileID: 3001237780802510905}
-  - component: {fileID: 3001237780802510904}
   m_Layer: 11
   m_Name: X
   m_TagString: Untagged
@@ -2297,18 +2257,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &3001237780802510904
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3001237780802510906}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3001237781030316370
 GameObject:
   m_ObjectHideFlags: 0
@@ -2320,7 +2268,6 @@ GameObject:
   - component: {fileID: 3001237781030316371}
   - component: {fileID: 3001237781030316374}
   - component: {fileID: 3001237781030316369}
-  - component: {fileID: 3001237781030316368}
   m_Layer: 11
   m_Name: Y
   m_TagString: Untagged
@@ -2455,18 +2402,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &3001237781030316368
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3001237781030316370}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3001237781188393611
 GameObject:
   m_ObjectHideFlags: 0
@@ -2612,7 +2547,6 @@ GameObject:
   - component: {fileID: 3001237781380310536}
   - component: {fileID: 3001237781380310543}
   - component: {fileID: 3001237781380310542}
-  - component: {fileID: 3001237781380310537}
   m_Layer: 11
   m_Name: X
   m_TagString: Untagged
@@ -2747,18 +2681,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &3001237781380310537
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3001237781380310539}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3001237781435033346
 GameObject:
   m_ObjectHideFlags: 0
@@ -3140,7 +3062,6 @@ GameObject:
   - component: {fileID: 3001237781708844313}
   - component: {fileID: 3001237781708844316}
   - component: {fileID: 3001237781708844319}
-  - component: {fileID: 3001237781708844318}
   m_Layer: 11
   m_Name: Z
   m_TagString: Untagged
@@ -3275,18 +3196,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &3001237781708844318
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3001237781708844312}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3001237781715586701
 GameObject:
   m_ObjectHideFlags: 0
@@ -3556,7 +3465,6 @@ GameObject:
   - component: {fileID: 4180623999910677670}
   - component: {fileID: 4180623999910677656}
   - component: {fileID: 4180623999910677657}
-  - component: {fileID: 2357571726613893264}
   m_Layer: 11
   m_Name: DurationField
   m_TagString: Untagged
@@ -3689,18 +3597,6 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
---- !u!114 &2357571726613893264
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4180623999910677671}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91261fbb82fba9a81a57c7d12bf6e398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &4180624000184450708
 GameObject:
   m_ObjectHideFlags: 0
@@ -3937,7 +3833,6 @@ GameObject:
   - component: {fileID: 5117158159367280774}
   - component: {fileID: 8543430917912305590}
   - component: {fileID: 4406979898859453797}
-  - component: {fileID: 4406979898859453818}
   m_Layer: 11
   m_Name: CameraRow
   m_TagString: Untagged
@@ -4019,29 +3914,6 @@ MonoBehaviour:
   m_EffectColor: {r: 0.25490198, g: 0.25490198, b: 0.25490198, a: 1}
   m_EffectDistance: {x: 0, y: -1}
   m_UseGraphicAlpha: 1
---- !u!114 &4406979898859453818
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4406979898859453796}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e45bf7ba877f17d859db09d18348bd64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlight: {fileID: 2319805714656755697}
-  nonFields: {fileID: 5561039359917909396}
-  timingField: {fileID: 2406050079761947238}
-  durationField: {fileID: 4180623999910677657}
-  moveXField: {fileID: 3001237781380310542}
-  moveYField: {fileID: 3001237781030316369}
-  moveZField: {fileID: 3001237780386648727}
-  rotXField: {fileID: 3001237780802510905}
-  rotYField: {fileID: 3001237779780216070}
-  rotZField: {fileID: 3001237781708844319}
-  easingField: {fileID: 8812279971410396401}
 --- !u!1 &5561039359917909396
 GameObject:
   m_ObjectHideFlags: 0

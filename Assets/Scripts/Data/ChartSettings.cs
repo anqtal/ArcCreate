@@ -50,7 +50,7 @@ namespace ArcCreate.Data
 
         public ChartSettings Clone()
         {
-            return new ChartSettings()
+            return new ChartSettings
             {
                 Title = Title,
                 Composer = Composer,
@@ -73,7 +73,7 @@ namespace ArcCreate.Data
                 VideoPath = VideoPath,
                 PreviewStart = PreviewStart,
                 PreviewEnd = PreviewEnd,
-                SearchTags = SearchTags,
+                SearchTags = SearchTags
             };
         }
 
@@ -88,99 +88,66 @@ namespace ArcCreate.Data
 
         public bool IsSameDifficulty(ChartSettings other, bool parseDifficutyName = true)
         {
-            if (other == null)
-            {
-                return false;
-            }
+            if (other == null) return false;
 
             return IsSameDifficulty(other.ChartPath, other.Difficulty, parseDifficutyName);
         }
 
         public bool IsSameDifficulty(string chartPath, string difficultyName, bool parseDifficutyName = true)
         {
-            int thisRightDot = ChartPath.LastIndexOf('.');
-            int otherRightDot = chartPath.LastIndexOf('.');
+            var thisRightDot = ChartPath.LastIndexOf('.');
+            var otherRightDot = chartPath.LastIndexOf('.');
 
-            bool isSame = true;
+            var isSame = true;
             if (thisRightDot != otherRightDot)
-            {
                 isSame = false;
-            }
             else
-            {
-                for (int i = 0; i < thisRightDot; i++)
-                {
+                for (var i = 0; i < thisRightDot; i++)
                     if (ChartPath[i] != chartPath[i])
                     {
                         isSame = false;
                         break;
                     }
-                }
-            }
 
-            if (isSame)
-            {
-                return true;
-            }
+            if (isSame) return true;
 
-            if (!parseDifficutyName)
-            {
-                return false;
-            }
+            if (!parseDifficutyName) return false;
 
             // The difficulty name check is only meant for custom chart file names.
             // If either chart file has 1 character as its name then treat it as internal difficulty type.
             // A bit hacky but it's ok
-            if (thisRightDot == 1 || otherRightDot == 1)
-            {
-                return false;
-            }
+            if (thisRightDot == 1 || otherRightDot == 1) return false;
 
-            if (string.IsNullOrEmpty(Difficulty) || string.IsNullOrEmpty(difficultyName))
-            {
-                return false;
-            }
+            if (string.IsNullOrEmpty(Difficulty) || string.IsNullOrEmpty(difficultyName)) return false;
 
-            int thisRightSpace = Difficulty.LastIndexOf(' ');
-            int otherRightSpace = difficultyName.LastIndexOf(' ');
+            var thisRightSpace = Difficulty.LastIndexOf(' ');
+            var otherRightSpace = difficultyName.LastIndexOf(' ');
 
-            if (thisRightSpace == -1 || otherRightSpace == -1 || thisRightSpace != otherRightSpace)
-            {
-                return false;
-            }
+            if (thisRightSpace == -1 || otherRightSpace == -1 || thisRightSpace != otherRightSpace) return false;
 
-            for (int i = 0; i < thisRightSpace; i++)
-            {
+            for (var i = 0; i < thisRightSpace; i++)
                 if (Difficulty[i] != difficultyName[i])
-                {
                     return false;
-                }
-            }
 
             return true;
         }
 
         public (int diff, bool isPlus) ParseChartConstant()
         {
-            int roundDown = (int)ChartConstant;
+            var roundDown = (int)ChartConstant;
 
-            bool isPlus = roundDown >= 7 && (ChartConstant - roundDown) >= 0.69999;
+            var isPlus = roundDown >= 7 && ChartConstant - roundDown >= 0.69999;
 
             return (roundDown, isPlus);
         }
 
         public (string name, string number) ParseDifficultyName(int maxNumberLength)
         {
-            if (string.IsNullOrEmpty(Difficulty))
-            {
-                return (string.Empty, string.Empty);
-            }
+            if (string.IsNullOrEmpty(Difficulty)) return (string.Empty, string.Empty);
 
-            int lastSpaceIndex = Difficulty.LastIndexOf(' ');
+            var lastSpaceIndex = Difficulty.LastIndexOf(' ');
             if (lastSpaceIndex < 0 || lastSpaceIndex >= Difficulty.Length)
-            {
                 return Difficulty.Length > maxNumberLength ? (Difficulty, string.Empty) : (string.Empty, Difficulty);
-            }
 
             return (Difficulty.Substring(0, lastSpaceIndex), Difficulty.Substring(lastSpaceIndex + 1));
         }

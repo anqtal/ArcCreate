@@ -3,11 +3,11 @@
 
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEngine;
 #if UNITY_IOS
 using System.IO;
 using UnityEditor.iOS.Xcode;
 #endif
-using UnityEngine;
 
 public class EntitlementsPostprocessStep : MonoBehaviour
 {
@@ -28,16 +28,16 @@ public class EntitlementsPostprocessStep : MonoBehaviour
     private static void UpdateInfoPlist(string path)
     {
 #if UNITY_IOS
-        string plistPath = Path.Combine(path, "Info.plist");
-        PlistDocument plist = new PlistDocument();
+        var plistPath = Path.Combine(path, "Info.plist");
+        var plist = new PlistDocument();
         plist.ReadFromString(File.ReadAllText(plistPath));
 
-        PlistElementDict rootDict = plist.root;
+        var rootDict = plist.root;
 
         rootDict.SetString("Appearance", "Dark");
         rootDict.SetString("UIUserInterfaceStyle", "Dark");
         rootDict.SetBoolean("CADisableMinimumFrameDurationOnPhone", true);
-        PlistElementDict nsAppTransportSecurity = rootDict.CreateDict("NSAppTransportSecurity");
+        var nsAppTransportSecurity = rootDict.CreateDict("NSAppTransportSecurity");
         nsAppTransportSecurity.SetBoolean("NSAllowsArbitraryLoads", true);
         nsAppTransportSecurity.SetBoolean("NSAllowsLocalNetworking", true);
         rootDict.SetString(

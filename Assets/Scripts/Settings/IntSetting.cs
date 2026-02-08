@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -6,9 +5,9 @@ namespace ArcCreate
 {
     public class IntSetting
     {
-        private readonly string settings;
-        private readonly int minvalue;
         private readonly int maxvalue;
+        private readonly int minvalue;
+        private readonly string settings;
         private int value;
 
         public IntSetting(string settings, int defaultValue, int minvalue = int.MinValue, int maxvalue = int.MaxValue)

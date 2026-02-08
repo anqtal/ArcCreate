@@ -14,8 +14,8 @@ namespace ArcCreate.Gameplay
         public const float ArcY1 = 5.5f;
 
         // Input feedback
-        public const float MinVerticalFeedbackY = (ArcY1 * 0.25f) + (ArcY0 * 0.75f);
-        public const float MaxLaneFeedbackY = (ArcY1 * 0.5f) + (ArcY0 * 0.5f);
+        public const float MinVerticalFeedbackY = ArcY1 * 0.25f + ArcY0 * 0.75f;
+        public const float MaxLaneFeedbackY = ArcY1 * 0.5f + ArcY0 * 0.5f;
         public const float LaneFeedbackFadeoutDuration = 0.15f;
         public const float LaneFeedbackMaxAlpha = 0.15f;
 
@@ -100,7 +100,7 @@ namespace ArcCreate.Gameplay
 
         public static float TimingPointDensity { get; set; } = 1;
 
-        public static Color[] DefaultDifficultyColors { get; set; } = new Color[] { };
+        public static Color[] DefaultDifficultyColors { get; set; } = { };
 
         public static float LaneFrom { get; set; } = 1;
 

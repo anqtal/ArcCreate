@@ -38,11 +38,29 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public float DefaultSpeedDown { get; set; }
 
+        protected override void Reset()
+        {
+            FilteringFrom = new ConstantChannel(DefaultFilteringFrom);
+            FilteringTo = new ConstantChannel(DefaultFilteringTo);
+            MinLuminance = new ConstantChannel(DefaultMinLuminance);
+            MaxLuminance = new ConstantChannel(DefaultMaxLuminance);
+            KeyValue = new ConstantChannel(DefaultKeyValue);
+            SpeedUp = new ConstantChannel(DefaultSpeedUp);
+            SpeedDown = new ConstantChannel(DefaultSpeedDown);
+            TargetEffect.filtering.overrideState = false;
+            TargetEffect.minLuminance.overrideState = false;
+            TargetEffect.maxLuminance.overrideState = false;
+            TargetEffect.keyValue.overrideState = false;
+            TargetEffect.eyeAdaptation.overrideState = false;
+            TargetEffect.speedUp.overrideState = false;
+            TargetEffect.speedDown.overrideState = false;
+            TargetEffect.eyeAdaptation.value = DefaultEyeAdaptation;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "filtering": TargetEffect.filtering.overrideState = true; break;
@@ -52,7 +70,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
                     case "speedup": TargetEffect.speedUp.overrideState = true; break;
                     case "speeddown": TargetEffect.speedDown.overrideState = true; break;
                 }
-            }
         }
 
         public AutoExposureController SetEyeAdaptation(int mode)
@@ -89,13 +106,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(KeyValue),
                 serialization.AddUnitAndGetId(SpeedUp),
                 serialization.AddUnitAndGetId(SpeedDown),
-                (int)TargetEffect.eyeAdaptation.value,
+                (int)TargetEffect.eyeAdaptation.value
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.filtering.overrideState = (bool)properties[offset++];
             TargetEffect.minLuminance.overrideState = (bool)properties[offset++];
@@ -123,25 +141,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             DefaultEyeAdaptation = TargetEffect.eyeAdaptation.value;
             DefaultSpeedUp = TargetEffect.speedUp.value;
             DefaultSpeedDown = TargetEffect.speedDown.value;
-        }
-
-        protected override void Reset()
-        {
-            FilteringFrom = new ConstantChannel(DefaultFilteringFrom);
-            FilteringTo = new ConstantChannel(DefaultFilteringTo);
-            MinLuminance = new ConstantChannel(DefaultMinLuminance);
-            MaxLuminance = new ConstantChannel(DefaultMaxLuminance);
-            KeyValue = new ConstantChannel(DefaultKeyValue);
-            SpeedUp = new ConstantChannel(DefaultSpeedUp);
-            SpeedDown = new ConstantChannel(DefaultSpeedDown);
-            TargetEffect.filtering.overrideState = false;
-            TargetEffect.minLuminance.overrideState = false;
-            TargetEffect.maxLuminance.overrideState = false;
-            TargetEffect.keyValue.overrideState = false;
-            TargetEffect.eyeAdaptation.overrideState = false;
-            TargetEffect.speedUp.overrideState = false;
-            TargetEffect.speedDown.overrideState = false;
-            TargetEffect.eyeAdaptation.value = DefaultEyeAdaptation;
         }
     }
 }

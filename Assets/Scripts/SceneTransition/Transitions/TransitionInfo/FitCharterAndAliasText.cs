@@ -1,7 +1,6 @@
 using ArcCreate.Utility.Animation;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Scripting;
 
 namespace ArcCreate.SceneTransition
 {
@@ -23,6 +22,19 @@ namespace ArcCreate.SceneTransition
         [SerializeField] private RectTransform charterRect;
         [SerializeField] private RectTransform aliasRect;
 
+        private void Awake()
+        {
+            charterSO.OnValueChange.AddListener(OnTextChange);
+            aliasSO.OnValueChange.AddListener(OnTextChange);
+            OnTextChange(string.Empty);
+        }
+
+        private void OnDestroy()
+        {
+            charterSO.OnValueChange.RemoveListener(OnTextChange);
+            aliasSO.OnValueChange.RemoveListener(OnTextChange);
+        }
+
         protected void OnTextChange(string text)
         {
             if (string.IsNullOrEmpty(charterSO.Value))
@@ -35,7 +47,7 @@ namespace ArcCreate.SceneTransition
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, maxSize.x);
 
             charterText.text = charterSO.Value;
-            float charterWidth = Mathf.Min(charterText.preferredWidth, maxSize.x - padding.x);
+            var charterWidth = Mathf.Min(charterText.preferredWidth, maxSize.x - padding.x);
 
             float aliasWidth = 0;
             if (string.IsNullOrEmpty(aliasSO.Value))
@@ -49,35 +61,21 @@ namespace ArcCreate.SceneTransition
                 aliasWidth = Mathf.Min(aliasText.preferredWidth, maxSize.x - padding.x);
             }
 
-            float w = Mathf.Max(charterWidth, aliasWidth);
+            var w = Mathf.Max(charterWidth, aliasWidth);
             w = Mathf.Clamp(w, minSize.x, maxSize.x);
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
 
             charterText.text = charterSO.Value;
             aliasText.text = aliasSO.Value ?? string.Empty;
 
-            float h = charterText.preferredHeight + (string.IsNullOrEmpty(aliasSO.Value) ? 0 : aliasText.preferredHeight + aliasLabelHeight) + padding.y;
+            var h = charterText.preferredHeight +
+                    (string.IsNullOrEmpty(aliasSO.Value) ? 0 : aliasText.preferredHeight + aliasLabelHeight) +
+                    padding.y;
             h = Mathf.Clamp(h, minSize.y, maxSize.y);
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
             aliasRect.offsetMax = new Vector2(aliasRect.offsetMax.x, -charterText.preferredHeight);
 
-            if (animator != null)
-            {
-                animator.SetDefaultSize(new Vector2(w, h));
-            }
-        }
-
-        private void Awake()
-        {
-            charterSO.OnValueChange.AddListener(OnTextChange);
-            aliasSO.OnValueChange.AddListener(OnTextChange);
-            OnTextChange(string.Empty);
-        }
-
-        private void OnDestroy()
-        {
-            charterSO.OnValueChange.RemoveListener(OnTextChange);
-            aliasSO.OnValueChange.RemoveListener(OnTextChange);
+            if (animator != null) animator.SetDefaultSize(new Vector2(w, h));
         }
     }
 }

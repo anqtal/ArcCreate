@@ -5,12 +5,13 @@ namespace ArcCreate
 {
     public class FloatSetting
     {
-        private readonly string settings;
-        private readonly float minvalue;
         private readonly float maxvalue;
+        private readonly float minvalue;
+        private readonly string settings;
         private float value;
 
-        public FloatSetting(string settings, float defaultValue, float minvalue = float.MinValue, float maxvalue = float.MaxValue)
+        public FloatSetting(string settings, float defaultValue, float minvalue = float.MinValue,
+            float maxvalue = float.MaxValue)
         {
             this.settings = settings;
             this.minvalue = minvalue;

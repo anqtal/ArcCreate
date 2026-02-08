@@ -4,7 +4,9 @@ namespace ArcCreate.SceneTransition
 {
     public class PlayRetryCountTransition : ITransition
     {
-        public int DurationMs => TransitionScene.Instance == null ? 0 : TransitionScene.Instance.PlayRetryCountAnimationDurationMs;
+        public int DurationMs => TransitionScene.Instance == null
+            ? 0
+            : TransitionScene.Instance.PlayRetryCountAnimationDurationMs;
 
         public void DisableGameObject()
         {
@@ -26,18 +28,12 @@ namespace ArcCreate.SceneTransition
 
         public async UniTask EndTransition()
         {
-            if (TransitionScene.Instance != null)
-            {
-                await TransitionScene.Instance.HidePlayRetryCount();
-            }
+            if (TransitionScene.Instance != null) await TransitionScene.Instance.HidePlayRetryCount();
         }
 
         public async UniTask StartTransition()
         {
-            if (TransitionScene.Instance != null)
-            {
-                await TransitionScene.Instance.ShowPlayRetryCount();
-            }
+            if (TransitionScene.Instance != null) await TransitionScene.Instance.ShowPlayRetryCount();
         }
     }
 }

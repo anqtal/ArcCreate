@@ -31,11 +31,26 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public float DefaultScale { get; set; }
 
+        protected override void Reset()
+        {
+            Intensity = new ConstantChannel(DefaultIntensity);
+            IntensityX = new ConstantChannel(DefaultIntensityX);
+            IntensityY = new ConstantChannel(DefaultIntensityY);
+            CenterX = new ConstantChannel(DefaultCenterX);
+            CenterY = new ConstantChannel(DefaultCenterY);
+            Scale = new ConstantChannel(DefaultScale);
+            TargetEffect.intensity.overrideState = false;
+            TargetEffect.intensityX.overrideState = false;
+            TargetEffect.intensityY.overrideState = false;
+            TargetEffect.centerX.overrideState = false;
+            TargetEffect.centerY.overrideState = false;
+            TargetEffect.scale.overrideState = false;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "intensity": TargetEffect.intensity.overrideState = true; break;
@@ -45,7 +60,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
                     case "centery": TargetEffect.centerY.overrideState = true; break;
                     case "scale": TargetEffect.scale.overrideState = true; break;
                 }
-            }
         }
 
         public override void UpdateController(int timing)
@@ -74,13 +88,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(IntensityY),
                 serialization.AddUnitAndGetId(CenterX),
                 serialization.AddUnitAndGetId(CenterY),
-                serialization.AddUnitAndGetId(Scale),
+                serialization.AddUnitAndGetId(Scale)
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.intensity.overrideState = (bool)properties[offset++];
             TargetEffect.intensityX.overrideState = (bool)properties[offset++];
@@ -104,22 +119,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
             DefaultCenterX = TargetEffect.centerX.value;
             DefaultCenterY = TargetEffect.centerY.value;
             DefaultScale = TargetEffect.scale.value;
-        }
-
-        protected override void Reset()
-        {
-            Intensity = new ConstantChannel(DefaultIntensity);
-            IntensityX = new ConstantChannel(DefaultIntensityX);
-            IntensityY = new ConstantChannel(DefaultIntensityY);
-            CenterX = new ConstantChannel(DefaultCenterX);
-            CenterY = new ConstantChannel(DefaultCenterY);
-            Scale = new ConstantChannel(DefaultScale);
-            TargetEffect.intensity.overrideState = false;
-            TargetEffect.intensityX.overrideState = false;
-            TargetEffect.intensityY.overrideState = false;
-            TargetEffect.centerX.overrideState = false;
-            TargetEffect.centerY.overrideState = false;
-            TargetEffect.scale.overrideState = false;
         }
     }
 }

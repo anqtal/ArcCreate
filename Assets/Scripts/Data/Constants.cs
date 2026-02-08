@@ -12,7 +12,7 @@ namespace ArcCreate.Data
         public const int MaxScore = 10_000_000;
 
         private static int androidVersionCode = -1;
-        private static bool androidVersionCodeSet = false;
+        private static bool androidVersionCodeSet;
 
         public static int AndroidVersionCode
         {

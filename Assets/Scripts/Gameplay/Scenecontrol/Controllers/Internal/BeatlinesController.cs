@@ -8,15 +8,15 @@ namespace ArcCreate.Gameplay.Scenecontrol
     [EmmyDoc("Controller for beatlines display")]
     public class BeatlinesController : Controller, IPositionController
     {
-        private ValueChannel translationX;
-        private ValueChannel translationY;
-        private ValueChannel translationZ;
         private ValueChannel rotationX;
         private ValueChannel rotationY;
         private ValueChannel rotationZ;
         private ValueChannel scaleX;
         private ValueChannel scaleY;
         private ValueChannel scaleZ;
+        private ValueChannel translationX;
+        private ValueChannel translationY;
+        private ValueChannel translationZ;
 
         public ValueChannel TranslationX
         {

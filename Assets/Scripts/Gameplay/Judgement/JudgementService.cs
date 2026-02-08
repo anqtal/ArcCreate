@@ -1,42 +1,61 @@
-using ArcCreate.Gameplay.Audio;
 using ArcCreate.Gameplay.Judgement.Input;
 using ArcCreate.Utility;
 using UnityEngine;
 
 namespace ArcCreate.Gameplay.Judgement
 {
-    public class JudgementService : MonoBehaviour, IJudgementService
+    public class JudgementService : MonoBehaviour
     {
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private Transform skyInput;
         [SerializeField] private JudgementDebug debug;
-        private readonly UnorderedList<LaneTapJudgementRequest> laneTapRequests = new UnorderedList<LaneTapJudgementRequest>(32);
-        private readonly UnorderedList<LaneHoldJudgementRequest> laneHoldRequests = new UnorderedList<LaneHoldJudgementRequest>(32);
-        private readonly UnorderedList<ArcJudgementRequest> arcRequests = new UnorderedList<ArcJudgementRequest>(32);
-        private readonly UnorderedList<ArcTapJudgementRequest> arcTapRequests = new UnorderedList<ArcTapJudgementRequest>(32);
-        private readonly UnorderedList<LaneTapJudgementRequest> autoLaneTapRequests = new UnorderedList<LaneTapJudgementRequest>(32);
-        private readonly UnorderedList<LaneHoldJudgementRequest> autoLaneHoldRequests = new UnorderedList<LaneHoldJudgementRequest>(32);
-        private readonly UnorderedList<ArcJudgementRequest> autoArcRequests = new UnorderedList<ArcJudgementRequest>(32);
-        private readonly UnorderedList<ArcTapJudgementRequest> autoArcTapRequests = new UnorderedList<ArcTapJudgementRequest>(32);
-        private IInputHandler inputHandler;
+        private readonly UnorderedList<ArcJudgementRequest> arcRequests = new(32);
+        private readonly UnorderedList<ArcTapJudgementRequest> arcTapRequests = new(32);
+        private readonly UnorderedList<ArcJudgementRequest> autoArcRequests = new(32);
+        private readonly UnorderedList<ArcTapJudgementRequest> autoArcTapRequests = new(32);
         private readonly IInputHandler autoHandler = new AutoInputHandler();
+        private readonly UnorderedList<LaneHoldJudgementRequest> autoLaneHoldRequests = new(32);
+        private readonly UnorderedList<LaneTapJudgementRequest> autoLaneTapRequests = new(32);
+        private readonly UnorderedList<LaneHoldJudgementRequest> laneHoldRequests = new(32);
+        private readonly UnorderedList<LaneTapJudgementRequest> laneTapRequests = new(32);
+        private IInputHandler inputHandler;
         private bool isAuto;
 
         public float SkyInputY => skyInput.position.y;
 
         public IJudgementDebug Debug { get; private set; } = new NoOpJudgementDebug();
 
+        private void Awake()
+        {
+            Settings.InputMode.OnValueChanged.AddListener(OnInputModeChange);
+            OnInputModeChange(Settings.InputMode.Value);
+
+            var laneScreenHitboxBaseX =
+                (gameplayCamera.WorldToScreenPoint(Vector3.zero).x
+                 - gameplayCamera.WorldToScreenPoint(new Vector3(Values.LaneWidth, 0, 0)).x)
+                / 2;
+
+            var laneScreenHitboxBaseY =
+                gameplayCamera.WorldToScreenPoint(new Vector3(0, Values.ArcTapHitboxYUp, 0)).y
+                - gameplayCamera.WorldToScreenPoint(Vector3.zero).y;
+
+            Values.LaneScreenHitboxBase = new Vector2(laneScreenHitboxBaseX, laneScreenHitboxBaseY);
+            Values.ScreenSizeBase = new Vector2(gameplayCamera.pixelWidth, gameplayCamera.pixelHeight);
+            Values.ScreenSize = new Vector2(gameplayCamera.pixelWidth, gameplayCamera.pixelHeight);
+        }
+
+        private void OnDestroy()
+        {
+            Settings.InputMode.OnValueChanged.RemoveListener(OnInputModeChange);
+        }
+
         public void SetDebugDisplayMode(bool display)
         {
             if (display)
-            {
                 Debug = debug;
-            }
             else
-            {
                 Debug = new NoOpJudgementDebug();
-            }
 
             debug.gameObject.SetActive(display);
         }
@@ -45,16 +64,16 @@ namespace ArcCreate.Gameplay.Judgement
         {
             var list = request.Properties.Autoplay ? autoLaneTapRequests : laneTapRequests;
             var a = request.ExpireAtTiming;
-            // play the answer sound of tap
-            BassAudioService.Instance.PlayAnswer(request.AutoAtTiming,120);
-            // if hold
-            if (request.ExpireAtTiming - request.AutoAtTiming > 120)
-            {;
-                var holdStartTiming = request.AutoAtTiming;
-                var holdEndTiming = request.ExpireAtTiming - 90;
-                var holdLastTiming = holdEndTiming - holdStartTiming;
-                BassAudioService.Instance.PlayAnswer(holdEndTiming, holdLastTiming+120);
-            }
+            // // play the answer sound of tap
+            // BassAudioService.Instance.PlayAnswer(request.AutoAtTiming,120);
+            // // if hold
+            // if (request.ExpireAtTiming - request.AutoAtTiming > 120)
+            // {;
+            //     var holdStartTiming = request.AutoAtTiming;
+            //     var holdEndTiming = request.ExpireAtTiming - 90;
+            //     var holdLastTiming = holdEndTiming - holdStartTiming;
+            //     BassAudioService.Instance.PlayAnswer(holdEndTiming, holdLastTiming+120);
+            // }
             list.Add(request);
         }
 
@@ -74,7 +93,6 @@ namespace ArcCreate.Gameplay.Judgement
         public void Request(ArcTapJudgementRequest request)
         {
             var list = request.Properties.Autoplay ? autoArcTapRequests : arcTapRequests;
-            BassAudioService.Instance.PlayAnswer(request.AutoAtTiming, 120);
             list.Add(request);
         }
 
@@ -99,13 +117,10 @@ namespace ArcCreate.Gameplay.Judgement
             //     return;
             // }
 
-            bool forceAuto = gameplayData.EnableAutoplayMode.Value;
-            if (!isAuto && !forceAuto)
-            {
-                PruneExpiredRequests(currentTiming);
-            }
+            var forceAuto = gameplayData.EnableAutoplayMode.Value;
+            if (!isAuto && !forceAuto) PruneExpiredRequests(currentTiming);
 
-            IInputHandler handler = forceAuto ? autoHandler : inputHandler;
+            var handler = forceAuto ? autoHandler : inputHandler;
             handler.PollInput();
             handler.HandleTapRequests(currentTiming, laneTapRequests, arcTapRequests);
             handler.HandleLaneHoldRequests(currentTiming, laneHoldRequests);
@@ -122,7 +137,7 @@ namespace ArcCreate.Gameplay.Judgement
 
         private void PruneExpiredRequests(int currentTiming)
         {
-            for (int i = laneTapRequests.Count - 1; i >= 0; i--)
+            for (var i = laneTapRequests.Count - 1; i >= 0; i--)
             {
                 var req = laneTapRequests[i];
                 if (currentTiming >= req.ExpireAtTiming)
@@ -132,7 +147,7 @@ namespace ArcCreate.Gameplay.Judgement
                 }
             }
 
-            for (int i = laneHoldRequests.Count - 1; i >= 0; i--)
+            for (var i = laneHoldRequests.Count - 1; i >= 0; i--)
             {
                 var req = laneHoldRequests[i];
                 if (currentTiming >= req.ExpireAtTiming)
@@ -142,7 +157,7 @@ namespace ArcCreate.Gameplay.Judgement
                 }
             }
 
-            for (int i = arcRequests.Count - 1; i >= 0; i--)
+            for (var i = arcRequests.Count - 1; i >= 0; i--)
             {
                 var req = arcRequests[i];
                 if (currentTiming >= req.ExpireAtTiming)
@@ -152,7 +167,7 @@ namespace ArcCreate.Gameplay.Judgement
                 }
             }
 
-            for (int i = arcTapRequests.Count - 1; i >= 0; i--)
+            for (var i = arcTapRequests.Count - 1; i >= 0; i--)
             {
                 var req = arcTapRequests[i];
                 if (currentTiming >= req.ExpireAtTiming)
@@ -163,33 +178,9 @@ namespace ArcCreate.Gameplay.Judgement
             }
         }
 
-        private void Awake()
-        {
-            Settings.InputMode.OnValueChanged.AddListener(OnInputModeChange);
-            OnInputModeChange(Settings.InputMode.Value);
-
-            float laneScreenHitboxBaseX =
-                (gameplayCamera.WorldToScreenPoint(Vector3.zero).x
-               - gameplayCamera.WorldToScreenPoint(new Vector3(Values.LaneWidth, 0, 0)).x)
-               / 2;
-
-            float laneScreenHitboxBaseY =
-                gameplayCamera.WorldToScreenPoint(new Vector3(0, Values.ArcTapHitboxYUp, 0)).y
-               - gameplayCamera.WorldToScreenPoint(Vector3.zero).y;
-
-            Values.LaneScreenHitboxBase = new Vector2(laneScreenHitboxBaseX, laneScreenHitboxBaseY);
-            Values.ScreenSizeBase = new Vector2(gameplayCamera.pixelWidth, gameplayCamera.pixelHeight);
-            Values.ScreenSize = new Vector2(gameplayCamera.pixelWidth, gameplayCamera.pixelHeight);
-        }
-
-        private void OnDestroy()
-        {
-            Settings.InputMode.OnValueChanged.RemoveListener(OnInputModeChange);
-        }
-
         private void OnInputModeChange(int modeNum)
         {
-            InputMode inputMode = (InputMode)modeNum;
+            var inputMode = (InputMode)modeNum;
             inputHandler?.ResetJudge();
 
             switch (inputMode)

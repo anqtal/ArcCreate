@@ -16,16 +16,20 @@ namespace ArcCreate.Selection.Interface
         [SerializeField] private Button mainButton;
         [SerializeField] private RectTransform mainButtonRect;
         [SerializeField] private Button confirmButton;
+
         [SerializeField] private Button cancelButton;
+
         //[SerializeField] private AudioSource audioSource;
         [SerializeField] private int[] expectedHitTimings;
         [SerializeField] private TMP_Text[] offsetTexts;
+
         [SerializeField] private Toggle[] offsetToggles;
+
         //[SerializeField] private AudioPreview audioPreview;
         [SerializeField] private ScriptedAnimator hitAnimator;
         [SerializeField] private ScriptedAnimator dialogAnimator;
-        private CancellationTokenSource cts = new();
         private bool confirmPressed;
+        private CancellationTokenSource cts = new();
         private bool retryPressed;
 
         private void Awake()
@@ -86,23 +90,17 @@ namespace ArcCreate.Selection.Interface
                 Array.Fill(hitTimings, 0);
                 SetOffsetTextsState(hitTimings);
 
-                for (int i = 0; i < hitTimings.Length; i++)
-                {
-                    hitTimings[i] = int.MinValue;
-                }
+                for (var i = 0; i < hitTimings.Length; i++) hitTimings[i] = int.MinValue;
 
                 while (BassAudioService.Instance.CalibrationStream.Position <= 0)
                 {
                     await UniTask.NextFrame();
-                    if (ct.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                    if (ct.IsCancellationRequested) return;
                 }
 
                 while (BassAudioService.Instance.CalibrationStream.IsPlaying)
                 {
-                    var hit = Input.GetMouseButtonDown(0) && 
+                    var hit = Input.GetMouseButtonDown(0) &&
                               RectTransformUtility.RectangleContainsScreenPoint(mainButtonRect, Input.mousePosition);
 
                     var touchCount = Input.touchCount;
@@ -110,14 +108,11 @@ namespace ArcCreate.Selection.Interface
                     {
                         var touch = Input.GetTouch(t);
                         hit |= touch.phase == TouchPhase.Began &&
-                            RectTransformUtility.RectangleContainsScreenPoint(mainButtonRect, touch.position);
-                        
-                        if (hit)
-                        {
-                            break;
-                        }
+                               RectTransformUtility.RectangleContainsScreenPoint(mainButtonRect, touch.position);
+
+                        if (hit) break;
                     }
-                    
+
                     if (hit)
                     {
                         var timing = BassAudioService.Instance.CalibrationStream.Position;
@@ -137,16 +132,13 @@ namespace ArcCreate.Selection.Interface
                     }
 
                     await UniTask.NextFrame();
-                    if (ct.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                    if (ct.IsCancellationRequested) return;
                 }
 
-                int avgOffset = 0;
-                for (int i = 0; i < expectedHitTimings.Length; i++)
+                var avgOffset = 0;
+                for (var i = 0; i < expectedHitTimings.Length; i++)
                 {
-                    int offset = hitTimings[i] - expectedHitTimings[i];
+                    var offset = hitTimings[i] - expectedHitTimings[i];
                     avgOffset += offset;
                 }
 
@@ -158,15 +150,9 @@ namespace ArcCreate.Selection.Interface
                 while (!confirmPressed)
                 {
                     await UniTask.NextFrame();
-                    if (cts.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                    if (cts.IsCancellationRequested) return;
 
-                    if (retryPressed)
-                    {
-                        break;
-                    }
+                    if (retryPressed) break;
                 }
 
                 if (retryPressed)
@@ -203,10 +189,7 @@ namespace ArcCreate.Selection.Interface
                 }
             }
 
-            for (var i = 0; i < offsetToggles.Length; i++)
-            {
-                offsetToggles[i].isOn = i <= max;
-            }
+            for (var i = 0; i < offsetToggles.Length; i++) offsetToggles[i].isOn = i <= max;
         }
     }
 }

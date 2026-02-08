@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using ArcCreate.Utility.Lua;
 using MoonSharp.Interpreter;
 using UnityEngine;
+using Convert = ArcCreate.Utility.Lua.Convert;
 
 namespace ArcCreate.Gameplay.Scenecontrol
 {
@@ -11,355 +13,18 @@ namespace ArcCreate.Gameplay.Scenecontrol
         [SerializeField] private bool isPersistent = true;
         private Controller customParent;
 
-        private bool defaultActive;
+        public bool Initialized { get; private set; }
 
-        public ValueChannel Active { get; set; }
+        public XYZ WorldTranslation => new(transform.position);
 
-        public bool DefaultActive => defaultActive;
+        public XYZ WorldRotation => new(transform.rotation.eulerAngles);
 
-        public bool Initialized { get; private set; } = false;
-
-        public string SerializedType { get; set; }
-
-        public XYZ WorldTranslation => new XYZ(transform.position);
-
-        public XYZ WorldRotation => new XYZ(transform.rotation.eulerAngles);
-
-        public XYZ WorldScale => new XYZ(transform.lossyScale);
+        public XYZ WorldScale => new(transform.lossyScale);
 
         public bool IsPersistent
         {
             get => isPersistent;
             set => isPersistent = value;
-        }
-
-        [MoonSharpHidden]
-        public void Start()
-        {
-            if (Initialized)
-            {
-                return;
-            }
-
-            Initialized = true;
-            defaultActive = gameObject.activeSelf;
-            SetupDefault();
-            Reset();
-        }
-
-        public Controller[] GetChildren()
-        {
-            return GetComponentsInChildren<Controller>();
-        }
-
-        [MoonSharpHidden]
-        public void CleanController()
-        {
-            if (isPersistent)
-            {
-                Reset();
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
-
-        [MoonSharpHidden]
-        public virtual void SetupDefault()
-        {
-        }
-
-        public void SetParent(Controller controller)
-        {
-            if (isPersistent)
-            {
-                throw new System.Exception("Cannot change parent of a persistent controller");
-            }
-
-            transform.SetParent(controller.transform);
-            customParent = controller;
-            if (this is CanvasController canvas)
-            {
-                canvas.Canvas.overrideSorting = true;
-            }
-        }
-
-        public void CopyAllChannelsFrom(Controller controller)
-        {
-            if (this is IPositionController pos && controller is IPositionController pos2)
-            {
-                pos.TranslationX = pos2.TranslationX;
-                pos.TranslationY = pos2.TranslationY;
-                pos.TranslationZ = pos2.TranslationZ;
-                pos.RotationX = pos2.RotationX;
-                pos.RotationY = pos2.RotationY;
-                pos.RotationZ = pos2.RotationZ;
-                pos.ScaleX = pos2.ScaleX;
-                pos.ScaleY = pos2.ScaleY;
-                pos.ScaleZ = pos2.ScaleZ;
-                pos.EnablePositionModule = pos2.EnablePositionModule;
-            }
-
-            if (this is IColorController col && controller is IColorController col2)
-            {
-                col.ColorR = col2.ColorR;
-                col.ColorG = col2.ColorG;
-                col.ColorB = col2.ColorB;
-                col.ColorA = col2.ColorA;
-                col.ColorH = col2.ColorH;
-                col.ColorS = col2.ColorS;
-                col.ColorV = col2.ColorV;
-                col.EnableColorModule = col2.EnableColorModule;
-            }
-
-            if (this is ILayerController lyr && controller is ILayerController lyr2)
-            {
-                lyr.Layer = lyr2.Layer;
-                lyr.Sort = lyr2.Sort;
-                lyr.Alpha = lyr2.Alpha;
-                lyr.EnableLayerModule = lyr2.EnableLayerModule;
-            }
-
-            if (this is ITextController txt && controller is ITextController txt2)
-            {
-                txt.FontSize = txt2.FontSize;
-                txt.LineSpacing = txt2.LineSpacing;
-                txt.Text = txt2.Text;
-                txt.EnableTextModule = txt2.EnableTextModule;
-            }
-
-            if (this is INoteGroupController tg && controller is INoteGroupController tg2)
-            {
-                tg.AngleX = tg2.AngleX;
-                tg.AngleY = tg2.AngleY;
-                tg.RotationIndividualX = tg2.RotationIndividualX;
-                tg.RotationIndividualY = tg2.RotationIndividualY;
-                tg.RotationIndividualZ = tg2.RotationIndividualZ;
-                tg.ScaleIndividualX = tg2.ScaleIndividualX;
-                tg.ScaleIndividualY = tg2.ScaleIndividualY;
-                tg.ScaleIndividualZ = tg2.ScaleIndividualZ;
-                tg.JudgeOffsetX = tg2.JudgeOffsetX;
-                tg.JudgeOffsetY = tg2.JudgeOffsetY;
-                tg.JudgeOffsetZ = tg2.JudgeOffsetZ;
-                tg.JudgeSizeX = tg2.JudgeSizeX;
-                tg.JudgeSizeY = tg2.JudgeSizeY;
-                tg.EnableNoteGroupModule = tg2.EnableNoteGroupModule;
-            }
-
-            if (this is ICameraController cam && controller is ICameraController cam2)
-            {
-                cam.FieldOfView = cam2.FieldOfView;
-                cam.TiltFactor = cam2.TiltFactor;
-                cam.EnableCameraModule = cam2.EnableCameraModule;
-            }
-
-            if (this is IRectController rect && controller is IRectController rect2)
-            {
-                rect.RectW = rect2.RectW;
-                rect.RectH = rect2.RectH;
-                rect.AnchorMinX = rect2.AnchorMinX;
-                rect.AnchorMinY = rect2.AnchorMinY;
-                rect.AnchorMaxX = rect2.AnchorMaxX;
-                rect.AnchorMaxY = rect2.AnchorMaxY;
-                rect.PivotX = rect2.PivotX;
-                rect.PivotY = rect2.PivotY;
-                rect.EnableRectModule = rect2.EnableRectModule;
-            }
-
-            if (this is ITextureController txtr && controller is ITextureController txtr2)
-            {
-                txtr.TextureOffsetX = txtr2.TextureOffsetX;
-                txtr.TextureOffsetY = txtr2.TextureOffsetY;
-                txtr.TextureScaleX = txtr2.TextureScaleX;
-                txtr.TextureScaleY = txtr2.TextureScaleY;
-                txtr.EnableTextureModule = txtr2.EnableTextureModule;
-            }
-
-            if (this is ITrackController track && controller is ITrackController track2)
-            {
-                track.EdgeLAlpha = track2.EdgeLAlpha;
-                track.EdgeRAlpha = track2.EdgeRAlpha;
-                track.Lane1Alpha = track2.Lane1Alpha;
-                track.Lane2Alpha = track2.Lane2Alpha;
-                track.Lane3Alpha = track2.Lane3Alpha;
-                track.Lane4Alpha = track2.Lane4Alpha;
-                track.EnableTrackModule = track2.EnableTrackModule;
-            }
-        }
-
-        [MoonSharpHidden]
-        public virtual void UpdateController(int timing)
-        {
-            SetActive(Active.ValueAt(timing) >= 0.5);
-            if (!gameObject.activeInHierarchy)
-            {
-                return;
-            }
-
-            if (this is IPositionController pos && pos.EnablePositionModule)
-            {
-                Vector3 translation = pos.DefaultTranslation;
-                Vector3 rotation = pos.DefaultRotation.eulerAngles;
-                Vector3 scale = pos.DefaultScale;
-
-                translation.x = pos.TranslationX.ValueAt(timing);
-                translation.y = pos.TranslationY.ValueAt(timing);
-                translation.z = pos.TranslationZ.ValueAt(timing);
-
-                rotation.x = pos.RotationX.ValueAt(timing);
-                rotation.y = pos.RotationY.ValueAt(timing);
-                rotation.z = pos.RotationZ.ValueAt(timing);
-
-                scale.x = pos.ScaleX.ValueAt(timing);
-                scale.y = pos.ScaleY.ValueAt(timing);
-                scale.z = pos.ScaleZ.ValueAt(timing);
-
-                pos.UpdatePosition(translation, Quaternion.Euler(rotation), scale);
-            }
-
-            if (this is IColorController col && col.EnableColorModule)
-            {
-                RGBA color = new RGBA(col.DefaultColor);
-                HSVA modify = new HSVA(0, 0, 0, 1)
-                {
-                    H = col.ColorH.ValueAt(timing),
-                    S = col.ColorS.ValueAt(timing),
-                    V = col.ColorV.ValueAt(timing),
-                };
-
-                color.R = col.ColorR.ValueAt(timing);
-                color.G = col.ColorG.ValueAt(timing);
-                color.B = col.ColorB.ValueAt(timing);
-                color.A = col.ColorA.ValueAt(timing);
-
-                HSVA hsva = Convert.RGBAToHSVA(color);
-                hsva.H = (hsva.H + modify.H) % 360;
-                hsva.S = Mathf.Clamp(hsva.S + modify.S, 0, 1);
-                hsva.V = Mathf.Clamp(hsva.V + modify.V, 0, 1);
-
-                col.UpdateColor(Convert.HSVAToRGBA(hsva).ToColor());
-            }
-
-            if (this is ILayerController lyr && lyr.EnableLayerModule)
-            {
-                string layer = lyr.DefaultLayer;
-                int sort = lyr.DefaultSort;
-                float alpha = lyr.DefaultAlpha;
-
-                layer = lyr.Layer.ValueAt(timing);
-                sort = (int)lyr.Sort.ValueAt(timing);
-                alpha = lyr.Alpha.ValueAt(timing) / 255f;
-
-                lyr.UpdateLayer(layer, sort, alpha);
-            }
-
-            if (this is ITextController txt && txt.EnableTextModule)
-            {
-                float lineSpacing = txt.DefaultLineSpacing;
-                float fontSize = txt.DefaultFontSize;
-
-                fontSize = txt.FontSize.ValueAt(timing);
-                lineSpacing = txt.LineSpacing.ValueAt(timing);
-                char[] text = txt.Text.ValueAt(timing, out int textLength, out bool hasChanged);
-
-                txt.UpdateProperties(fontSize, lineSpacing);
-                if (hasChanged)
-                {
-                    txt.UpdateText(text, 0, textLength);
-                }
-            }
-
-            if (this is INoteGroupController tg && tg.EnableNoteGroupModule)
-            {
-                Vector3 rotation = Vector3.zero;
-                Vector3 scale = Vector3.one;
-                Vector2 angle = Vector2.zero;
-                Vector2 judgesize = Vector2.one;
-                Vector3 judgeoffset = Vector3.zero;
-
-                rotation.x = tg.RotationIndividualX.ValueAt(timing);
-                rotation.y = tg.RotationIndividualY.ValueAt(timing);
-                rotation.z = tg.RotationIndividualZ.ValueAt(timing);
-
-                scale.x = tg.ScaleIndividualX.ValueAt(timing);
-                scale.y = tg.ScaleIndividualY.ValueAt(timing);
-                scale.z = tg.ScaleIndividualZ.ValueAt(timing);
-
-                angle.x = tg.AngleX.ValueAt(timing);
-                angle.y = tg.AngleY.ValueAt(timing);
-
-                judgesize.x = tg.JudgeSizeX.ValueAt(timing);
-                judgesize.y = tg.JudgeSizeY.ValueAt(timing);
-                judgeoffset.x = tg.JudgeOffsetX.ValueAt(timing);
-                judgeoffset.y = tg.JudgeOffsetY.ValueAt(timing);
-                judgeoffset.z = tg.JudgeOffsetZ.ValueAt(timing);
-
-                tg.UpdateNoteGroup(Quaternion.Euler(rotation), scale, angle, judgesize, judgeoffset);
-            }
-
-            if (this is ICameraController cam && cam.EnableCameraModule)
-            {
-                float fov = cam.DefaultFieldOfView;
-                float tilt = 1;
-
-                fov = cam.FieldOfView.ValueAt(timing);
-                tilt = cam.TiltFactor.ValueAt(timing);
-
-                cam.UpdateCamera(fov, tilt);
-            }
-
-            if (this is IRectController rect && rect.EnableRectModule)
-            {
-                float rectW = rect.DefaultRectW;
-                float rectH = rect.DefaultRectH;
-                Vector2 anchorMin = rect.DefaultAnchorMin;
-                Vector2 anchorMax = rect.DefaultAnchorMax;
-                Vector2 pivot = rect.DefaultPivot;
-
-                rectW = rect.RectW.ValueAt(timing);
-                rectH = rect.RectH.ValueAt(timing);
-                anchorMin.x = rect.AnchorMinX.ValueAt(timing);
-                anchorMin.y = rect.AnchorMinY.ValueAt(timing);
-                anchorMax.x = rect.AnchorMaxX.ValueAt(timing);
-                anchorMax.y = rect.AnchorMaxY.ValueAt(timing);
-                pivot.x = rect.PivotX.ValueAt(timing);
-                pivot.y = rect.PivotY.ValueAt(timing);
-
-                rect.UpdateRect(rectW, rectH, anchorMin, anchorMax, pivot);
-            }
-
-            if (this is ITextureController txtr && txtr.EnableTextureModule)
-            {
-                Vector2 offset = txtr.DefaultTextureOffset;
-                Vector2 scale = txtr.DefaultTextureScale;
-
-                offset.x = txtr.TextureOffsetX.ValueAt(timing);
-                offset.y = txtr.TextureOffsetY.ValueAt(timing);
-                scale.x = txtr.TextureScaleX.ValueAt(timing);
-                scale.y = txtr.TextureScaleY.ValueAt(timing);
-
-                txtr.UpdateTexture(offset, scale);
-            }
-
-            if (this is ITrackController track && track.EnableTrackModule)
-            {
-                float edgeLAlpha = 1;
-                float edgeRAlpha = 1;
-                float lane1Alpha = 1;
-                float lane2Alpha = 1;
-                float lane3Alpha = 1;
-                float lane4Alpha = 1;
-
-                edgeLAlpha = track.EdgeLAlpha.ValueAt(timing) / 255f;
-                edgeRAlpha = track.EdgeRAlpha.ValueAt(timing) / 255f;
-                lane1Alpha = track.Lane1Alpha.ValueAt(timing) / 255f;
-                lane2Alpha = track.Lane2Alpha.ValueAt(timing) / 255f;
-                lane3Alpha = track.Lane3Alpha.ValueAt(timing) / 255f;
-                lane4Alpha = track.Lane4Alpha.ValueAt(timing) / 255f;
-
-                track.UpdateLane(edgeLAlpha, edgeRAlpha, lane1Alpha, lane2Alpha, lane3Alpha, lane4Alpha);
-            }
         }
 
         [MoonSharpHidden]
@@ -413,7 +78,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 txt.ApplyCustomFont(txt.DefaultFont);
                 txt.CustomFont = null;
 
-                char[] arr = txt.DefaultText.ToCharArray();
+                var arr = txt.DefaultText.ToCharArray();
                 txt.UpdateText(arr, 0, arr.Length);
                 txt.EnableTextModule = false;
             }
@@ -447,7 +112,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is IRectController rect)
             {
-                rect.UpdateRect(rect.DefaultRectW, rect.DefaultRectH, rect.DefaultAnchorMin, rect.DefaultAnchorMax, rect.DefaultPivot);
+                rect.UpdateRect(rect.DefaultRectW, rect.DefaultRectH, rect.DefaultAnchorMin, rect.DefaultAnchorMax,
+                    rect.DefaultPivot);
                 rect.RectW = new ConstantChannel(rect.DefaultRectW);
                 rect.RectH = new ConstantChannel(rect.DefaultRectH);
                 rect.AnchorMinX = new ConstantChannel(rect.DefaultAnchorMin.x);
@@ -483,12 +149,206 @@ namespace ArcCreate.Gameplay.Scenecontrol
             }
         }
 
+        [MoonSharpHidden]
+        public void Start()
+        {
+            if (Initialized) return;
+
+            Initialized = true;
+            DefaultActive = gameObject.activeSelf;
+            SetupDefault();
+            Reset();
+        }
+
+        public ValueChannel Active { get; set; }
+
+        public bool DefaultActive { get; private set; }
+
+        public string SerializedType { get; set; }
+
+        [MoonSharpHidden]
+        public void CleanController()
+        {
+            if (isPersistent)
+                Reset();
+            else
+                Destroy(gameObject);
+        }
+
+        [MoonSharpHidden]
+        public virtual void UpdateController(int timing)
+        {
+            SetActive(Active.ValueAt(timing) >= 0.5);
+            if (!gameObject.activeInHierarchy) return;
+
+            if (this is IPositionController pos && pos.EnablePositionModule)
+            {
+                var translation = pos.DefaultTranslation;
+                var rotation = pos.DefaultRotation.eulerAngles;
+                var scale = pos.DefaultScale;
+
+                translation.x = pos.TranslationX.ValueAt(timing);
+                translation.y = pos.TranslationY.ValueAt(timing);
+                translation.z = pos.TranslationZ.ValueAt(timing);
+
+                rotation.x = pos.RotationX.ValueAt(timing);
+                rotation.y = pos.RotationY.ValueAt(timing);
+                rotation.z = pos.RotationZ.ValueAt(timing);
+
+                scale.x = pos.ScaleX.ValueAt(timing);
+                scale.y = pos.ScaleY.ValueAt(timing);
+                scale.z = pos.ScaleZ.ValueAt(timing);
+
+                pos.UpdatePosition(translation, Quaternion.Euler(rotation), scale);
+            }
+
+            if (this is IColorController col && col.EnableColorModule)
+            {
+                var color = new RGBA(col.DefaultColor);
+                var modify = new HSVA(0, 0, 0, 1)
+                {
+                    H = col.ColorH.ValueAt(timing),
+                    S = col.ColorS.ValueAt(timing),
+                    V = col.ColorV.ValueAt(timing)
+                };
+
+                color.R = col.ColorR.ValueAt(timing);
+                color.G = col.ColorG.ValueAt(timing);
+                color.B = col.ColorB.ValueAt(timing);
+                color.A = col.ColorA.ValueAt(timing);
+
+                var hsva = Convert.RGBAToHSVA(color);
+                hsva.H = (hsva.H + modify.H) % 360;
+                hsva.S = Mathf.Clamp(hsva.S + modify.S, 0, 1);
+                hsva.V = Mathf.Clamp(hsva.V + modify.V, 0, 1);
+
+                col.UpdateColor(Convert.HSVAToRGBA(hsva).ToColor());
+            }
+
+            if (this is ILayerController lyr && lyr.EnableLayerModule)
+            {
+                var layer = lyr.DefaultLayer;
+                var sort = lyr.DefaultSort;
+                var alpha = lyr.DefaultAlpha;
+
+                layer = lyr.Layer.ValueAt(timing);
+                sort = (int)lyr.Sort.ValueAt(timing);
+                alpha = lyr.Alpha.ValueAt(timing) / 255f;
+
+                lyr.UpdateLayer(layer, sort, alpha);
+            }
+
+            if (this is ITextController txt && txt.EnableTextModule)
+            {
+                var lineSpacing = txt.DefaultLineSpacing;
+                var fontSize = txt.DefaultFontSize;
+
+                fontSize = txt.FontSize.ValueAt(timing);
+                lineSpacing = txt.LineSpacing.ValueAt(timing);
+                var text = txt.Text.ValueAt(timing, out var textLength, out var hasChanged);
+
+                txt.UpdateProperties(fontSize, lineSpacing);
+                if (hasChanged) txt.UpdateText(text, 0, textLength);
+            }
+
+            if (this is INoteGroupController tg && tg.EnableNoteGroupModule)
+            {
+                var rotation = Vector3.zero;
+                var scale = Vector3.one;
+                var angle = Vector2.zero;
+                var judgesize = Vector2.one;
+                var judgeoffset = Vector3.zero;
+
+                rotation.x = tg.RotationIndividualX.ValueAt(timing);
+                rotation.y = tg.RotationIndividualY.ValueAt(timing);
+                rotation.z = tg.RotationIndividualZ.ValueAt(timing);
+
+                scale.x = tg.ScaleIndividualX.ValueAt(timing);
+                scale.y = tg.ScaleIndividualY.ValueAt(timing);
+                scale.z = tg.ScaleIndividualZ.ValueAt(timing);
+
+                angle.x = tg.AngleX.ValueAt(timing);
+                angle.y = tg.AngleY.ValueAt(timing);
+
+                judgesize.x = tg.JudgeSizeX.ValueAt(timing);
+                judgesize.y = tg.JudgeSizeY.ValueAt(timing);
+                judgeoffset.x = tg.JudgeOffsetX.ValueAt(timing);
+                judgeoffset.y = tg.JudgeOffsetY.ValueAt(timing);
+                judgeoffset.z = tg.JudgeOffsetZ.ValueAt(timing);
+
+                tg.UpdateNoteGroup(Quaternion.Euler(rotation), scale, angle, judgesize, judgeoffset);
+            }
+
+            if (this is ICameraController cam && cam.EnableCameraModule)
+            {
+                var fov = cam.DefaultFieldOfView;
+                float tilt = 1;
+
+                fov = cam.FieldOfView.ValueAt(timing);
+                tilt = cam.TiltFactor.ValueAt(timing);
+
+                cam.UpdateCamera(fov, tilt);
+            }
+
+            if (this is IRectController rect && rect.EnableRectModule)
+            {
+                var rectW = rect.DefaultRectW;
+                var rectH = rect.DefaultRectH;
+                var anchorMin = rect.DefaultAnchorMin;
+                var anchorMax = rect.DefaultAnchorMax;
+                var pivot = rect.DefaultPivot;
+
+                rectW = rect.RectW.ValueAt(timing);
+                rectH = rect.RectH.ValueAt(timing);
+                anchorMin.x = rect.AnchorMinX.ValueAt(timing);
+                anchorMin.y = rect.AnchorMinY.ValueAt(timing);
+                anchorMax.x = rect.AnchorMaxX.ValueAt(timing);
+                anchorMax.y = rect.AnchorMaxY.ValueAt(timing);
+                pivot.x = rect.PivotX.ValueAt(timing);
+                pivot.y = rect.PivotY.ValueAt(timing);
+
+                rect.UpdateRect(rectW, rectH, anchorMin, anchorMax, pivot);
+            }
+
+            if (this is ITextureController txtr && txtr.EnableTextureModule)
+            {
+                var offset = txtr.DefaultTextureOffset;
+                var scale = txtr.DefaultTextureScale;
+
+                offset.x = txtr.TextureOffsetX.ValueAt(timing);
+                offset.y = txtr.TextureOffsetY.ValueAt(timing);
+                scale.x = txtr.TextureScaleX.ValueAt(timing);
+                scale.y = txtr.TextureScaleY.ValueAt(timing);
+
+                txtr.UpdateTexture(offset, scale);
+            }
+
+            if (this is ITrackController track && track.EnableTrackModule)
+            {
+                float edgeLAlpha = 1;
+                float edgeRAlpha = 1;
+                float lane1Alpha = 1;
+                float lane2Alpha = 1;
+                float lane3Alpha = 1;
+                float lane4Alpha = 1;
+
+                edgeLAlpha = track.EdgeLAlpha.ValueAt(timing) / 255f;
+                edgeRAlpha = track.EdgeRAlpha.ValueAt(timing) / 255f;
+                lane1Alpha = track.Lane1Alpha.ValueAt(timing) / 255f;
+                lane2Alpha = track.Lane2Alpha.ValueAt(timing) / 255f;
+                lane3Alpha = track.Lane3Alpha.ValueAt(timing) / 255f;
+                lane4Alpha = track.Lane4Alpha.ValueAt(timing) / 255f;
+
+                track.UpdateLane(edgeLAlpha, edgeRAlpha, lane1Alpha, lane2Alpha, lane3Alpha, lane4Alpha);
+            }
+        }
+
         public List<object> SerializeProperties(ScenecontrolSerialization serialization)
         {
-            List<object> result = new List<object>
+            var result = new List<object>
             {
                 serialization.AddUnitAndGetId(customParent),
-                serialization.AddUnitAndGetId(Active),
+                serialization.AddUnitAndGetId(Active)
             };
 
             if (this is IPositionController pos)
@@ -596,20 +456,18 @@ namespace ArcCreate.Gameplay.Scenecontrol
             return result;
         }
 
-        public void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
             customParent = deserialization.GetUnitFromId<Controller>(properties[0]);
             Active = deserialization.GetUnitFromId<ValueChannel>(properties[1]);
-            if (customParent != null)
-            {
-                SetParent(customParent);
-            }
+            if (customParent != null) SetParent(customParent);
 
-            int offset = 2;
+            var offset = 2;
 
             if (this is IPositionController pos)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 pos.TranslationX = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 pos.TranslationY = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 pos.TranslationZ = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -624,7 +482,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is IColorController col)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 col.ColorR = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 col.ColorG = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 col.ColorB = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -637,7 +495,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is ILayerController lyr)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 lyr.Layer = deserialization.GetUnitFromId<StringChannel>(properties[offset++]);
                 lyr.Sort = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 lyr.Alpha = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -646,7 +504,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is ITextController txt)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 txt.FontSize = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 txt.LineSpacing = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 txt.Text = deserialization.GetUnitFromId<TextChannel>(properties[offset++]);
@@ -657,7 +515,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is INoteGroupController tg)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 tg.AngleX = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 tg.AngleY = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 tg.RotationIndividualX = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -680,7 +538,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is ICameraController cam)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 cam.FieldOfView = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 cam.TiltFactor = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 cam.EnableCameraModule = enable;
@@ -688,7 +546,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is IRectController rect)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 rect.RectW = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 rect.RectH = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 rect.AnchorMinX = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -702,7 +560,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is ITextureController txtr)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 txtr.TextureOffsetX = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 txtr.TextureOffsetY = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 txtr.TextureScaleX = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -712,7 +570,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
             if (this is ITrackController track)
             {
-                bool enable = (bool)properties[offset++];
+                var enable = (bool)properties[offset++];
                 track.EdgeLAlpha = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 track.EdgeRAlpha = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
                 track.Lane1Alpha = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -722,6 +580,128 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 track.CustomSkin = (string)properties[offset++];
                 track.ApplySkin(track.CustomSkin);
                 track.EnableTrackModule = enable;
+            }
+        }
+
+        public Controller[] GetChildren()
+        {
+            return GetComponentsInChildren<Controller>();
+        }
+
+        [MoonSharpHidden]
+        public virtual void SetupDefault()
+        {
+        }
+
+        public void SetParent(Controller controller)
+        {
+            if (isPersistent) throw new Exception("Cannot change parent of a persistent controller");
+
+            transform.SetParent(controller.transform);
+            customParent = controller;
+            if (this is CanvasController canvas) canvas.Canvas.overrideSorting = true;
+        }
+
+        public void CopyAllChannelsFrom(Controller controller)
+        {
+            if (this is IPositionController pos && controller is IPositionController pos2)
+            {
+                pos.TranslationX = pos2.TranslationX;
+                pos.TranslationY = pos2.TranslationY;
+                pos.TranslationZ = pos2.TranslationZ;
+                pos.RotationX = pos2.RotationX;
+                pos.RotationY = pos2.RotationY;
+                pos.RotationZ = pos2.RotationZ;
+                pos.ScaleX = pos2.ScaleX;
+                pos.ScaleY = pos2.ScaleY;
+                pos.ScaleZ = pos2.ScaleZ;
+                pos.EnablePositionModule = pos2.EnablePositionModule;
+            }
+
+            if (this is IColorController col && controller is IColorController col2)
+            {
+                col.ColorR = col2.ColorR;
+                col.ColorG = col2.ColorG;
+                col.ColorB = col2.ColorB;
+                col.ColorA = col2.ColorA;
+                col.ColorH = col2.ColorH;
+                col.ColorS = col2.ColorS;
+                col.ColorV = col2.ColorV;
+                col.EnableColorModule = col2.EnableColorModule;
+            }
+
+            if (this is ILayerController lyr && controller is ILayerController lyr2)
+            {
+                lyr.Layer = lyr2.Layer;
+                lyr.Sort = lyr2.Sort;
+                lyr.Alpha = lyr2.Alpha;
+                lyr.EnableLayerModule = lyr2.EnableLayerModule;
+            }
+
+            if (this is ITextController txt && controller is ITextController txt2)
+            {
+                txt.FontSize = txt2.FontSize;
+                txt.LineSpacing = txt2.LineSpacing;
+                txt.Text = txt2.Text;
+                txt.EnableTextModule = txt2.EnableTextModule;
+            }
+
+            if (this is INoteGroupController tg && controller is INoteGroupController tg2)
+            {
+                tg.AngleX = tg2.AngleX;
+                tg.AngleY = tg2.AngleY;
+                tg.RotationIndividualX = tg2.RotationIndividualX;
+                tg.RotationIndividualY = tg2.RotationIndividualY;
+                tg.RotationIndividualZ = tg2.RotationIndividualZ;
+                tg.ScaleIndividualX = tg2.ScaleIndividualX;
+                tg.ScaleIndividualY = tg2.ScaleIndividualY;
+                tg.ScaleIndividualZ = tg2.ScaleIndividualZ;
+                tg.JudgeOffsetX = tg2.JudgeOffsetX;
+                tg.JudgeOffsetY = tg2.JudgeOffsetY;
+                tg.JudgeOffsetZ = tg2.JudgeOffsetZ;
+                tg.JudgeSizeX = tg2.JudgeSizeX;
+                tg.JudgeSizeY = tg2.JudgeSizeY;
+                tg.EnableNoteGroupModule = tg2.EnableNoteGroupModule;
+            }
+
+            if (this is ICameraController cam && controller is ICameraController cam2)
+            {
+                cam.FieldOfView = cam2.FieldOfView;
+                cam.TiltFactor = cam2.TiltFactor;
+                cam.EnableCameraModule = cam2.EnableCameraModule;
+            }
+
+            if (this is IRectController rect && controller is IRectController rect2)
+            {
+                rect.RectW = rect2.RectW;
+                rect.RectH = rect2.RectH;
+                rect.AnchorMinX = rect2.AnchorMinX;
+                rect.AnchorMinY = rect2.AnchorMinY;
+                rect.AnchorMaxX = rect2.AnchorMaxX;
+                rect.AnchorMaxY = rect2.AnchorMaxY;
+                rect.PivotX = rect2.PivotX;
+                rect.PivotY = rect2.PivotY;
+                rect.EnableRectModule = rect2.EnableRectModule;
+            }
+
+            if (this is ITextureController txtr && controller is ITextureController txtr2)
+            {
+                txtr.TextureOffsetX = txtr2.TextureOffsetX;
+                txtr.TextureOffsetY = txtr2.TextureOffsetY;
+                txtr.TextureScaleX = txtr2.TextureScaleX;
+                txtr.TextureScaleY = txtr2.TextureScaleY;
+                txtr.EnableTextureModule = txtr2.EnableTextureModule;
+            }
+
+            if (this is ITrackController track && controller is ITrackController track2)
+            {
+                track.EdgeLAlpha = track2.EdgeLAlpha;
+                track.EdgeRAlpha = track2.EdgeRAlpha;
+                track.Lane1Alpha = track2.Lane1Alpha;
+                track.Lane2Alpha = track2.Lane2Alpha;
+                track.Lane3Alpha = track2.Lane3Alpha;
+                track.Lane4Alpha = track2.Lane4Alpha;
+                track.EnableTrackModule = track2.EnableTrackModule;
             }
         }
 

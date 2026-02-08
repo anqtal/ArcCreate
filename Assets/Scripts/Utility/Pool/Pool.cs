@@ -3,19 +3,19 @@ using ArcCreate.Utility.Extension;
 using UnityEngine;
 
 /// <summary>
-/// A flexible sized object pool for reusing GameObject.
+///     A flexible sized object pool for reusing GameObject.
 /// </summary>
 /// <typeparam name="T">The component to be pooled.</typeparam>
 public class Pool<T>
     where T : Component
 {
-    private readonly GameObject prefab;
     private readonly Transform parent;
+    private readonly GameObject prefab;
     private Queue<T> available;
     private HashSet<T> occupied;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Pool{T}"/> class.
+    ///     Initializes a new instance of the <see cref="Pool{T}" /> class.
     /// </summary>
     /// <param name="prefab">The prefab of the GameObject.</param>
     /// <param name="parent">The default parent.</param>
@@ -28,49 +28,45 @@ public class Pool<T>
         occupied = new HashSet<T>();
         occupied.SetCapacity(capacity);
 
-        for (int i = 0; i < capacity; i++)
-        {
-            AddNewObject();
-        }
+        for (var i = 0; i < capacity; i++) AddNewObject();
     }
 
-    public List<T> CurrentlyOccupied => new List<T>(occupied);
+    public List<T> CurrentlyOccupied => new(occupied);
 
     public bool IsDestroyed { get; private set; }
 
     /// <summary>
-    /// Expand the pool by one object.
+    ///     Expand the pool by one object.
     /// </summary>
     public void AddNewObject()
     {
-        GameObject obj = GameObject.Instantiate(prefab, parent);
-        T component = obj.GetComponent<T>();
+        var obj = GameObject.Instantiate(prefab, parent);
+        var component = obj.GetComponent<T>();
         obj.SetActive(false);
         available.Enqueue(component);
     }
 
     /// <summary>
-    /// Get an object from the pool.
-    /// Instantiate a new object and increase the pool's size if the pool is empty.
+    ///     Get an object from the pool.
+    ///     Instantiate a new object and increase the pool's size if the pool is empty.
     /// </summary>
-    /// <param name="newParent">Transform to parent the returned object to.
-    /// Null means its parent is unchanged.</param>
-    /// <param name="worldPositionStay">Whether the world position of the object will stay unchanged after parenting to the new transform.</param>
+    /// <param name="newParent">
+    ///     Transform to parent the returned object to.
+    ///     Null means its parent is unchanged.
+    /// </param>
+    /// <param name="worldPositionStay">
+    ///     Whether the world position of the object will stay unchanged after parenting to the new
+    ///     transform.
+    /// </param>
     /// <returns>An object from the pool.</returns>
     public T Get(Transform newParent = null, bool worldPositionStay = true)
     {
-        if (available.Count == 0)
-        {
-            AddNewObject();
-        }
+        if (available.Count == 0) AddNewObject();
 
-        T obj = available.Dequeue();
+        var obj = available.Dequeue();
         occupied.Add(obj);
 
-        if (newParent != null)
-        {
-            obj.transform.SetParent(newParent, worldPositionStay);
-        }
+        if (newParent != null) obj.transform.SetParent(newParent, worldPositionStay);
 
         obj.gameObject.SetActive(true);
 
@@ -78,15 +74,12 @@ public class Pool<T>
     }
 
     /// <summary>
-    /// Return an object to the pool for reusing.
+    ///     Return an object to the pool for reusing.
     /// </summary>
     /// <param name="obj">The object to return to the pool.</param>
     public void Return(T obj)
     {
-        if (obj == null)
-        {
-            return;
-        }
+        if (obj == null) return;
 
         occupied.Remove(obj);
         available.Enqueue(obj);
@@ -96,11 +89,11 @@ public class Pool<T>
     }
 
     /// <summary>
-    /// Forcibly return all objects to the pool.
+    ///     Forcibly return all objects to the pool.
     /// </summary>
     public void ReturnAll()
     {
-        foreach (T obj in occupied)
+        foreach (var obj in occupied)
         {
             available.Enqueue(obj);
             obj.transform.SetParent(parent, true);
@@ -111,26 +104,20 @@ public class Pool<T>
     }
 
     /// <summary>
-    /// Destroy the pool and all objects.
+    ///     Destroy the pool and all objects.
     /// </summary>
     public void Destroy()
     {
-        foreach (T obj in occupied)
+        foreach (var obj in occupied)
         {
-            if (obj == null)
-            {
-                continue;
-            }
+            if (obj == null) continue;
 
             GameObject.Destroy(obj.gameObject);
         }
 
-        foreach (T obj in available)
+        foreach (var obj in available)
         {
-            if (obj == null)
-            {
-                continue;
-            }
+            if (obj == null) continue;
 
             GameObject.Destroy(obj.gameObject);
         }

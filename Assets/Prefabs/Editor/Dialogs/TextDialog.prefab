@@ -633,7 +633,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1292130010199685802}
-  - component: {fileID: 1292130010199685803}
   - component: {fileID: 1292130010199685806}
   - component: {fileID: 1292130010199685805}
   - component: {fileID: 1292130010199685804}
@@ -665,31 +664,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 350, y: 175}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1292130010199685803
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1292130010199685801}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42aa4ae80bd69e925a746ab2f3832f4b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  titleText: {fileID: 1292130009230397984}
-  contentText: {fileID: 1292130009991253188}
-  contentRect: {fileID: 1292130009991253187}
-  buttonPrefab: {fileID: 1487356334178746680, guid: 800adeae6cef7a38e83fcf80ca7b7c6e,
-    type: 3}
-  buttonParent: {fileID: 1292130009869949222}
-  extraHeight: 120
-  maxHeight: 8888
-  buttonColors:
-  - {r: 0.42745098, g: 0.42745098, b: 0.42745098, a: 1}
-  - {r: 0.3882353, g: 0.7176471, b: 0.81960785, a: 1}
-  - {r: 0.8980392, g: 0.7058824, b: 0.023529412, a: 1}
-  - {r: 0.8962264, g: 0.38470095, b: 0.38470095, a: 1}
 --- !u!114 &1292130010199685806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -863,7 +837,6 @@ GameObject:
   - component: {fileID: 7625549080247674393}
   - component: {fileID: 6345723463960852203}
   - component: {fileID: 7973512396763570262}
-  - component: {fileID: 4246924781628605469}
   m_Layer: 11
   m_Name: Scroll View
   m_TagString: Untagged
@@ -930,19 +903,6 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4246924781628605469
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6395740892308317108}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: add2ab7b3a371c34e8fd36a26370235a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isVertical: 1
 --- !u!1 &7006863039713570393
 GameObject:
   m_ObjectHideFlags: 0

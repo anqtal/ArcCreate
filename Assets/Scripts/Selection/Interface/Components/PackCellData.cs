@@ -1,10 +1,12 @@
-using ArcCreate.Storage.Data;
+using ArcCreate.Storage;
 using ArcCreate.Utility.InfiniteScroll;
 
 namespace ArcCreate.Selection.Interface
 {
     public class PackCellData : CellData
     {
-        public PackStorage PackStorage { get; set; }
+        public Pack Pack { get; set; }
+
+        public int PackIndex { get; set; }
     }
 }

@@ -10,6 +10,7 @@ namespace ArcCreate.Gameplay.Scenecontrol
     {
 #pragma warning disable
         [SerializeField] private TextController scoreTitle;
+
         [EmmyDoc("Gets the score title text controller")]
         public TextController ScoreTitle
         {
@@ -19,7 +20,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return scoreTitle;
             }
         }
+
         [SerializeField] private TextController score;
+
         [EmmyDoc("Gets the score text controller")]
         public TextController Score
         {
@@ -29,7 +32,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return score;
             }
         }
+
         [SerializeField] private TextController predictedGrade;
+
         [EmmyDoc("Gets the grade text controller, displayed when score mode is Predicitve")]
         public TextController PredictedGrade
         {
@@ -39,7 +44,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return predictedGrade;
             }
         }
+
         [SerializeField] private ImageController predictedGradeBackground;
+
         [EmmyDoc("Gets the background image for grade text controller, displayed when score mode is Predicitve")]
         public ImageController PredictedGradeBackground
         {
@@ -49,7 +56,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return predictedGradeBackground;
             }
         }
+
         [SerializeField] private ImageController jacketBackground;
+
         [EmmyDoc("Gets the jacket background image controller")]
         public ImageController JacketBackground
         {
@@ -59,7 +68,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return jacketBackground;
             }
         }
+
         [SerializeField] private ImageController jacket;
+
         [EmmyDoc("Gets the jacket image controller")]
         public ImageController Jacket
         {
@@ -69,7 +80,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return jacket;
             }
         }
+
         [SerializeField] private TitleController title;
+
         [EmmyDoc("Gets the title text controller")]
         public TitleController Title
         {
@@ -79,7 +92,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return title;
             }
         }
+
         [SerializeField] private ComposerController composer;
+
         [EmmyDoc("Gets the composer text controller")]
         public ComposerController Composer
         {
@@ -89,7 +104,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return composer;
             }
         }
+
         [SerializeField] private DifficultyController difficultyText;
+
         [EmmyDoc("Gets the difficulty text controller")]
         public DifficultyController DifficultyText
         {
@@ -99,7 +116,9 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 return difficultyText;
             }
         }
+
         [SerializeField] private ImageController difficultyBackground;
+
         [EmmyDoc("Gets the difficulty image controller")]
         public ImageController DifficultyBackground
         {

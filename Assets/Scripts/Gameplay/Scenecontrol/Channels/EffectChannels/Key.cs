@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace ArcCreate.Gameplay.Scenecontrol
 {
@@ -21,8 +22,8 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public void Deserialize(string str)
         {
-            string[] split = str.Split(',');
-            Timing = UnityEngine.Mathf.RoundToInt(float.Parse(split[0]));
+            var split = str.Split(',');
+            Timing = Mathf.RoundToInt(float.Parse(split[0]));
             Value = float.Parse(split[1]);
             EasingString = split[2];
         }

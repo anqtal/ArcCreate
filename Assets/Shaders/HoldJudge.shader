@@ -47,7 +47,7 @@
                 CBUFFER_START(Variables)
                     float4 _TintColor;
                 CBUFFER_END
-                
+
                 sampler2D _MainTex;
 
                 v2f vert(appdata v)

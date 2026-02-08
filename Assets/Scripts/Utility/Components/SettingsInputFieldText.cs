@@ -18,13 +18,6 @@ namespace ArcCreate
             }
         }
 
-        public void Setup(StringSetting setting)
-        {
-            this.setting = setting;
-            setting.OnValueChanged.AddListener(OnSettingChange);
-            OnSettingChange(setting.Value);
-        }
-
         private void Awake()
         {
             Input.onValueChanged.AddListener(OnUIChange);
@@ -34,6 +27,13 @@ namespace ArcCreate
         {
             Input.onValueChanged.RemoveListener(OnUIChange);
             setting?.OnValueChanged.RemoveListener(OnSettingChange);
+        }
+
+        public void Setup(StringSetting setting)
+        {
+            this.setting = setting;
+            setting.OnValueChanged.AddListener(OnSettingChange);
+            OnSettingChange(setting.Value);
         }
 
         private void OnSettingChange(string value)

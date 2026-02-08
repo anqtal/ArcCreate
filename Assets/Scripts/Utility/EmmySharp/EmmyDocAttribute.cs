@@ -7,7 +7,8 @@ using System;
 
 namespace EmmySharp
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method |
+                    AttributeTargets.Class)]
     public class EmmyDocAttribute : Attribute
     {
         public EmmyDocAttribute(string doc)

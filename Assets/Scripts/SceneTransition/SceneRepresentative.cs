@@ -8,68 +8,16 @@ namespace ArcCreate.SceneTransition
     // Code yoinked from ArcCore
     public class SceneRepresentative : MonoBehaviour
     {
-        /// <summary>
-        /// Lazy method for passing data in case cyclic dependency gets problematic.
-        /// </summary>
-        /// <param name="args">Argument to be passed.</param>
-        public virtual void PassData(params object[] args)
-        {
-        }
-
-        /// <summary>
-        /// Called when the scene is unloaded.
-        /// </summary>
-        public virtual void OnUnloadScene()
-        {
-        }
-
-        /// <summary>
-        /// Called if the scene is started directly (i.e. started within the editor).
-        /// For testing purposes only.
-        /// </summary>
-        public virtual void OnNoBootScene()
-        {
-        }
-
-        protected IEnumerator NextFrame(Action action)
-        {
-            yield return null;
-            action.Invoke();
-        }
-
-        protected IEnumerator EndOfFrame(Action action)
-        {
-            yield return new WaitForEndOfFrame();
-            action.Invoke();
-        }
-
-        /// <summary>
-        /// Called after the scene transition is complete, i.e. after the shutter is open.
-        /// </summary>
-        protected virtual void OnTransitionComplete()
-        {
-        }
-
-        /// <summary>
-        /// Called when the scene is loaded.
-        /// </summary>
-        protected virtual void OnSceneLoad()
-        {
-        }
-
         private void Awake()
         {
             StartCoroutine(NextFrame(OnSceneLoad));
             if (SceneTransitionManager.Instance == null)
             {
-                bool bootSceneFound = false;
-                for (int i = 0; i < SceneManager.sceneCount; i++)
+                var bootSceneFound = false;
+                for (var i = 0; i < SceneManager.sceneCount; i++)
                 {
-                    Scene scene = SceneManager.GetSceneAt(i);
-                    if (scene.name == SceneNames.BootScene)
-                    {
-                        bootSceneFound = true;
-                    }
+                    var scene = SceneManager.GetSceneAt(i);
+                    if (scene.name == SceneNames.BootScene) bootSceneFound = true;
                 }
 
                 if (!bootSceneFound)
@@ -89,6 +37,55 @@ namespace ArcCreate.SceneTransition
             }
 
             NotifyManager();
+        }
+
+        /// <summary>
+        ///     Lazy method for passing data in case cyclic dependency gets problematic.
+        /// </summary>
+        /// <param name="args">Argument to be passed.</param>
+        public virtual void PassData(params object[] args)
+        {
+        }
+
+        /// <summary>
+        ///     Called when the scene is unloaded.
+        /// </summary>
+        public virtual void OnUnloadScene()
+        {
+        }
+
+        /// <summary>
+        ///     Called if the scene is started directly (i.e. started within the editor).
+        ///     For testing purposes only.
+        /// </summary>
+        public virtual void OnNoBootScene()
+        {
+        }
+
+        protected IEnumerator NextFrame(Action action)
+        {
+            yield return null;
+            action.Invoke();
+        }
+
+        protected IEnumerator EndOfFrame(Action action)
+        {
+            yield return new WaitForEndOfFrame();
+            action.Invoke();
+        }
+
+        /// <summary>
+        ///     Called after the scene transition is complete, i.e. after the shutter is open.
+        /// </summary>
+        protected virtual void OnTransitionComplete()
+        {
+        }
+
+        /// <summary>
+        ///     Called when the scene is loaded.
+        /// </summary>
+        protected virtual void OnSceneLoad()
+        {
         }
 
         private void NotifyManager()

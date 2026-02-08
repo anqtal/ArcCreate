@@ -8,13 +8,13 @@ namespace ArcCreate.Gameplay.Data
 {
     public class ArcTap : Note, INote, IArcTapJudgementReceiver
     {
-        private bool judgementRequestSent = false;
-        private bool isHit = false;
+        private bool isHit;
         private bool isSfx;
-        private bool sfxPlayed = false;
+        private bool judgementRequestSent;
+        private bool sfxPlayed;
         private Texture texture;
 
-        public HashSet<Tap> ConnectedTaps { get; } = new HashSet<Tap>();
+        public HashSet<Tap> ConnectedTaps { get; } = new();
 
         public Arc Arc { get; set; }
 
@@ -26,23 +26,17 @@ namespace ArcCreate.Gameplay.Data
 
         public string Sfx => Arc.Sfx;
 
-        public override ArcEvent Clone()
+        public void ProcessArcTapJudgement(int offset, GroupProperties props)
         {
-            return new ArcTap()
-            {
-                Timing = Timing,
-                Arc = Arc,
-                Width = Width,
-                TimingGroup = TimingGroup,
-            };
-        }
+            var result = props.MapJudgementResult(offset.CalculateJudgeResult(true));
+            var judgeOffset = props.CurrentJudgementOffset;
+            Services.Particle.PlayTapParticle(new Vector3(WorldX, WorldY) + judgeOffset, result);
+            Services.Particle.PlayTextParticle(new Vector3(WorldX, WorldY) + judgeOffset, result, offset);
+            Services.Score.ProcessJudgement(result, offset);
+            isHit = true;
 
-        public override void Assign(ArcEvent newValues)
-        {
-            base.Assign(newValues);
-            ArcTap e = newValues as ArcTap;
-            Arc = e.Arc;
-            Width = e.Width;
+            if (!result.IsMiss()) BassAudioService.Instance.PlayArcHitSound(Timing);
+            //Services.Hitsound.PlayArcTapHitsound(Timing, Sfx, isFromJudgement: true);
         }
 
         public void ResetJudgeTo(int timing)
@@ -63,30 +57,6 @@ namespace ArcCreate.Gameplay.Data
             isSfx = !string.IsNullOrEmpty(Sfx) && Sfx != "none";
         }
 
-        public override void GenerateColliderTriangles(int timing, List<Vector3> vertices, List<int> triangles)
-        {
-            Mesh mesh = Services.Render.ArcTapMesh;
-            vertices.Clear();
-            triangles.Clear();
-            mesh.GetVertices(vertices);
-            mesh.GetTriangles(triangles, 0);
-
-            double fp = TimingGroupInstance.GetFloorPosition(timing);
-            float z = ZPos(fp);
-            Vector3 basePos = new Vector3(WorldX, WorldY, 0);
-            Vector3 pos = (TimingGroupInstance.GroupProperties.FallDirection * z) + basePos;
-            Vector3 scl = TimingGroupInstance.GroupProperties.ScaleIndividual;
-            scl.x *= Width;
-
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                Vector3 v = vertices[i];
-                v = v.Multiply(scl);
-                v += pos;
-                vertices[i] = v;
-            }
-        }
-
         public void UpdateJudgement(int currentTiming, GroupProperties groupProperties)
         {
             if (!judgementRequestSent && currentTiming <= Timing)
@@ -96,39 +66,31 @@ namespace ArcCreate.Gameplay.Data
             }
 
             if (currentTiming >= Timing && !sfxPlayed)
-            {
                 //Services.Hitsound.PlayArcTapHitsound(Timing, Sfx, isFromJudgement: false);
                 sfxPlayed = true;
-            }
         }
 
         public void UpdateRender(int currentTiming, double currentFloorPosition, GroupProperties groupProperties)
         {
-            if (isHit && !groupProperties.NoClip)
-            {
-                return;
-            }
+            if (isHit && !groupProperties.NoClip) return;
 
-            if (texture == null)
-            {
-                ReloadSkin();
-            }
+            if (texture == null) ReloadSkin();
 
-            float z = ZPos(currentFloorPosition);
-            Vector3 pos = (groupProperties.FallDirection * z) + new Vector3(WorldX, WorldY, 0);
-            Quaternion rot = groupProperties.RotationIndividual;
-            Vector3 scl = groupProperties.ScaleIndividual;
+            var z = ZPos(currentFloorPosition);
+            var pos = groupProperties.FallDirection * z + new Vector3(WorldX, WorldY, 0);
+            var rot = groupProperties.RotationIndividual;
+            var scl = groupProperties.ScaleIndividual;
             scl.x *= Width;
-            Matrix4x4 matrix = groupProperties.GroupMatrix * Matrix4x4.TRS(pos, rot, scl);
+            var matrix = groupProperties.GroupMatrix * Matrix4x4.TRS(pos, rot, scl);
 
-            float alpha = ArcFormula.CalculateFadeOutAlpha(z);
-            Color color = groupProperties.Color;
+            var alpha = ArcFormula.CalculateFadeOutAlpha(z);
+            var color = groupProperties.Color;
             color.a *= alpha;
 
             Services.Render.DrawArcTap(isSfx, texture, matrix, color, IsSelected);
             if (!groupProperties.NoShadow)
             {
-                Matrix4x4 shadowMatrix = matrix * Matrix4x4.Translate(new Vector3(0, -pos.y, 0));
+                var shadowMatrix = matrix * Matrix4x4.Translate(new Vector3(0, -pos.y, 0));
                 Services.Render.DrawArcTapShadow(shadowMatrix, color);
             }
         }
@@ -138,26 +100,53 @@ namespace ArcCreate.Gameplay.Data
             return Timing.CompareTo(other.Timing);
         }
 
-        public void ProcessArcTapJudgement(int offset, GroupProperties props)
+        public override ArcEvent Clone()
         {
-            JudgementResult result = props.MapJudgementResult(offset.CalculateJudgeResult(isArcTap:true));
-            Vector3 judgeOffset = props.CurrentJudgementOffset;
-            Services.Particle.PlayTapParticle(new Vector3(WorldX, WorldY) + judgeOffset, result);
-            Services.Particle.PlayTextParticle(new Vector3(WorldX, WorldY) + judgeOffset, result, offset);
-            Services.Score.ProcessJudgement(result, offset);
-            isHit = true;
-
-            if (!result.IsMiss())
+            return new ArcTap
             {
-                BassAudioService.Instance.PlayArcHitSound(Timing);
-                //Services.Hitsound.PlayArcTapHitsound(Timing, Sfx, isFromJudgement: true);
+                Timing = Timing,
+                Arc = Arc,
+                Width = Width,
+                TimingGroup = TimingGroup
+            };
+        }
+
+        public override void Assign(ArcEvent newValues)
+        {
+            base.Assign(newValues);
+            var e = newValues as ArcTap;
+            Arc = e.Arc;
+            Width = e.Width;
+        }
+
+        public override void GenerateColliderTriangles(int timing, List<Vector3> vertices, List<int> triangles)
+        {
+            var mesh = Services.Render.ArcTapMesh;
+            vertices.Clear();
+            triangles.Clear();
+            mesh.GetVertices(vertices);
+            mesh.GetTriangles(triangles, 0);
+
+            var fp = TimingGroupInstance.GetFloorPosition(timing);
+            var z = ZPos(fp);
+            var basePos = new Vector3(WorldX, WorldY, 0);
+            var pos = TimingGroupInstance.GroupProperties.FallDirection * z + basePos;
+            var scl = TimingGroupInstance.GroupProperties.ScaleIndividual;
+            scl.x *= Width;
+
+            for (var i = 0; i < vertices.Count; i++)
+            {
+                var v = vertices[i];
+                v = v.Multiply(scl);
+                v += pos;
+                vertices[i] = v;
             }
         }
 
         private void RequestJudgement(GroupProperties props)
         {
             Services.Judgement.Request(
-                new ArcTapJudgementRequest()
+                new ArcTapJudgementRequest
                 {
                     ExpireAtTiming = Timing + Values.MissJudgeWindow,
                     AutoAtTiming = Timing,
@@ -165,7 +154,7 @@ namespace ArcCreate.Gameplay.Data
                     Y = WorldY,
                     Width = Width,
                     Receiver = this,
-                    Properties = props,
+                    Properties = props
                 });
         }
     }

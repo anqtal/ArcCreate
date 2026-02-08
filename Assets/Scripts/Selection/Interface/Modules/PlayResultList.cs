@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using ArcCreate.Data;
-using ArcCreate.Storage.Data;
+using ArcCreate.Storage;
 using UnityEngine;
 
 namespace ArcCreate.Selection.Interface
@@ -9,21 +9,18 @@ namespace ArcCreate.Selection.Interface
     {
         [SerializeField] private Transform parent;
         [SerializeField] private GameObject itemPrefab;
-        private readonly List<PlayResultItem> items = new List<PlayResultItem>();
+        private readonly List<PlayResultItem> items = new();
 
-        public void Display(LevelStorage level, ChartSettings chart, IEnumerable<PlayResult> plays)
+        public void Display(SongList level, Difficulty chart, IEnumerable<PlayResult> plays)
         {
-            foreach (var item in items)
-            {
-                Destroy(item.gameObject);
-            }
+            foreach (var item in items) Destroy(item.gameObject);
 
             items.Clear();
 
             foreach (var play in plays)
             {
-                GameObject go = Instantiate(itemPrefab, parent);
-                PlayResultItem item = go.GetComponent<PlayResultItem>();
+                var go = Instantiate(itemPrefab, parent);
+                var item = go.GetComponent<PlayResultItem>();
                 item.Display(level, chart, play);
                 items.Add(item);
             }

@@ -7,17 +7,17 @@ namespace ArcCreate.SceneTransition
 {
     public class TransitionSequence
     {
-        private readonly List<TransitionStep> onShow = new List<TransitionStep>();
-        private readonly List<TransitionStep> onHide = new List<TransitionStep>();
-        private readonly List<UniTask> waitTask = new List<UniTask>();
-        private short mode = 0;
-        private CancellationTokenSource cts = new CancellationTokenSource();
+        private readonly List<TransitionStep> onHide = new();
+        private readonly List<TransitionStep> onShow = new();
+        private readonly List<UniTask> waitTask = new();
+        private CancellationTokenSource cts = new();
+        private short mode;
 
         public int WaitDurationMs { get; set; }
 
-        public int ShowDurationMs { get; private set; } = 0;
+        public int ShowDurationMs { get; private set; }
 
-        public int HideDurationMs { get; private set; } = 0;
+        public int HideDurationMs { get; private set; }
 
         public int FullSequenceMs => ShowDurationMs + WaitDurationMs + HideDurationMs;
 
@@ -33,9 +33,9 @@ namespace ArcCreate.SceneTransition
         {
             KillAllAnimations();
             waitTask.Clear();
-            for (int i = 0; i < onShow.Count; i++)
+            for (var i = 0; i < onShow.Count; i++)
             {
-                TransitionStep step = onShow[i];
+                var step = onShow[i];
                 waitTask.Add(step.Show(cts.Token));
             }
 
@@ -46,9 +46,9 @@ namespace ArcCreate.SceneTransition
         {
             KillAllAnimations();
             waitTask.Clear();
-            for (int i = 0; i < onHide.Count; i++)
+            for (var i = 0; i < onHide.Count; i++)
             {
-                TransitionStep step = onHide[i];
+                var step = onHide[i];
                 waitTask.Add(step.Hide(cts.Token));
             }
 
@@ -57,30 +57,30 @@ namespace ArcCreate.SceneTransition
 
         public void DisableGameObject()
         {
-            for (int i = 0; i < onShow.Count; i++)
+            for (var i = 0; i < onShow.Count; i++)
             {
-                TransitionStep step = onShow[i];
+                var step = onShow[i];
                 step.Transition.DisableGameObject();
             }
 
-            for (int i = 0; i < onHide.Count; i++)
+            for (var i = 0; i < onHide.Count; i++)
             {
-                TransitionStep step = onHide[i];
+                var step = onHide[i];
                 step.Transition.DisableGameObject();
             }
         }
 
         public void EnableGameObject()
         {
-            for (int i = 0; i < onShow.Count; i++)
+            for (var i = 0; i < onShow.Count; i++)
             {
-                TransitionStep step = onShow[i];
+                var step = onShow[i];
                 step.Transition.DisableGameObject();
             }
 
-            for (int i = 0; i < onHide.Count; i++)
+            for (var i = 0; i < onHide.Count; i++)
             {
-                TransitionStep step = onHide[i];
+                var step = onHide[i];
                 step.Transition.EnableGameObject();
             }
         }
@@ -152,9 +152,9 @@ namespace ArcCreate.SceneTransition
 
         private struct TransitionStep
         {
-            public ITransition Transition;
-            public bool IsReversed;
-            public int Delay;
+            public readonly ITransition Transition;
+            public readonly bool IsReversed;
+            public readonly int Delay;
 
             public TransitionStep(ITransition transiton, int delay, bool isReversed)
             {
@@ -167,42 +167,28 @@ namespace ArcCreate.SceneTransition
             {
                 if (Delay > 0)
                 {
-                    bool cancelled = await UniTask.Delay(Delay, cancellationToken: ct).SuppressCancellationThrow();
-                    if (cancelled)
-                    {
-                        return;
-                    }
+                    var cancelled = await UniTask.Delay(Delay, cancellationToken: ct).SuppressCancellationThrow();
+                    if (cancelled) return;
                 }
 
                 if (!IsReversed)
-                {
                     await Forward();
-                }
                 else
-                {
                     await Backward(ct);
-                }
             }
 
             public async UniTask Hide(CancellationToken ct)
             {
                 if (Delay > 0)
                 {
-                    bool cancelled = await UniTask.Delay(Delay, cancellationToken: ct).SuppressCancellationThrow();
-                    if (cancelled)
-                    {
-                        return;
-                    }
+                    var cancelled = await UniTask.Delay(Delay, cancellationToken: ct).SuppressCancellationThrow();
+                    if (cancelled) return;
                 }
 
                 if (IsReversed)
-                {
                     await Forward();
-                }
                 else
-                {
                     await Backward(ct);
-                }
             }
 
             private async UniTask Forward()
@@ -214,10 +200,7 @@ namespace ArcCreate.SceneTransition
             private async UniTask Backward(CancellationToken ct)
             {
                 await Transition.EndTransition();
-                if (ct.IsCancellationRequested)
-                {
-                    return;
-                }
+                if (ct.IsCancellationRequested) return;
 
                 Transition.DisableGameObject();
             }

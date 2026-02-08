@@ -7,16 +7,17 @@ namespace ArcCreate.Gameplay.Scenecontrol
     public class ConditionalChannel : ValueChannel
     {
         private ValueChannel control;
-        private ValueChannel threshold;
         private ValueChannel ifAbove;
-        private ValueChannel ifEqual;
         private ValueChannel ifBelow;
+        private ValueChannel ifEqual;
+        private ValueChannel threshold;
 
         public ConditionalChannel()
         {
         }
 
-        public ConditionalChannel(ValueChannel control, ValueChannel threshold, ValueChannel ifAbove, ValueChannel ifEqual, ValueChannel ifBelow)
+        public ConditionalChannel(ValueChannel control, ValueChannel threshold, ValueChannel ifAbove,
+            ValueChannel ifEqual, ValueChannel ifBelow)
         {
             this.control = control;
             this.threshold = threshold;
@@ -42,21 +43,16 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 serialization.AddUnitAndGetId(threshold),
                 serialization.AddUnitAndGetId(ifAbove),
                 serialization.AddUnitAndGetId(ifEqual),
-                serialization.AddUnitAndGetId(ifBelow),
+                serialization.AddUnitAndGetId(ifBelow)
             };
         }
 
         public override float ValueAt(int timing)
         {
-            int comp = control.ValueAt(timing).CompareTo(threshold.ValueAt(timing));
-            if (comp > 0)
-            {
-                return ifAbove.ValueAt(timing);
-            }
-            else if (comp < 0)
-            {
-                return ifBelow.ValueAt(timing);
-            }
+            var comp = control.ValueAt(timing).CompareTo(threshold.ValueAt(timing));
+            if (comp > 0) return ifAbove.ValueAt(timing);
+
+            if (comp < 0) return ifBelow.ValueAt(timing);
 
             return ifEqual.ValueAt(timing);
         }

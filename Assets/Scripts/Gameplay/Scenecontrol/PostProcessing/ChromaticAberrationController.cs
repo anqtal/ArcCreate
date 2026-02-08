@@ -13,16 +13,22 @@ namespace ArcCreate.Gameplay.Scenecontrol
 
         public bool DefaultFastMode { get; set; }
 
+        protected override void Reset()
+        {
+            Intensity = new ConstantChannel(DefaultIntensity);
+            TargetEffect.intensity.overrideState = false;
+            TargetEffect.fastMode.overrideState = false;
+            TargetEffect.fastMode.value = DefaultFastMode;
+        }
+
         public override void EnableEffect(string[] effects)
         {
             TargetEffect.enabled.Override(true);
-            foreach (string effect in effects)
-            {
+            foreach (var effect in effects)
                 switch (effect.ToLower())
                 {
                     case "intensity": TargetEffect.intensity.overrideState = true; break;
                 }
-            }
         }
 
         public override List<object> SerializeProperties(ScenecontrolSerialization serialization)
@@ -32,13 +38,14 @@ namespace ArcCreate.Gameplay.Scenecontrol
                 TargetEffect.enabled.value,
                 TargetEffect.intensity.overrideState,
                 serialization.AddUnitAndGetId(Intensity),
-                TargetEffect.fastMode.value,
+                TargetEffect.fastMode.value
             };
         }
 
-        public override void DeserializeProperties(List<object> properties, EnabledFeatures features, ScenecontrolDeserialization deserialization)
+        public override void DeserializeProperties(List<object> properties, EnabledFeatures features,
+            ScenecontrolDeserialization deserialization)
         {
-            int offset = 0;
+            var offset = 0;
             TargetEffect.enabled.Override((bool)properties[offset++] && !Settings.DisableAdvancedGraphics.Value);
             TargetEffect.intensity.overrideState = (bool)properties[offset++];
             Intensity = deserialization.GetUnitFromId<ValueChannel>(properties[offset++]);
@@ -54,14 +61,6 @@ namespace ArcCreate.Gameplay.Scenecontrol
         public override void UpdateController(int timing)
         {
             TargetEffect.intensity.value = Intensity.ValueAt(timing);
-        }
-
-        protected override void Reset()
-        {
-            Intensity = new ConstantChannel(DefaultIntensity);
-            TargetEffect.intensity.overrideState = false;
-            TargetEffect.fastMode.overrideState = false;
-            TargetEffect.fastMode.value = DefaultFastMode;
         }
 
         protected override void SetupDefault()

@@ -71,7 +71,7 @@
                 OUT.texcoord = IN.texcoord;
                 OUT.color = IN.color * _Color;
                 #ifdef PIXELSNAP_ON
-				OUT.vertex = UnityPixelSnap(OUT.vertex);
+                OUT.vertex = UnityPixelSnap(OUT.vertex);
                 #endif
 
                 return OUT;
@@ -86,8 +86,8 @@
                 fixed4 color = tex2D(_MainTex, uv);
 
                 #if UNITY_TEXTURE_ALPHASPLIT_ALLOWED
-				if (_AlphaSplitEnabled)
-					color.a = tex2D(_AlphaTex, uv).r;
+                if (_AlphaSplitEnabled)
+                    color.a = tex2D(_AlphaTex, uv).r;
                 #endif //UNITY_TEXTURE_ALPHASPLIT_ALLOWED
 
                 return color;

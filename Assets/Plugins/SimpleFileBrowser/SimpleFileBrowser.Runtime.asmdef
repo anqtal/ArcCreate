@@ -1,6 +1,0 @@
-﻿{
-  "name": "SimpleFileBrowser.Runtime",
-  "references": [
-    "Unity.InputSystem"
-  ]
-}

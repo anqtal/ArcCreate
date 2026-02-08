@@ -8,9 +8,9 @@ namespace ArcCreate.Utility
     {
         [SerializeField] private string playerPrefKey;
         [SerializeField] private Theme defaultTheme;
+        private Option<Theme> overrideValue;
 
         private Theme value;
-        private Option<Theme> overrideValue;
 
         public Option<Theme> OverrideValue
         {
@@ -26,11 +26,8 @@ namespace ArcCreate.Utility
         {
             get
             {
-                Theme theme = value;
-                if (overrideValue.HasValue)
-                {
-                    theme = overrideValue.Value;
-                }
+                var theme = value;
+                if (overrideValue.HasValue) theme = overrideValue.Value;
 
                 return theme;
             }
@@ -42,16 +39,13 @@ namespace ArcCreate.Utility
             }
         }
 
-        public Theme LastSelectedTheme
-        {
-            get => (Theme)PlayerPrefs.GetInt(playerPrefKey, (int)defaultTheme);
-        }
+        public Theme LastSelectedTheme => (Theme)PlayerPrefs.GetInt(playerPrefKey, (int)defaultTheme);
 
-        public OnChangeEvent OnValueChange { get; set; } = new OnChangeEvent();
+        public OnChangeEvent OnValueChange { get; set; } = new();
 
         private void Update()
         {
-            Theme theme = Value;
+            var theme = Value;
             OnValueChange.Invoke(theme);
             PlayerPrefs.SetInt(playerPrefKey, (int)theme);
         }

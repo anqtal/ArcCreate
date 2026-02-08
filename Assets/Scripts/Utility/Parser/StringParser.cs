@@ -3,86 +3,62 @@
     public class StringParser
     {
         private readonly string str;
-        private int pos;
 
         public StringParser(string str)
         {
             this.str = str;
         }
 
-        public char Current
-        {
-            get
-            {
-                return str[pos];
-            }
-        }
+        public char Current => str[Pos];
 
-        public int Pos => pos;
+        public int Pos { get; private set; }
 
-        public bool HasEnded => pos >= str.Length;
+        public bool HasEnded => Pos >= str.Length;
 
         public void Skip(int length)
         {
-            pos += length;
+            Pos += length;
         }
 
         public Result<TextSpan<float>, ParsingError> ReadFloat(string terminator = null)
         {
-            if (!ReadString(terminator).TryUnwrap(out TextSpan<string> s, out ParsingError e))
-            {
-                return e;
-            }
+            if (!ReadString(terminator).TryUnwrap(out var s, out var e)) return e;
 
-            if (!Evaluator.TryFloat(s, out float value))
-            {
+            if (!Evaluator.TryFloat(s, out var value))
                 return new ParsingError(s, s.StartPos, s.Length, ParsingError.Kind.InvalidConversionToFloat);
-            }
 
             return new TextSpan<float>(value, s.StartPos, s.Length);
         }
 
         public Result<TextSpan<int>, ParsingError> ReadInt(string terminator = null)
         {
-            if (!ReadString(terminator).TryUnwrap(out TextSpan<string> s, out ParsingError e))
-            {
-                return e;
-            }
+            if (!ReadString(terminator).TryUnwrap(out var s, out var e)) return e;
 
-            if (!Evaluator.TryInt(s, out int value))
-            {
+            if (!Evaluator.TryInt(s, out var value))
                 return new ParsingError(s, s.StartPos, s.Length, ParsingError.Kind.InvalidConversionToInt);
-            }
 
             return new TextSpan<int>(value, s.StartPos, s.Length);
         }
 
         public Result<TextSpan<bool>, ParsingError> ReadBool(string terminator = null)
         {
-            if (!ReadString(terminator).TryUnwrap(out TextSpan<string> s, out ParsingError e))
-            {
-                return e;
-            }
+            if (!ReadString(terminator).TryUnwrap(out var s, out var e)) return e;
 
-            if (!bool.TryParse(s, out bool value))
-            {
+            if (!bool.TryParse(s, out var value))
                 return new ParsingError(s, s.StartPos, s.Length, ParsingError.Kind.InvalidConversionToBool);
-            }
 
             return new TextSpan<bool>(value, s.StartPos, s.Length);
         }
 
         public Result<TextSpan<string>, ParsingError> ReadString(string terminator = null)
         {
-            int end = terminator != null ? str.IndexOf(terminator, pos) : str.Length;
+            var end = terminator != null ? str.IndexOf(terminator, Pos) : str.Length;
             if (end == -1)
-            {
-                return new ParsingError(terminator, pos, str.Length - pos, ParsingError.Kind.CharacterNotFound);
-            }
+                return new ParsingError(terminator, Pos, str.Length - Pos, ParsingError.Kind.CharacterNotFound);
 
-            string s = str.Substring(pos, end - pos);
-            var result = new TextSpan<string>(s, pos, s.Length);
-            pos = end + 1;
+            var s = str.Substring(Pos, end - Pos);
+            var result = new TextSpan<string>(s, Pos, s.Length);
+            Pos = end + 1;
             return result;
         }
     }

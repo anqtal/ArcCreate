@@ -10,10 +10,7 @@ public static class SplashWorkaround
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
     private static void BeforeSplashScreen()
     {
-        if (Application.HasProLicense())
-        {
-            return;
-        }
+        if (Application.HasProLicense()) return;
 
         Task.Run(StopSplashScreen);
     }
